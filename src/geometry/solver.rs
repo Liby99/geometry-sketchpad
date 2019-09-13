@@ -37,6 +37,14 @@ impl Solution {
       lines: BTreeMap::new(),
     }
   }
+
+  pub fn get_point(&self, id: Id) -> Option<&Point> {
+    self.points.get(&id)
+  }
+
+  pub fn get_line(&self, id: Id) -> Option<&Line> {
+    self.lines.get(&id)
+  }
 }
 
 pub fn solve(context: &Context) -> Result<Solution, SolveError> {
