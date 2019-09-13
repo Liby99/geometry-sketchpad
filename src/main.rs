@@ -11,7 +11,7 @@ use piston_window::*;
 use specs::prelude::*;
 use states::FinishState;
 use systems::{RenderSystem, SolverSystem};
-use components::point::*;
+use components::{point, line};
 use math::Vector2;
 
 fn main() {
@@ -19,19 +19,35 @@ fn main() {
   // Create a world
   let mut world = World::new();
   world.insert(FinishState(false));
-  world.register::<Point>();
-  world.register::<SymbolicPoint>();
-  world.register::<PointStyle>();
+  world.register::<point::Point>();
+  world.register::<point::SymbolicPoint>();
+  world.register::<point::PointStyle>();
+  world.register::<line::Line>();
+  world.register::<line::SymbolicLine>();
+  world.register::<line::LineStyle>();
 
   // ============ TEMP START ============
   world.create_entity()
-    .with(PointStyle { color: [1., 0., 0., 1.], radius: 5. })
-    .with(SymbolicPoint::Free(Vector2 { x: 0., y: 0. }))
+    .with(point::PointStyle { color: [1., 0., 0., 1.], radius: 5. })
+    .with(point::SymbolicPoint::Free(Vector2 { x: 0., y: 0. }))
     .build();
 
   world.create_entity()
-    .with(PointStyle { color: [1., 0., 0., 1.], radius: 5. })
-    .with(SymbolicPoint::Free(Vector2 { x: 30., y: 10. }))
+    .with(point::PointStyle { color: [1., 0., 0., 1.], radius: 5. })
+    .with(point::SymbolicPoint::Free(Vector2 { x: 30., y: 10. }))
+    .build();
+
+  world.create_entity()
+    .with(point::PointStyle { color: [1., 0., 1., 1.], radius: 5. })
+    .with(point::SymbolicPoint::Free(Vector2 { x: -20., y: -20. }))
+    .build();
+
+  world.create_entity()
+    .with(line::LineStyle { color: [0., 0., 1., 1.], width: 2. })
+    .with(line::Line {
+      origin: Vector2 { x: -20., y: -20. },
+      direction: Vector2 { x: 0., y: 1. },
+    })
     .build();
   // ============ TEMP END ============
 
