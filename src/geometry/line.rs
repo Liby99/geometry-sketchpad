@@ -7,13 +7,13 @@ pub trait Intersect<T> {
   fn intersect(self, other: T) -> Option<Self::Output>;
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum LineConstruct {
   TwoPoint { p1: Id, p2: Id },
   Parallel { l: Id, p: Id },
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Line {
   pub origin: Vec2,
   pub direction: Vec2,

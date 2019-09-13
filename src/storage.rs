@@ -9,6 +9,14 @@ pub struct Storage<T> {
 }
 
 impl<T> Storage<T> {
+  pub fn new() -> Storage<T> {
+    Storage {
+      items: vec![],
+      generations: vec![],
+      empty_spots: vec![],
+    }
+  }
+
   pub fn get(&self, Id (index, gen): Id) -> Option<&T> {
     if index < self.generations.len() && self.generations[index] == gen {
       Some(&self.items[index])
@@ -59,14 +67,14 @@ impl<T> Storage<T> {
   }
 }
 
-pub struct StorageIter<T> {
+pub struct StorageIter {
   item_index: usize,
-  item_iter: std::iter::Zip<std::vec::IntoIter<i32>, std::vec::IntoIter<T>>,
-  empty_iter: ::std::vec::IntoIter<usize>,
+  gen_iter: std::vec::IntoIter<i32>,
+  empty_iter: std::vec::IntoIter<usize>,
 }
 
-impl<T> Iterator for StorageIter<T> {
-  type Item = (Id, T);
+impl Iterator for StorageIter {
+  type Item = Id;
 
   fn next(&mut self) -> Option<Self::Item> {
 
@@ -74,14 +82,14 @@ impl<T> Iterator for StorageIter<T> {
     let mut i = self.item_index;
     while self.empty_iter.nth(0) == Some(i) {
       self.empty_iter.next();
-      self.item_iter.next();
+      self.gen_iter.next();
       i += 1;
     }
 
     // Iterate
     self.item_index = i + 1;
-    if let Some((gen, item)) = self.item_iter.next() {
-      Some((Id(i, gen), item))
+    if let Some(gen) = self.gen_iter.next() {
+      Some(Id(i, gen))
     } else {
       None
     }
@@ -89,8 +97,8 @@ impl<T> Iterator for StorageIter<T> {
 }
 
 impl<T> IntoIterator for Storage<T> {
-  type Item = (Id, T);
-  type IntoIter = StorageIter<T>;
+  type Item = Id;
+  type IntoIter = StorageIter;
 
   fn into_iter(self) -> Self::IntoIter {
 
@@ -101,7 +109,7 @@ impl<T> IntoIterator for Storage<T> {
     // Then generate the iterator
     StorageIter {
       item_index: 0,
-      item_iter: self.generations.into_iter().zip(self.items),
+      gen_iter: self.generations.into_iter(),
       empty_iter: sorted_empty_indices.into_iter(),
     }
   }

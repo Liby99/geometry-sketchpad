@@ -7,6 +7,10 @@ pub struct Vec2 {
 }
 
 impl Vec2 {
+  pub fn new(x: f64, y: f64) -> Self {
+    Vec2 { x, y }
+  }
+
   pub fn magnitude(self) -> f64 {
     (self.x * self.x + self.y * self.y).sqrt()
   }

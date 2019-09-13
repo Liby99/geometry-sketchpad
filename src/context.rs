@@ -8,39 +8,105 @@ use crate::{
   storage::{ Id, Storage },
 };
 
-pub struct Context {
-  pub points: Storage<PointConstruct>,
-  pub lines: Storage<LineConstruct>,
-}
-
+#[derive(Copy, Clone, Debug)]
 pub enum SolveError {
   LineNotFound(Id),
   PointNotFound(Id),
 }
 
+#[derive(Copy, Clone, Debug)]
 pub enum ToCompute {
   Line(Id),
   Point(Id),
 }
 
+#[derive(Copy, Clone, Debug)]
 pub enum SolveResult<T> {
   Ok(Option<T>),
   Request(ToCompute),
+  AlreadyComputed,
   Err(SolveError)
 }
 
+#[derive(Debug)]
+pub struct Solution {
+  points: BTreeMap<Id, Point>,
+  lines: BTreeMap<Id, Line>,
+}
+
+impl Solution {
+  pub fn new() -> Self {
+    Self {
+      points: BTreeMap::new(),
+      lines: BTreeMap::new(),
+    }
+  }
+}
+
+pub struct Context {
+  pub points: Storage<PointConstruct>,
+  pub lines: Storage<LineConstruct>,
+}
+
 impl Context {
-  pub fn solve(&self) -> Solution {
+  pub fn new() -> Context {
+    Context {
+      points: Storage::new(),
+      lines: Storage::new(),
+    }
+  }
+
+  pub fn solve(&self) -> Result<Solution, SolveError> {
     let mut sol = Solution::new();
 
-    // TODO
+    // Get queue
+    let points_to_comp = self.points.clone().into_iter().map(|id| ToCompute::Point(id)).collect::<Vec<_>>();
+    let lines_to_comp = self.lines.clone().into_iter().map(|id| ToCompute::Line(id)).collect::<Vec<_>>();
+    let mut stack : Vec<ToCompute> = [lines_to_comp, points_to_comp].concat();
 
-    sol
+    // Go through the queue
+    while !stack.is_empty() {
+      let elem_id = stack.pop().unwrap();
+
+      // Check if we have solve request. If not, insert the result
+      let maybe_request = match elem_id {
+        ToCompute::Line(line_id) => match self.solve_line(&sol, line_id) {
+          SolveResult::Ok(maybe_line) => {
+            if let Some(line) = maybe_line {
+              sol.lines.insert(line_id, line);
+            }
+            None // No request
+          },
+          SolveResult::Request(req) => Some(req), // Has request
+          SolveResult::AlreadyComputed => None, // Already computed, no request
+          SolveResult::Err(err) => return Err(err), // If error happens
+        },
+        ToCompute::Point(point_id) => match self.solve_point(&sol, point_id) {
+          SolveResult::Ok(maybe_point) => {
+            if let Some(point) = maybe_point {
+              sol.points.insert(point_id, point);
+            }
+            None // No request
+          },
+          SolveResult::Request(req) => Some(req), // Has request
+          SolveResult::AlreadyComputed => None, // Already computed, no request
+          SolveResult::Err(err) => return Err(err), // If error happens
+        },
+      };
+
+      // If we have request, we deal with request first in the next loop
+      if let Some(req) = maybe_request {
+        stack.push(elem_id); // Put the elem_id here in second space
+        stack.push(req); // First compute the requested resource
+      }
+    }
+
+    Ok(sol)
   }
 
   fn solve_line(&self, sol: &Solution, line_id: Id) -> SolveResult<Line> {
     if sol.lines.contains_key(&line_id) {
-      SolveResult::Ok(Some(sol.lines.get(&line_id).unwrap().clone()))
+      SolveResult::AlreadyComputed
     } else {
       match self.lines.get(line_id) {
         Some(line_constr) => match *line_constr {
@@ -84,7 +150,7 @@ impl Context {
 
   fn solve_point(&self, sol: &Solution, point_id: Id) -> SolveResult<Point> {
     if sol.points.contains_key(&point_id) {
-      SolveResult::Ok(Some(sol.points.get(&point_id).unwrap().clone())) // Should not panic
+      SolveResult::AlreadyComputed
     } else {
       match self.points.get(point_id) {
         Some(point_constr) => match *point_constr {
@@ -116,20 +182,6 @@ impl Context {
         },
         None => SolveResult::Err(SolveError::PointNotFound(point_id)),
       }
-    }
-  }
-}
-
-pub struct Solution {
-  points: BTreeMap<Id, Point>,
-  lines: BTreeMap<Id, Line>,
-}
-
-impl Solution {
-  pub fn new() -> Self {
-    Self {
-      points: BTreeMap::new(),
-      lines: BTreeMap::new(),
     }
   }
 }
