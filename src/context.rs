@@ -28,10 +28,10 @@ pub enum SolveResult<T> {
   Err(SolveError)
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Solution {
-  points: BTreeMap<Id, Point>,
-  lines: BTreeMap<Id, Line>,
+  pub points: BTreeMap<Id, Point>,
+  pub lines: BTreeMap<Id, Line>,
 }
 
 impl Solution {
