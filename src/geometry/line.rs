@@ -1,11 +1,11 @@
-use crate::storage::Id;
-use crate::geometry::point::Point;
-use crate::math::Vec2;
-
-pub trait Intersect<T> {
-  type Output;
-  fn intersect(self, other: T) -> Option<Self::Output>;
-}
+use crate::{
+  util::Id,
+  geometry::{
+    Intersect,
+    point::Point,
+  },
+  math::Vec2
+};
 
 #[derive(Clone, Copy, Debug)]
 pub enum LineConstruct {

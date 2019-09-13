@@ -1,4 +1,4 @@
-use crate::storage::Id;
+use crate::util::Id;
 use crate::math::Vec2;
 
 #[derive(Clone, Copy)]
