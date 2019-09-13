@@ -1,6 +1,7 @@
 use crate::storage::Id;
 use crate::math::Vec2;
 
+#[derive(Clone, Copy)]
 pub enum PointConstruct {
   Free { pos: Vec2 },
   OnLine { l: Id, t: f64 },

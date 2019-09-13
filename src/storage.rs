@@ -1,6 +1,7 @@
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Id(usize, i32);
 
+#[derive(Clone)]
 pub struct Storage<T> {
   items: Vec<T>,
   generations: Vec<i32>,
@@ -55,5 +56,53 @@ impl<T> Storage<T> {
 
   pub fn sanity_check(self) -> bool {
     self.items.len() == self.generations.len()
+  }
+}
+
+pub struct StorageIter<T> {
+  item_index: usize,
+  item_iter: std::iter::Zip<std::vec::IntoIter<i32>, std::vec::IntoIter<T>>,
+  empty_iter: ::std::vec::IntoIter<usize>,
+}
+
+impl<T> Iterator for StorageIter<T> {
+  type Item = (Id, T);
+
+  fn next(&mut self) -> Option<Self::Item> {
+
+    // Move forward if empty spot matches i
+    let mut i = self.item_index;
+    while self.empty_iter.nth(0) == Some(i) {
+      self.empty_iter.next();
+      self.item_iter.next();
+      i += 1;
+    }
+
+    // Iterate
+    self.item_index = i + 1;
+    if let Some((gen, item)) = self.item_iter.next() {
+      Some((Id(i, gen), item))
+    } else {
+      None
+    }
+  }
+}
+
+impl<T> IntoIterator for Storage<T> {
+  type Item = (Id, T);
+  type IntoIter = StorageIter<T>;
+
+  fn into_iter(self) -> Self::IntoIter {
+
+    // First sort the array
+    let mut sorted_empty_indices = self.empty_spots.clone();
+    sorted_empty_indices.sort();
+
+    // Then generate the iterator
+    StorageIter {
+      item_index: 0,
+      item_iter: self.generations.into_iter().zip(self.items),
+      empty_iter: sorted_empty_indices.into_iter(),
+    }
   }
 }
