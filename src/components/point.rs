@@ -13,6 +13,7 @@ impl Component for PointStyle {
 
 pub enum SymbolicPoint {
   Free(Vector2),
+  OnLine(Entity, f64), // Point on a line, distance t from origin
 }
 
 impl Component for SymbolicPoint {

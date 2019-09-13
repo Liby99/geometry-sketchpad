@@ -56,6 +56,17 @@ impl<'a> System<'a> for SolverSystem {
                   panic!("Error when inserting position: {:?}", err);
                 }
               },
+              SymbolicPoint::OnLine(line_ent, t) => match lines.get(*line_ent) {
+                Some(Line { origin, direction }) => {
+                  if let Err(err) = points.insert(ent, Point(origin.clone() + *t * direction.clone())) {
+                    panic!("Error when inserting position: {:?}", err);
+                  }
+                },
+                None => {
+                  stack.push(ToCompute::Point(ent));
+                  stack.push(ToCompute::Line(*line_ent));
+                }
+              }
             },
             None => panic!("Could not find to compute point"),
           },

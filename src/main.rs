@@ -33,7 +33,7 @@ fn main() {
     .with(point::SymbolicPoint::Free(Vector2 { x: 0., y: 0. }))
     .build();
 
-  let _p2 = world.create_entity()
+  let p2 = world.create_entity()
     .with(point::PointStyle { color: Color::red(), radius: 5. })
     .with(point::SymbolicPoint::Free(Vector2 { x: 30., y: 10. }))
     .build();
@@ -43,9 +43,19 @@ fn main() {
     .with(point::SymbolicPoint::Free(Vector2 { x: -20., y: -20. }))
     .build();
 
-  world.create_entity()
+  let l1 = world.create_entity()
     .with(line::LineStyle { color: Color::blue(), width: 2. })
     .with(line::SymbolicLine::TwoPoints(p1, p3))
+    .build();
+
+  let p4 = world.create_entity()
+    .with(point::PointStyle { color: Color::green(), radius: 5. })
+    .with(point::SymbolicPoint::OnLine(l1, -40.))
+    .build();
+
+  let _l2 = world.create_entity()
+    .with(line::LineStyle { color: Color::black(), width: 2. })
+    .with(line::SymbolicLine::TwoPoints(p2, p4))
     .build();
   // ============ TEMP END ============
 
