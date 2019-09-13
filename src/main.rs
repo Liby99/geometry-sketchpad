@@ -27,27 +27,24 @@ fn main() {
   world.register::<line::LineStyle>();
 
   // ============ TEMP START ============
-  world.create_entity()
+  let p1 = world.create_entity()
     .with(point::PointStyle { color: [1., 0., 0., 1.], radius: 5. })
     .with(point::SymbolicPoint::Free(Vector2 { x: 0., y: 0. }))
     .build();
 
-  world.create_entity()
+  let _p2 = world.create_entity()
     .with(point::PointStyle { color: [1., 0., 0., 1.], radius: 5. })
     .with(point::SymbolicPoint::Free(Vector2 { x: 30., y: 10. }))
     .build();
 
-  world.create_entity()
+  let p3 = world.create_entity()
     .with(point::PointStyle { color: [1., 0., 1., 1.], radius: 5. })
     .with(point::SymbolicPoint::Free(Vector2 { x: -20., y: -20. }))
     .build();
 
   world.create_entity()
     .with(line::LineStyle { color: [0., 0., 1., 1.], width: 2. })
-    .with(line::Line {
-      origin: Vector2 { x: -20., y: -20. },
-      direction: Vector2 { x: 0., y: 1. },
-    })
+    .with(line::SymbolicLine::TwoPoints(p1, p3))
     .build();
   // ============ TEMP END ============
 
