@@ -21,6 +21,7 @@ fn test_lines_1() -> Result<(), SolveError> {
   // AB and CD intersects at E
   // Though E construct line_3 parallel to x
 
+  // Add all the points given above settings
   let pa = context.add_point(PointConstruct::Free { pos: Vector2::new(-20., 0.) });
   let pb = context.add_point(PointConstruct::Free { pos: Vector2::new(-10., 10.) });
   let pc = context.add_point(PointConstruct::Free { pos: Vector2::new(10., 10.) });
@@ -31,8 +32,10 @@ fn test_lines_1() -> Result<(), SolveError> {
   let pe = context.add_point(PointConstruct::LineLineIntersect { l1: line_ab, l2: line_cd });
   let l3 = context.add_line(LineConstruct::Parallel { l: x_axis, p: pe });
 
+  // Solve for the solutions
   let solution = solve(&context)?;
 
+  // Test the calculations
   assert!(Some(&Vector2 { x: 0., y: 20. }) == solution.get_point(pe), "pe should have position [0, 2]");
   assert!(solution.get_line(l3).map(|l| l.direction == Vector2 { x: 1., y: 0. }).unwrap_or(false), "line 3 should have direction [1, 0]");
 

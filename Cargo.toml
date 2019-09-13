@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 piston_window = "0.98.0"
+specs = "0.15.0"
