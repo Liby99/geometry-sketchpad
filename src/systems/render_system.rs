@@ -1,6 +1,7 @@
 use piston_window::*;
 use specs::prelude::*;
 use crate::states::FinishState;
+use crate::util::Color;
 use crate::components::{
   point::{Point, PointStyle},
   line::{Line, LineStyle},
@@ -28,7 +29,7 @@ impl<'a> System<'a> for RenderSystem {
   ): Self::SystemData) {
     if let Some(event) = self.window.next() {
       self.window.draw_2d(&event, |context, graphics, _device| {
-        clear([1.0; 4], graphics);
+        clear(Color::white().into(), graphics);
 
         let x_min = -480.;
         let x_max = -x_min;
@@ -74,7 +75,7 @@ impl<'a> System<'a> for RenderSystem {
           match (p1, p2) {
             (Some(from), Some(to)) => {
               line_from_to(
-                style.color,
+                style.color.into(),
                 style.width,
                 [480. + from[0], 360. - from[1]],
                 [480. + to[0], 360. - to[1]],
@@ -90,7 +91,7 @@ impl<'a> System<'a> for RenderSystem {
         for (point, style) in (&points, &point_styles).join() {
           let pos = point.0;
           ellipse(
-            style.color,
+            style.color.into(),
             [480. + pos.x - style.radius, 360. - pos.y - style.radius, style.radius * 2., style.radius * 2.],
             context.transform,
             graphics,

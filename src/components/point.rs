@@ -1,9 +1,10 @@
 use specs::prelude::*;
+use crate::util::Color;
 use crate::math::Vector2;
 
 pub struct PointStyle {
   pub radius: f64,
-  pub color: [f32; 4],
+  pub color: Color,
 }
 
 impl Component for PointStyle {
