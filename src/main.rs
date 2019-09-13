@@ -10,7 +10,7 @@ mod util;
 use piston_window::*;
 use specs::prelude::*;
 use states::FinishState;
-use systems::RenderSystem;
+use systems::{RenderSystem, SolverSystem};
 use components::point::*;
 use math::Vector2;
 
@@ -25,13 +25,11 @@ fn main() {
 
   // ============ TEMP START ============
   world.create_entity()
-    .with(Point(Some(Vector2 { x: 0., y: 0. })))
     .with(PointStyle { color: [1., 0., 0., 1.], radius: 5. })
     .with(SymbolicPoint::Free(Vector2 { x: 0., y: 0. }))
     .build();
 
   world.create_entity()
-    .with(Point(Some(Vector2 { x: 30., y: 10. })))
     .with(PointStyle { color: [1., 0., 0., 1.], radius: 5. })
     .with(SymbolicPoint::Free(Vector2 { x: 30., y: 10. }))
     .build();
@@ -43,6 +41,7 @@ fn main() {
 
   // Create dispatcher
   let mut dispatcher = DispatcherBuilder::new()
+    .with(SolverSystem, "solver", &[])
     .with_thread_local(render_system)
     .build();
 

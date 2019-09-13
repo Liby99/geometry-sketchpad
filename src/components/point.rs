@@ -18,7 +18,7 @@ impl Component for SymbolicPoint {
   type Storage = VecStorage<Self>;
 }
 
-pub struct Point(pub Option<Vector2>);
+pub struct Point(pub Vector2);
 
 impl Component for Point {
   type Storage = VecStorage<Self>;

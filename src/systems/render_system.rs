@@ -20,14 +20,13 @@ impl<'a> System<'a> for RenderSystem {
         clear([1.0; 4], graphics);
 
         for (point, style) in (&points, &point_styles).join() {
-          if let Some(pos) = point.0 {
-            ellipse(
-              style.color,
-              [480. + pos.x - style.radius, 360. - pos.y - style.radius, style.radius * 2., style.radius * 2.],
-              context.transform,
-              graphics,
-            );
-          }
+          let pos = point.0;
+          ellipse(
+            style.color,
+            [480. + pos.x - style.radius, 360. - pos.y - style.radius, style.radius * 2., style.radius * 2.],
+            context.transform,
+            graphics,
+          );
         }
 
         // rectangle([1.0, 0.0, 0.0, 1.0], [0.0, 0.0, 100.0, 100.0], context.transform, graphics);
