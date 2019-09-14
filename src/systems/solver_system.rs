@@ -1,6 +1,5 @@
 use specs::prelude::*;
 use crate::{
-  math::Vector2,
   components::{
     point::{SymbolicPoint, Point},
     line::{SymbolicLine, Line},
@@ -12,20 +11,21 @@ enum ToCompute {
   Line(Entity),
 }
 
-enum SolveResult<T> {
-  Solved(T), // The result of point
+enum SolveResult {
   AlreadyComputed, // Already Computed
+  SolvedPoint(Point), // The result of point
+  SolvedLine(Line), // The result of line
   Request(ToCompute), // Need other dependency
 }
 
-fn insert_point<'a>(points: &mut WriteStorage<'a, Point>, ent: Entity, pos: Vector2) {
-  if let Err(err) = points.insert(ent, Point(pos)) {
+fn insert_point<'a>(points: &mut WriteStorage<'a, Point>, ent: Entity, p: Point) {
+  if let Err(err) = points.insert(ent, p) {
     panic!("Error when inserting position: {:?}", err);
   }
 }
 
-fn insert_line<'a>(lines: &mut WriteStorage<'a, Line>, ent: Entity, origin: Vector2, direction: Vector2) {
-  if let Err(err) = lines.insert(ent, Line { origin, direction }) {
+fn insert_line<'a>(lines: &mut WriteStorage<'a, Line>, ent: Entity, line: Line) {
+  if let Err(err) = lines.insert(ent, line) {
     panic!("Error when inserting position: {:?}", err);
   }
 }
@@ -35,15 +35,15 @@ fn solve_point<'a>(
   points: &mut WriteStorage<'a, Point>,
   lines: &mut WriteStorage<'a, Line>,
   ent: Entity,
-) -> SolveResult<Vector2> {
+) -> SolveResult {
   match points.get(ent) {
     Some(_) => SolveResult::AlreadyComputed,
     None => match sym_points.get(ent) {
       Some(sym) => match sym {
-        SymbolicPoint::Free(pos) => SolveResult::Solved(*pos),
+        SymbolicPoint::Free(pos) => SolveResult::SolvedPoint(Point(*pos)),
         SymbolicPoint::OnLine(line_ent, t) => match lines.get(*line_ent) {
           Some(Line { origin, direction }) => {
-            SolveResult::Solved(origin.clone() + *t * direction.clone())
+            SolveResult::SolvedPoint(Point(origin.clone() + *t * direction.clone()))
           },
           None => SolveResult::Request(ToCompute::Line(*line_ent))
         }
@@ -58,7 +58,7 @@ fn solve_line<'a>(
   points: &mut WriteStorage<'a, Point>,
   lines: &mut WriteStorage<'a, Line>,
   ent: Entity,
-) -> SolveResult<(Vector2, Vector2)> {
+) -> SolveResult {
   match lines.get(ent) {
     Some(_) => SolveResult::AlreadyComputed,
     None => match sym_lines.get(ent) {
@@ -68,7 +68,7 @@ fn solve_line<'a>(
             Some(Point(pos_2)) => {
               let origin = *pos_1;
               let direction = (*pos_2 - *pos_1).normalized();
-              SolveResult::Solved((origin, direction))
+              SolveResult::SolvedLine(Line { origin, direction })
             },
             None => SolveResult::Request(ToCompute::Point(*p2_ent))
           },
@@ -117,23 +117,18 @@ impl<'a> System<'a> for SolverSystem {
     // Calculate all the elements in the stack
     while !stack.is_empty() {
       let to_comp = stack.pop().unwrap();
-      match to_comp {
-        ToCompute::Point(ent) => match solve_point(&sym_points, &mut points, &mut lines, ent) {
-          SolveResult::AlreadyComputed => (),
-          SolveResult::Solved(p) => insert_point(&mut points, ent, p),
-          SolveResult::Request(req) => {
-            stack.push(ToCompute::Point(ent));
-            stack.push(req);
-          },
+      let (ent, result) = match to_comp {
+        ToCompute::Point(ent) => (ent, solve_point(&sym_points, &mut points, &mut lines, ent)),
+        ToCompute::Line(ent) => (ent, solve_line(&sym_lines, &mut points, &mut lines, ent)),
+      };
+      match result {
+        SolveResult::AlreadyComputed => (),
+        SolveResult::SolvedLine(l) => insert_line(&mut lines, ent, l),
+        SolveResult::SolvedPoint(p) => insert_point(&mut points, ent, p),
+        SolveResult::Request(req) => {
+          stack.push(to_comp);
+          stack.push(req);
         },
-        ToCompute::Line(ent) => match solve_line(&sym_lines, &mut points, &mut lines, ent) {
-          SolveResult::AlreadyComputed => (),
-          SolveResult::Solved((origin, direction)) => insert_line(&mut lines, ent, origin, direction),
-          SolveResult::Request(req) => {
-            stack.push(ToCompute::Point(ent));
-            stack.push(req);
-          },
-        }
       }
     }
   }
