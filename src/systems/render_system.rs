@@ -44,22 +44,17 @@ fn draw_line(line: &Line, style: &LineStyle, vp: &Viewport, context: Context, gr
 
     if bottom { p1 = Some(vec2![bottom_x, y_min]); }
     if top { if p1.is_some() { p2 = Some(vec2![top_x, y_max]); } else { p1 = Some(vec2![top_x, y_max]); } }
-    if left { if p1.is_some() { p2 = Some(vec2![left_y, x_min]); } else { p1 = Some(vec2![left_y, x_min]); } }
-    if right { if p1.is_some() { p2 = Some(vec2![left_y, x_max]); } else { p1 = Some(vec2![left_y, x_max]); } }
+    if left { if p1.is_some() { p2 = Some(vec2![x_min, left_y]); } else { p1 = Some(vec2![x_min, left_y]); } }
+    if right { if p1.is_some() { p2 = Some(vec2![x_max, right_y]); } else { p1 = Some(vec2![x_max, right_y]); } }
 
     (p1, p2)
   };
 
   match (p1, p2) {
     (Some(from), Some(to)) => {
-      line_from_to(
-        style.color.into(),
-        style.width,
-        vp.to_actual(from),
-        vp.to_actual(to),
-        context.transform,
-        graphics
-      );
+      let from = vp.to_actual(from);
+      let to = vp.to_actual(to);
+      line_from_to(style.color.into(), style.width, from, to, context.transform, graphics);
     },
     _ => ()
   }
@@ -99,6 +94,7 @@ impl<'a> System<'a> for RenderSystem {
     line_styles
   ): Self::SystemData) {
     if let Some(event) = self.window.next() {
+      println!("====");
       self.window.draw_2d(&event, |context, graphics, _device| {
         clear(Color::white().into(), graphics);
 

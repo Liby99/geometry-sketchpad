@@ -7,6 +7,7 @@ pub struct Vector2 {
 }
 
 macro_rules! vec2 {
+  () => (Vector2::zero());
   ($c:expr) => (Vector2::new($c, $c));
   ($x:expr, $y:expr) => (Vector2::new($x, $y));
 }
@@ -14,6 +15,10 @@ macro_rules! vec2 {
 impl Vector2 {
   pub fn new(x: f64, y: f64) -> Self {
     Vector2 { x, y }
+  }
+
+  pub fn zero() -> Self {
+    Self::new(0., 0.)
   }
 
   pub fn magnitude(self) -> f64 {

@@ -89,3 +89,20 @@ impl Viewport {
     vec2![x, y]
   }
 }
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn test_to_actual() {
+    let vp = Viewport::default();
+    assert!(vp.to_actual(vec2![0., 0.]) == [480., 360.]);
+    assert!(vp.to_actual(vec2![-10., 7.5]) == [0., 0.]);
+    assert!(vp.to_actual(vec2![-10., -7.5]) == [0., 720.]);
+    assert!(vp.to_actual(vec2![10., 7.5]) == [960., 0.]);
+    assert!(vp.to_actual(vec2![10., -7.5]) == [960., 720.]);
+    assert!(vp.to_actual(vec2![0., 5.]) == [480., 120.]);
+    assert!(vp.to_actual(vec2![5., 5.]) == [720., 120.]);
+  }
+}

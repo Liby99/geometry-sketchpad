@@ -33,7 +33,7 @@ fn main() {
 
   // Insert resources
   world.insert(FinishState::default());
-  world.insert(Viewport::default());
+  world.insert(Viewport::new(vec2![1., 1.], vec2![20., 15.], WINDOW_SIZE.into()));
 
   // ============ TEMP START ============
   let point_style = PointStyle { color: Color::red(), radius: 5. };
@@ -48,10 +48,10 @@ fn main() {
   let l1 = world.create_entity().with(SymbolicLine::TwoPoints(pa, pb)).with(line_style).build();
   let l2 = world.create_entity().with(SymbolicLine::TwoPoints(pc, pd)).with(line_style).build();
 
-  let pe = world.create_entity().with(SymbolicPoint::LineLineIntersect(l1, l2)).with(point_style).build();
-  let pf = world.create_entity().with(SymbolicPoint::OnLine(lx, 3.)).with(point_style).build();
+  // let pe = world.create_entity().with(SymbolicPoint::LineLineIntersect(l1, l2)).with(point_style).build();
+  // let pf = world.create_entity().with(SymbolicPoint::OnLine(lx, 3.)).with(point_style).build();
 
-  let _l3 = world.create_entity().with(SymbolicLine::TwoPoints(pe, pf)).with(line_style).build();
+  // let _l3 = world.create_entity().with(SymbolicLine::TwoPoints(pe, pf)).with(line_style).build();
   // ============ TEMP END ============
 
   // Create a window
