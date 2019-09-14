@@ -25,6 +25,18 @@ impl Vector2 {
   }
 }
 
+impl Into<[f64; 2]> for Vector2 {
+  fn into(self) -> [f64; 2] {
+    [self.x, self.y]
+  }
+}
+
+impl From<[f64; 2]> for Vector2 {
+  fn from([x, y]: [f64; 2]) -> Self {
+    Self { x, y }
+  }
+}
+
 impl Add for Vector2 {
   type Output = Self;
 
