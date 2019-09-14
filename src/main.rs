@@ -4,14 +4,17 @@ extern crate specs;
 mod systems;
 mod states;
 mod components;
-mod math;
+#[macro_use] mod math;
 mod util;
 
-use piston_window::*;
+use piston_window::{PistonWindow, WindowSettings};
 use specs::prelude::*;
 use states::FinishState;
 use systems::{RenderSystem, SolverSystem};
-use components::{point, line};
+use components::{
+  point::*,
+  line::*,
+};
 use util::Color;
 use math::Vector2;
 
@@ -20,43 +23,30 @@ fn main() {
   // Create a world
   let mut world = World::new();
   world.insert(FinishState(false));
-  world.register::<point::Point>();
-  world.register::<point::SymbolicPoint>();
-  world.register::<point::PointStyle>();
-  world.register::<line::Line>();
-  world.register::<line::SymbolicLine>();
-  world.register::<line::LineStyle>();
+  world.register::<Point>();
+  world.register::<SymbolicPoint>();
+  world.register::<PointStyle>();
+  world.register::<Line>();
+  world.register::<SymbolicLine>();
+  world.register::<LineStyle>();
 
   // ============ TEMP START ============
-  let p1 = world.create_entity()
-    .with(point::PointStyle { color: Color::red(), radius: 5. })
-    .with(point::SymbolicPoint::Free(Vector2 { x: 0., y: 0. }))
-    .build();
+  let point_style = PointStyle { color: Color::red(), radius: 5. };
+  let line_style = LineStyle { color: Color::blue(), width: 2. };
 
-  let p2 = world.create_entity()
-    .with(point::PointStyle { color: Color::red(), radius: 5. })
-    .with(point::SymbolicPoint::Free(Vector2 { x: 30., y: 10. }))
-    .build();
+  let pa = world.create_entity().with(SymbolicPoint::Free(vec2![-40., 0.])).with(point_style).build();
+  let pb = world.create_entity().with(SymbolicPoint::Free(vec2![-20., 20.])).with(point_style).build();
+  let pc = world.create_entity().with(SymbolicPoint::Free(vec2![20., 20.])).with(point_style).build();
+  let pd = world.create_entity().with(SymbolicPoint::Free(vec2![40., 0.])).with(point_style).build();
 
-  let p3 = world.create_entity()
-    .with(point::PointStyle { color: Color::red(), radius: 5. })
-    .with(point::SymbolicPoint::Free(Vector2 { x: -20., y: -20. }))
-    .build();
+  let lx = world.create_entity().with(SymbolicLine::TwoPoints(pa, pd)).with(line_style).build();
+  let l1 = world.create_entity().with(SymbolicLine::TwoPoints(pa, pb)).with(line_style).build();
+  let l2 = world.create_entity().with(SymbolicLine::TwoPoints(pc, pd)).with(line_style).build();
 
-  let l1 = world.create_entity()
-    .with(line::LineStyle { color: Color::blue(), width: 2. })
-    .with(line::SymbolicLine::TwoPoints(p1, p3))
-    .build();
+  let pe = world.create_entity().with(SymbolicPoint::LineLineIntersect(l1, l2)).with(point_style).build();
+  let pf = world.create_entity().with(SymbolicPoint::OnLine(lx, 15.)).with(point_style).build();
 
-  let p4 = world.create_entity()
-    .with(point::PointStyle { color: Color::green(), radius: 5. })
-    .with(point::SymbolicPoint::OnLine(l1, -40.))
-    .build();
-
-  let _l2 = world.create_entity()
-    .with(line::LineStyle { color: Color::black(), width: 2. })
-    .with(line::SymbolicLine::TwoPoints(p2, p4))
-    .build();
+  let _l3 = world.create_entity().with(SymbolicLine::TwoPoints(pe, pf)).with(line_style).build();
   // ============ TEMP END ============
 
   // Create a window

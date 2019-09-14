@@ -6,6 +6,11 @@ pub struct Vector2 {
   pub y: f64,
 }
 
+macro_rules! vec2 {
+  ($c:expr) => (Vector2::new($c, $c));
+  ($x:expr, $y:expr) => (Vector2::new($x, $y));
+}
+
 impl Vector2 {
   pub fn new(x: f64, y: f64) -> Self {
     Vector2 { x, y }
