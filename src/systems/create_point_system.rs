@@ -1,6 +1,7 @@
+use itertools::Itertools;
 use specs::prelude::*;
 use crate::{
-  math::Vector2,
+  math::{Vector2, Intersect},
   util::Color,
   resources::{ToolState, InputState, Viewport},
   components::{Selected, Point, PointStyle, SymbolicPoint, Line},
@@ -81,6 +82,7 @@ impl<'a> System<'a> for CreatePointSystem {
 
         // Check if snapping to a line
         let mut closest_line : Option<(Vector2, Entity, f64, f64)> = None; // (closest_point, line_ent, t, dist_to_line)
+        let mut closest_lines : Vec<(Entity, Line)> = vec![];
         if !snapping_to_point {
           for (ent, Line { origin, direction }) in (&*entities, &lines).join() {
             let actual_line = Line { origin: Vector2::from(vp.to_actual(*origin)), direction: vec2![direction.x, -direction.y] };
@@ -90,6 +92,7 @@ impl<'a> System<'a> for CreatePointSystem {
               let virtual_closest_point = vp.to_virtual(closest_point.into());
               let diff = virtual_closest_point - *origin;
               let t = if diff.dot(*direction) > 0.0 { diff.magnitude() } else { -diff.magnitude() };
+              closest_lines.push((ent, Line { origin: *origin, direction: *direction }));
               closest_line = match closest_line {
                 Some((_, _, _, d)) => if dist < d { Some((virtual_closest_point, ent, t, dist)) } else { closest_line },
                 None => Some((virtual_closest_point, ent, t, dist))
@@ -104,9 +107,31 @@ impl<'a> System<'a> for CreatePointSystem {
           if let Err(err) = points.insert(hover_point, p) { panic!(err); };
         }
 
+        // Check if snapping to an intersection
+        let mut closest_intersection : Option<(Entity, Entity, Vector2, f64)> = None;
+        for comb in closest_lines.iter().combinations(2) {
+          if let &[(l1_ent, l1), (l2_ent, l2)] = &*comb {
+            if let Some(itsct) = l1.intersect(*l2) {
+              let actual : Vector2 = vp.to_actual(itsct).into();
+              let dist = (mouse_pos - actual).magnitude();
+              if dist <= SNAP_TO_POINT_THRES {
+                closest_intersection = match closest_intersection {
+                  Some((_, _, _, d)) => if dist < d { Some((*l1_ent, *l2_ent, itsct, dist)) } else { closest_intersection },
+                  None => Some((*l1_ent, *l2_ent, itsct, dist))
+                }
+              }
+            }
+          }
+        }
+
+        // If snapping to intersection, then put the hover_point on the intersection
+        let snapping_to_intersection = closest_intersection.is_some();
+        if let Some((_, _, p, _)) = closest_intersection {
+          if let Err(err) = points.insert(hover_point, p) { panic!(err); };
+        }
+
         // Change the style if snapping. If so then update the style. Else restore the style
-        let snapping = snapping_to_point || snapping_to_line;
-        if snapping {
+        if snapping_to_point || snapping_to_line || snapping_to_intersection {
           if let Err(err) = styles.insert(hover_point, PointStyle { color: Color::red(), radius: 6. }) { panic!(err); };
         } else {
           if let Err(err) = points.insert(hover_point, virtual_mouse_pos) { panic!(err); };
@@ -117,7 +142,9 @@ impl<'a> System<'a> for CreatePointSystem {
         if input_state.mouse_left_button.just_activated() {
           if !snapping_to_point {
             let ent = entities.create();
-            let sym_point = if let Some((_, line_ent, t, _)) = closest_line {
+            let sym_point = if let Some((l1_ent, l2_ent, _, _)) = closest_intersection {
+              SymbolicPoint::LineLineIntersect(l1_ent, l2_ent)
+            } else if let Some((_, line_ent, t, _)) = closest_line {
               SymbolicPoint::OnLine(line_ent, t)
             } else {
               SymbolicPoint::Free(virtual_mouse_pos)
