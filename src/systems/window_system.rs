@@ -1,51 +1,16 @@
 use piston_window::*;
 use specs::prelude::*;
 use crate::{
-  math::Vector2,
+  math::Intersect,
   util::Color,
   resources::{FinishState, Viewport, InputState}, // , InputEvents},
   components::{Selected, Point, PointStyle, Line, LineStyle},
 };
 
 fn draw_line(line: &Line, style: &LineStyle, vp: &Viewport, context: Context, graphics: &mut G2d) {
-  let x_min = vp.x_min();
-  let x_max = vp.x_max();
-  let y_min = vp.y_min();
-  let y_max = vp.y_max();
-
-  if let (Some(from), Some(to)) = if line.direction.x == 0. {
-    if line.origin.y >= y_min && line.origin.y <= y_max {
-      (Some(vec2![line.origin.x, y_min]), Some(vec2![line.origin.x, y_max]))
-    } else {
-      (None, None)
-    }
-  } else if line.direction.y == 0. {
-    if line.origin.y >= y_min && line.origin.y <= y_max {
-      (Some(vec2![x_min, line.origin.y]), Some(vec2![x_max, line.origin.y]))
-    } else {
-      (None, None)
-    }
-  } else {
-    let bottom_x = line.origin.x + (y_min - line.origin.y) / line.direction.y * line.direction.x;
-    let top_x = line.origin.x + (y_max - line.origin.y) / line.direction.y * line.direction.x;
-    let left_y = line.origin.y + (x_min - line.origin.x) / line.direction.x * line.direction.y;
-    let right_y = line.origin.y + (x_max - line.origin.x) / line.direction.x * line.direction.y;
-
-    let bottom = bottom_x >= x_min && bottom_x <= x_max;
-    let top = top_x >= x_min && top_x <= x_max;
-    let left = left_y >= y_min && left_y <= y_max;
-    let right = right_y >= y_min && right_y <= y_max;
-
-    let mut p1 = None;
-    let mut p2 = None;
-
-    if bottom { p1 = Some(vec2![bottom_x, y_min]); }
-    if top { if p1.is_some() { p2 = Some(vec2![top_x, y_max]); } else { p1 = Some(vec2![top_x, y_max]); } }
-    if left { if p1.is_some() { p2 = Some(vec2![x_min, left_y]); } else { p1 = Some(vec2![x_min, left_y]); } }
-    if right { if p1.is_some() { p2 = Some(vec2![x_max, right_y]); } else { p1 = Some(vec2![x_max, right_y]); } }
-
-    (p1, p2)
-  } {
+  let aabb = vp.virtual_aabb();
+  let itsct = line.intersect(aabb);
+  if let Some((from, to)) = itsct {
     let from = vp.to_actual(from);
     let to = vp.to_actual(to);
     line_from_to(style.color.into(), style.width, from, to, context.transform, graphics);

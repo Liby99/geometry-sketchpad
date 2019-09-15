@@ -1,4 +1,4 @@
-use crate::math::Vector2;
+use crate::math::{Vector2, AABB};
 
 pub static WINDOW_SIZE : [f64; 2] = [960., 720.];
 
@@ -80,6 +80,10 @@ impl Viewport {
 
   pub fn y_max(&self) -> f64 {
     self.virtual_center.y + self.half_virtual_size.y
+  }
+
+  pub fn virtual_aabb(&self) -> AABB {
+    AABB::new(self.x_min(), self.y_min(), self.virtual_width(), self.virtual_height())
   }
 
   pub fn to_actual(&self, point: Vector2) -> [f64; 2] {
