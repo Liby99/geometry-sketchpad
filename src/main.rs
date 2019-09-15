@@ -13,7 +13,7 @@ mod util;
 use piston_window::{PistonWindow, WindowSettings};
 use specs::prelude::*;
 use resources::{FinishState, WINDOW_SIZE};
-use systems::{ViewportSystem, WindowSystem, CreatePointSystem, ChangeToolSystem, SelectPointSystem, SolverSystem};
+use systems::{ViewportSystem, WindowSystem, CreatePointSystem, ChangeToolSystem, SelectPointSystem, SolverSystem, SpatialHashCache};
 use components::*;
 use util::Color;
 use math::Vector2;
@@ -22,13 +22,6 @@ fn main() {
 
   // Create a world
   let mut world = World::new();
-
-  // Insert resources
-  // world.insert(FinishState::default());
-  // world.insert(Viewport::default());
-  // world.insert(DeltaTime::default());
-  // world.insert(InputState::default());
-  // world.insert(ToolState::default());
 
   // Create a window
   let window : PistonWindow = WindowSettings::new("Geometry Sketchpad - Untitled.gsp", WINDOW_SIZE).build().unwrap();
@@ -41,6 +34,7 @@ fn main() {
     .with(CreatePointSystem::default(), "create_point", &["change_tool"])
     .with(SelectPointSystem, "select_point", &[])
     .with(SolverSystem, "solver", &[])
+    .with(SpatialHashCache, "spatial_cache", &["solver"])
     .with_thread_local(window_system)
     .build();
 
@@ -56,9 +50,9 @@ fn main() {
   let pc = world.create_entity().with(SymbolicPoint::Free(vec2![2., 2.])).with(point_style).build();
   let pd = world.create_entity().with(SymbolicPoint::Free(vec2![4., 0.])).with(point_style).build();
 
-  let lx = world.create_entity().with(SymbolicLine::TwoPoints(pa, pd)).with(line_style).build();
-  let l1 = world.create_entity().with(SymbolicLine::TwoPoints(pa, pb)).with(line_style).build();
-  let l2 = world.create_entity().with(SymbolicLine::TwoPoints(pc, pd)).with(line_style).build();
+  let _lx = world.create_entity().with(SymbolicLine::TwoPoints(pa, pd)).with(line_style).build();
+  let _l1 = world.create_entity().with(SymbolicLine::TwoPoints(pa, pb)).with(line_style).build();
+  let _l2 = world.create_entity().with(SymbolicLine::TwoPoints(pc, pd)).with(line_style).build();
 
   // let pe = world.create_entity().with(SymbolicPoint::LineLineIntersect(l1, l2)).with(point_style).build();
   // let pf = world.create_entity().with(SymbolicPoint::OnLine(lx, 3.)).with(point_style).build();

@@ -39,7 +39,6 @@ impl<T: Clone + Eq + Hash> SpatialHashTable<T> {
   pub fn insert_line(&mut self, ent: T, l: Line, vp: &Viewport) {
     let aabb = vp.actual_aabb();
     if let Some((p1, p2)) = l.to_actual(vp).intersect(aabb) {
-      println!("p1: {:?}, p2: {:?}", p1, p2);
       let (init_x_tile, init_y_tile) = self.get_unlimited_cell(p1);
       let (end_x_tile, end_y_tile) = self.get_unlimited_cell(p2);
       if init_x_tile == end_x_tile {
@@ -60,10 +59,8 @@ impl<T: Clone + Eq + Hash> SpatialHashTable<T> {
         // Making sure p1 to p2 is from left to right
         let (p1, p2) = if p1.x > p2.x { (p2, p1) } else { (p1, p2) };
         let (init_x_tile, init_y_tile) = self.get_unlimited_cell(p1);
-        println!("{:?}, {:?}", p1, p2);
         let dir = (p2 - p1).normalized();
         if dir.y < 0.0 {
-          // println!("<");
           let mut curr_x = p1.x;
           let mut curr_y = p1.y;
           let mut curr_x_tile = init_x_tile as i64;
@@ -74,7 +71,6 @@ impl<T: Clone + Eq + Hash> SpatialHashTable<T> {
             let next_x_diff = tile_offset_y / dir.y.abs() * dir.x;
             let next_x = curr_x + next_x_diff;
             let next_x_tile = (next_x / TILE_SIZE) as i64;
-            // println!("curr_x {}, curr_y {}, curr_x_tile {}, curr_y_tile {}, next_x_tile {}", curr_x, curr_y, curr_x_tile, curr_y_tile, next_x_tile);
             for tile_x in curr_x_tile..(next_x_tile + 1) {
               if tile_x < self.x_tiles as i64 {
                 let tile = self.get_cell_by_x_y(tile_x as usize, curr_y_tile as usize);
@@ -135,10 +131,6 @@ impl<T: Clone + Eq + Hash> SpatialHashTable<T> {
 
   fn get_cell_by_x_y(&self, x_tile: usize, y_tile: usize) -> Tile {
     (y_tile * self.x_tiles) + x_tile
-  }
-
-  fn decompose_tile(&self, tile: usize) -> (usize, usize) {
-    (tile % self.x_tiles as usize, tile / self.x_tiles as usize)
   }
 
   /// p: point in virtual space
