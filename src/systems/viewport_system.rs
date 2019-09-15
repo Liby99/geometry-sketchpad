@@ -4,7 +4,7 @@ use crate::{
   resources::{MouseState, DeltaTime, Viewport},
 };
 
-static SCROLL_SPEED : f64 = 1.0;
+static SCROLL_SPEED : f64 = 1.0; // Can be adjusted
 
 pub struct ViewportSystem;
 

@@ -59,8 +59,15 @@ fn draw_point(point: &Point, style: &PointStyle, vp: &Viewport, context: Context
   let Point(pos) = point;
   let actual = vp.to_actual(*pos);
   ellipse(
-    style.color.into(),
+    Color::black().into(),
     [actual[0] - style.radius, actual[1] - style.radius, style.radius * 2., style.radius * 2.],
+    context.transform,
+    graphics,
+  );
+  let center_radius = style.radius - 1.5;
+  ellipse(
+    style.color.into(),
+    [actual[0] - center_radius, actual[1] - center_radius, center_radius * 2., center_radius * 2.],
     context.transform,
     graphics,
   );
