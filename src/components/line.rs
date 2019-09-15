@@ -1,6 +1,6 @@
 use specs::prelude::*;
 use crate::util::Color;
-use crate::math::Vector2;
+pub use crate::math::Line;
 
 #[derive(Debug, Copy, Clone)]
 pub struct LineStyle {
@@ -19,12 +19,6 @@ pub enum SymbolicLine {
 
 impl Component for SymbolicLine {
   type Storage = VecStorage<Self>;
-}
-
-#[derive(Debug, Copy, Clone)]
-pub struct Line {
-  pub origin: Vector2,
-  pub direction: Vector2,
 }
 
 impl Component for Line {

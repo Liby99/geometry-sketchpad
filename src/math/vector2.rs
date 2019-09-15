@@ -1,4 +1,5 @@
 use std::ops::{Add, Sub, Neg, Mul, Div, AddAssign};
+use super::Line;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Vector2 {
@@ -27,6 +28,14 @@ impl Vector2 {
 
   pub fn normalized(self) -> Self {
     self / self.magnitude()
+  }
+
+  pub fn dot(self, other: Self) -> f64 {
+    self.x * other.x + self.y * other.y
+  }
+
+  pub fn project(self, Line { origin, direction }: Line) -> Self {
+    origin + (self - origin).dot(direction) * direction
   }
 }
 
