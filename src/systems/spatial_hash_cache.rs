@@ -1,6 +1,6 @@
 use specs::prelude::*;
 use crate::{
-  components::{Line, Point},
+  components::{SymbolicLine, Line, SymbolicPoint, Point},
   resources::{DirtyState, SpatialHashTable, Viewport},
 };
 
@@ -12,17 +12,19 @@ impl<'a> System<'a> for SpatialHashCache {
     Read<'a, DirtyState>,
     Read<'a, Viewport>,
     Write<'a, SpatialHashTable<Entity>>,
+    ReadStorage<'a, SymbolicLine>,
     ReadStorage<'a, Line>,
+    ReadStorage<'a, SymbolicPoint>,
     ReadStorage<'a, Point>,
   );
 
-  fn run(&mut self, (entities, dirty_state, vp, mut table, lines, points): Self::SystemData) {
+  fn run(&mut self, (entities, dirty_state, vp, mut table, sym_lines, lines, sym_points, points): Self::SystemData) {
     if dirty_state.is_solver_dirty || dirty_state.is_viewport_dirty {
       table.init_viewport(&*vp);
-      for (ent, point) in (&*entities, &points).join() {
+      for (ent, _, point) in (&*entities, &sym_points, &points).join() {
         table.insert_point(ent, *point, &*vp);
       }
-      for (ent, line) in (&*entities, &lines).join() {
+      for (ent, _, line) in (&*entities, &sym_lines, &lines).join() {
         table.insert_line(ent, *line, &*vp);
       }
     }
