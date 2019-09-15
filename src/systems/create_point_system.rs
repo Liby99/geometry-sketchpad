@@ -3,7 +3,7 @@ use specs::prelude::*;
 use crate::{
   math::{Vector2, Intersect},
   util::Color,
-  resources::{ToolState, InputState, Viewport},
+  resources::{ToolState, InputState, Viewport, DirtyState},
   components::{Selected, Point, PointStyle, SymbolicPoint, Line},
 };
 
@@ -25,6 +25,7 @@ impl<'a> System<'a> for CreatePointSystem {
     Entities<'a>,
     Read<'a, ToolState>,
     Read<'a, InputState>,
+    Write<'a, DirtyState>,
     Read<'a, Viewport>,
     ReadStorage<'a, Line>,
     WriteStorage<'a, Point>,
@@ -37,6 +38,7 @@ impl<'a> System<'a> for CreatePointSystem {
     entities,
     tool_state,
     input_state,
+    mut dirty_state,
     vp,
     lines,
     mut points,
@@ -44,14 +46,20 @@ impl<'a> System<'a> for CreatePointSystem {
     mut styles,
     mut selected,
   ): Self::SystemData) {
+
+    // Only if input is dirty do we handle this event
+    if !dirty_state.is_input_dirty { return; }
+
+    // Make sure the tool state is currently at point state
     match *tool_state {
-      ToolState::Point => { // Make sure the tool state is currently at point state
+      ToolState::Point => {
 
         // First get the hovering point entity
         let hover_point = match self.hovering {
           Some(ent) => ent,
           None => {
             let ent = entities.create();
+            self.hovering = Some(ent);
             if let Err(err) = points.insert(ent, vp.to_virtual(input_state.mouse_abs_pos)) { panic!(err); };
             if let Err(err) = styles.insert(ent, PointStyle { color: Color::new(1.0, 0.3, 0.3, 0.5), radius: 5. }) { panic!(err); };
             ent
@@ -152,6 +160,9 @@ impl<'a> System<'a> for CreatePointSystem {
             if let Err(err) = sym_points.insert(ent, sym_point) { panic!(err); };
             if let Err(err) = styles.insert(ent, PointStyle { color: Color::red(), radius: 5. }) { panic!(err); };
             if let Err(err) = selected.insert(ent, Selected) { panic!(err); };
+
+            // Set the solver dirty since a new thing has been inserted
+            dirty_state.is_solver_dirty = true;
           }
         }
       },

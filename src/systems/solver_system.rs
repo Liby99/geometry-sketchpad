@@ -1,6 +1,7 @@
 use specs::prelude::*;
 use crate::{
   math::Intersect,
+  resources::DirtyState,
   components::{SymbolicPoint, Point, SymbolicLine, Line},
 };
 
@@ -110,6 +111,7 @@ pub struct SolverSystem;
 impl<'a> System<'a> for SolverSystem {
   type SystemData = (
     Entities<'a>,
+    Read<'a, DirtyState>,
     ReadStorage<'a, SymbolicPoint>,
     ReadStorage<'a, SymbolicLine>,
     WriteStorage<'a, Point>,
@@ -118,43 +120,46 @@ impl<'a> System<'a> for SolverSystem {
 
   fn run(&mut self, (
     entities,
+    dirty_state,
     sym_points,
     sym_lines,
     mut points,
     mut lines,
   ): Self::SystemData) {
-    let mut stack = vec![];
+    if dirty_state.is_solver_dirty {
+      let mut stack = vec![];
 
-    points.clear();
-    lines.clear();
+      points.clear();
+      lines.clear();
 
-    // Fisrt push all the lines into stack
-    for (ent, _) in (&*entities, &sym_lines).join() {
-      stack.push(ToCompute::Line(ent));
-    }
+      // Fisrt push all the lines into stack
+      for (ent, _) in (&*entities, &sym_lines).join() {
+        stack.push(ToCompute::Line(ent));
+      }
 
-    // Then push all the points into stack
-    // As we want to first calculate points
-    for (ent, _) in (&*entities, &sym_points).join() {
-      stack.push(ToCompute::Point(ent));
-    }
+      // Then push all the points into stack
+      // As we want to first calculate points
+      for (ent, _) in (&*entities, &sym_points).join() {
+        stack.push(ToCompute::Point(ent));
+      }
 
-    // Calculate all the elements in the stack
-    while !stack.is_empty() {
-      let to_comp = stack.pop().unwrap();
-      let (ent, result) = match to_comp {
-        ToCompute::Point(ent) => (ent, solve_point(&sym_points, &mut points, &mut lines, ent)),
-        ToCompute::Line(ent) => (ent, solve_line(&sym_lines, &mut points, &mut lines, ent)),
-      };
-      match result {
-        SolveResult::AlreadyComputed => (),
-        SolveResult::Undefined => (),
-        SolveResult::SolvedLine(l) => insert_line(&mut lines, ent, l),
-        SolveResult::SolvedPoint(p) => insert_point(&mut points, ent, p),
-        SolveResult::Request(req) => {
-          stack.push(to_comp);
-          stack.push(req);
-        },
+      // Calculate all the elements in the stack
+      while !stack.is_empty() {
+        let to_comp = stack.pop().unwrap();
+        let (ent, result) = match to_comp {
+          ToCompute::Point(ent) => (ent, solve_point(&sym_points, &mut points, &mut lines, ent)),
+          ToCompute::Line(ent) => (ent, solve_line(&sym_lines, &mut points, &mut lines, ent)),
+        };
+        match result {
+          SolveResult::AlreadyComputed => (),
+          SolveResult::Undefined => (),
+          SolveResult::SolvedLine(l) => insert_line(&mut lines, ent, l),
+          SolveResult::SolvedPoint(p) => insert_point(&mut points, ent, p),
+          SolveResult::Request(req) => {
+            stack.push(to_comp);
+            stack.push(req);
+          },
+        }
       }
     }
   }
