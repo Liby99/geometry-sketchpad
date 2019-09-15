@@ -4,6 +4,7 @@ use crate::{
   util::Color,
   resources::{ToolState, InputState, Viewport},
   components::{
+    selected::Selected,
     point::{Point, PointStyle, SymbolicPoint},
     line::Line,
   },
@@ -32,6 +33,7 @@ impl<'a> System<'a> for CreatePointSystem {
     WriteStorage<'a, Point>,
     WriteStorage<'a, SymbolicPoint>,
     WriteStorage<'a, PointStyle>,
+    WriteStorage<'a, Selected>,
   );
 
   fn run(&mut self, (
@@ -43,6 +45,7 @@ impl<'a> System<'a> for CreatePointSystem {
     mut points,
     mut sym_points,
     mut styles,
+    mut selected,
   ): Self::SystemData) {
     match *tool_state {
       ToolState::Point => { // Make sure the tool state is currently at point state
@@ -110,21 +113,21 @@ impl<'a> System<'a> for CreatePointSystem {
           if let Err(err) = styles.insert(hover_point, PointStyle { color: Color::red(), radius: 6. }) { panic!(err); };
         } else {
           if let Err(err) = points.insert(hover_point, Point(virtual_mouse_pos)) { panic!(err); };
-          if let Err(err) = styles.insert(hover_point, PointStyle { color: Color::red(), radius: 5. }) { panic!(err); };
+          if let Err(err) = styles.insert(hover_point, PointStyle { color: Color::new(1.0, 0.3, 0.3, 0.5), radius: 5. }) { panic!(err); };
         }
 
         // Only insert free point for now
         if input_state.mouse_left_button.just_activated() {
           if !snapping_to_point {
-            if let Some((_, line_ent, t, _)) = closest_line {
-              let ent = entities.create();
-              if let Err(err) = sym_points.insert(ent, SymbolicPoint::OnLine(line_ent, t)) { panic!(err); };
-              if let Err(err) = styles.insert(ent, PointStyle { color: Color::red(), radius: 5. }) { panic!(err); };
+            let ent = entities.create();
+            let sym_point = if let Some((_, line_ent, t, _)) = closest_line {
+              SymbolicPoint::OnLine(line_ent, t)
             } else {
-              let ent = entities.create();
-              if let Err(err) = sym_points.insert(ent, SymbolicPoint::Free(vp.to_virtual(input_state.mouse_abs_pos))) { panic!(err); };
-              if let Err(err) = styles.insert(ent, PointStyle { color: Color::red(), radius: 5. }) { panic!(err); };
-            }
+              SymbolicPoint::Free(virtual_mouse_pos)
+            };
+            if let Err(err) = sym_points.insert(ent, sym_point) { panic!(err); };
+            if let Err(err) = styles.insert(ent, PointStyle { color: Color::red(), radius: 5. }) { panic!(err); };
+            if let Err(err) = selected.insert(ent, Selected) { panic!(err); };
           }
         }
       },

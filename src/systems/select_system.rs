@@ -45,9 +45,12 @@ impl<'a> System<'a> for SelectPointSystem {
                   panic!("Error selecting {:?}: {}", ent, err);
                 },
               }
-              break;
+              return;
             }
           }
+
+          // If nothing selected, clear the selection
+          selected.clear();
         }
       },
       _ => (),
