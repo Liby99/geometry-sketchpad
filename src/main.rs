@@ -14,10 +14,7 @@ use piston_window::{PistonWindow, WindowSettings};
 use specs::prelude::*;
 use resources::{FinishState, Viewport, WINDOW_SIZE, InputState, ToolState, DeltaTime};
 use systems::{ViewportSystem, WindowSystem, CreatePointSystem, ChangeToolSystem, SelectPointSystem, SolverSystem};
-use components::{
-  point::*,
-  line::*,
-};
+use components::*;
 use util::Color;
 use math::Vector2;
 

@@ -2,11 +2,7 @@ use specs::prelude::*;
 use crate::{
   math::Vector2,
   resources::{Viewport, InputState, ToolState},
-  components::{
-    point::Point,
-    // line::Line,
-    selected::Selected
-  }
+  components::{Point, /*Line, */Selected},
 };
 
 static SELECT_DIST_THRES : f64 = 5.0; // Pixel
@@ -37,7 +33,7 @@ impl<'a> System<'a> for SelectPointSystem {
           let mouse_pos = Vector2::from(input.mouse_abs_pos);
 
           // TODO: CHange this logic to getting the closest point & Make this point size dependent
-          for (ent, Point(p)) in (&entities, &points).join() {
+          for (ent, p) in (&entities, &points).join() {
             if (Vector2::from(vp.to_actual(*p)) - mouse_pos).magnitude() <= SELECT_DIST_THRES {
               match selected.get(ent) {
                 Some(_) => { selected.remove(ent); },

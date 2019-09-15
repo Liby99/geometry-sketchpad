@@ -1,7 +1,7 @@
 use specs::prelude::*;
 use piston_window::Key;
 use crate::{
-  components::selected::Selected,
+  components::Selected,
   resources::{ToolState, InputState}
 };
 

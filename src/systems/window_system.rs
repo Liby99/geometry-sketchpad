@@ -4,11 +4,7 @@ use crate::{
   math::Vector2,
   util::Color,
   resources::{FinishState, Viewport, InputState}, // , InputEvents},
-  components::{
-    selected::Selected,
-    point::{Point, PointStyle},
-    line::{Line, LineStyle},
-  }
+  components::{Selected, Point, PointStyle, Line, LineStyle},
 };
 
 fn draw_line(line: &Line, style: &LineStyle, vp: &Viewport, context: Context, graphics: &mut G2d) {
@@ -57,8 +53,7 @@ fn draw_line(line: &Line, style: &LineStyle, vp: &Viewport, context: Context, gr
 }
 
 fn draw_point(point: &Point, style: &PointStyle, selected: bool, vp: &Viewport, context: Context, graphics: &mut G2d) {
-  let Point(pos) = point;
-  let actual = vp.to_actual(*pos);
+  let actual = vp.to_actual(*point);
   if selected {
     let radius = style.radius + 3.0;
     circle_arc(

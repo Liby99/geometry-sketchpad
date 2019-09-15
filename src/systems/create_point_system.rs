@@ -3,11 +3,7 @@ use crate::{
   math::Vector2,
   util::Color,
   resources::{ToolState, InputState, Viewport},
-  components::{
-    selected::Selected,
-    point::{Point, PointStyle, SymbolicPoint},
-    line::Line,
-  },
+  components::{Selected, Point, PointStyle, SymbolicPoint, Line},
 };
 
 static SNAP_TO_POINT_THRES : f64 = 10.0; // In actual space
@@ -55,7 +51,7 @@ impl<'a> System<'a> for CreatePointSystem {
           Some(ent) => ent,
           None => {
             let ent = entities.create();
-            if let Err(err) = points.insert(ent, Point(vp.to_virtual(input_state.mouse_abs_pos))) { panic!(err); };
+            if let Err(err) = points.insert(ent, vp.to_virtual(input_state.mouse_abs_pos)) { panic!(err); };
             if let Err(err) = styles.insert(ent, PointStyle { color: Color::new(1.0, 0.3, 0.3, 0.5), radius: 5. }) { panic!(err); };
             ent
           }
@@ -67,7 +63,7 @@ impl<'a> System<'a> for CreatePointSystem {
 
         // Then calculate the closest point this point should snap to
         let mut closest_point = None;
-        for (_, Point(p)) in (&sym_points, &points).join() { // Only snap to points with sym_points
+        for (_, p) in (&sym_points, &points).join() { // Only snap to points with sym_points
           let dist = (Vector2::from(vp.to_actual(*p)) - mouse_pos).magnitude();
           if dist <= SNAP_TO_POINT_THRES {
             closest_point = match closest_point {
@@ -80,7 +76,7 @@ impl<'a> System<'a> for CreatePointSystem {
         // Check if is snapping to point
         let snapping_to_point = closest_point.is_some();
         if let Some((p, _)) = closest_point {
-          if let Err(err) = points.insert(hover_point, Point(p)) { panic!(err); };
+          if let Err(err) = points.insert(hover_point, p) { panic!(err); };
         }
 
         // Check if snapping to a line
@@ -104,7 +100,7 @@ impl<'a> System<'a> for CreatePointSystem {
         // If snapping to line, then put the hover_point on the Point
         let snapping_to_line = closest_line.is_some();
         if let Some((p, _, _, _)) = closest_line {
-          if let Err(err) = points.insert(hover_point, Point(p)) { panic!(err); };
+          if let Err(err) = points.insert(hover_point, p) { panic!(err); };
         }
 
         // Change the style if snapping. If so then update the style. Else restore the style
@@ -112,7 +108,7 @@ impl<'a> System<'a> for CreatePointSystem {
         if snapping {
           if let Err(err) = styles.insert(hover_point, PointStyle { color: Color::red(), radius: 6. }) { panic!(err); };
         } else {
-          if let Err(err) = points.insert(hover_point, Point(virtual_mouse_pos)) { panic!(err); };
+          if let Err(err) = points.insert(hover_point, virtual_mouse_pos) { panic!(err); };
           if let Err(err) = styles.insert(hover_point, PointStyle { color: Color::new(1.0, 0.3, 0.3, 0.5), radius: 5. }) { panic!(err); };
         }
 

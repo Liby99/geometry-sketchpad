@@ -1,10 +1,7 @@
 use specs::prelude::*;
 use crate::{
   math::Intersect,
-  components::{
-    point::{SymbolicPoint, Point},
-    line::{SymbolicLine, Line},
-  }
+  components::{SymbolicPoint, Point, SymbolicLine, Line},
 };
 
 enum ToCompute {
@@ -46,14 +43,14 @@ fn solve_point<'a>(
       Some(sym) => match sym {
 
         // If it is a free point, then the solved point is right there
-        SymbolicPoint::Free(pos) => SolveResult::SolvedPoint(Point(*pos)),
+        SymbolicPoint::Free(pos) => SolveResult::SolvedPoint(*pos),
 
         // If it is a point on a line, then the point is at distance t from origin
         // along the direction. If the computed line is not found we request the
         // algorithm to compute the line first
         SymbolicPoint::OnLine(line_ent, t) => match lines.get(*line_ent) {
           Some(Line { origin, direction }) => {
-            SolveResult::SolvedPoint(Point(origin.clone() + *t * direction.clone()))
+            SolveResult::SolvedPoint(origin.clone() + *t * direction.clone())
           },
           None => SolveResult::Request(ToCompute::Line(*line_ent))
         },
@@ -92,8 +89,8 @@ fn solve_line<'a>(
         // points to be computed first. After that the line is originated from
         // point 1 to the direction of point 2.
         SymbolicLine::TwoPoints(p1_ent, p2_ent) => match points.get(*p1_ent) {
-          Some(Point(pos_1)) => match points.get(*p2_ent) {
-            Some(Point(pos_2)) => {
+          Some(pos_1) => match points.get(*p2_ent) {
+            Some(pos_2) => {
               let origin = *pos_1;
               let direction = (*pos_2 - *pos_1).normalized();
               SolveResult::SolvedLine(Line { origin, direction })

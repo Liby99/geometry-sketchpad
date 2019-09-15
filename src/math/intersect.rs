@@ -1,9 +1,6 @@
 use crate::{
   math::Vector2,
-  components::{
-    line::Line,
-    point::Point,
-  }
+  components::{Line, Point}
 };
 
 pub trait Intersect<T> {
@@ -27,7 +24,7 @@ impl Intersect<Line> for Line {
       let nom_2 = other.origin.y * x4 - other.origin.x * y4;
       let x_nom = nom_1 * other.direction.x - self.direction.x * nom_2;
       let y_nom = nom_1 * other.direction.y - self.direction.y * nom_2;
-      Some(Point(vec2![x_nom / det, y_nom / det]))
+      Some(vec2![x_nom / det, y_nom / det])
     }
   }
 }
