@@ -3,7 +3,7 @@ use specs::prelude::*;
 use crate::{
   math::Vector2,
   util::Color,
-  resources::{FinishState, Viewport},
+  resources::{FinishState, Viewport, MouseState}, // , InputEvents},
   components::{
     point::{Point, PointStyle},
     line::{Line, LineStyle},
@@ -16,7 +16,7 @@ fn draw_line(line: &Line, style: &LineStyle, vp: &Viewport, context: Context, gr
   let y_min = vp.y_min();
   let y_max = vp.y_max();
 
-  let (p1, p2) : (Option<Vector2>, Option<Vector2>) = if line.direction.x == 0. {
+  if let (Some(from), Some(to)) = if line.direction.x == 0. {
     if line.origin.y >= y_min && line.origin.y <= y_max {
       (Some(vec2![line.origin.x, y_min]), Some(vec2![line.origin.x, y_max]))
     } else {
@@ -48,15 +48,10 @@ fn draw_line(line: &Line, style: &LineStyle, vp: &Viewport, context: Context, gr
     if right { if p1.is_some() { p2 = Some(vec2![x_max, right_y]); } else { p1 = Some(vec2![x_max, right_y]); } }
 
     (p1, p2)
-  };
-
-  match (p1, p2) {
-    (Some(from), Some(to)) => {
-      let from = vp.to_actual(from);
-      let to = vp.to_actual(to);
-      line_from_to(style.color.into(), style.width, from, to, context.transform, graphics);
-    },
-    _ => ()
+  } {
+    let from = vp.to_actual(from);
+    let to = vp.to_actual(to);
+    line_from_to(style.color.into(), style.width, from, to, context.transform, graphics);
   }
 }
 
@@ -78,6 +73,7 @@ pub struct RenderSystem {
 impl<'a> System<'a> for RenderSystem {
   type SystemData = (
     Write<'a, FinishState>,
+    Write<'a, MouseState>,
     Read<'a, Viewport>,
     ReadStorage<'a, Point>,
     ReadStorage<'a, PointStyle>,
@@ -87,27 +83,49 @@ impl<'a> System<'a> for RenderSystem {
 
   fn run(&mut self, (
     mut finished,
+    mut mouse_state,
     viewport,
     points,
     point_styles,
     lines,
     line_styles
   ): Self::SystemData) {
+    mouse_state.reset_relative_data();
     if let Some(event) = self.window.next() {
-      println!("====");
-      self.window.draw_2d(&event, |context, graphics, _device| {
-        clear(Color::white().into(), graphics);
+      match event {
+        Event::Input(input, _) => {
+          match input {
+            Input::Button(ButtonArgs { state, button, .. }) => {
+              let is_pressed = state == ButtonState::Press;
+              match button {
+                Button::Mouse(MouseButton::Left) => mouse_state.left_button.set(is_pressed),
+                _ => ()
+              }
+            },
+            Input::Move(motion) => match motion {
+              Motion::MouseScroll(rel_scroll) => mouse_state.rel_scroll = rel_scroll,
+              _ => ()
+            },
+            _ => ()
+          }
+        },
+        _ => {
+          self.window.draw_2d(&event, |context, graphics, _device| {
+            // input_events.clear(); // Every time we do render, we clear the input events
+            clear(Color::white().into(), graphics); // We clean the screen
 
-        // Fisrt draw lines
-        for (line, style) in (&lines, &line_styles).join() {
-          draw_line(line, style, &*viewport, context, graphics);
-        }
+            // Fisrt draw lines
+            for (line, style) in (&lines, &line_styles).join() {
+              draw_line(line, style, &*viewport, context, graphics);
+            }
 
-        // Then draw points (as points are on top of lines)
-        for (point, style) in (&points, &point_styles).join() {
-          draw_point(point, style, &*viewport, context, graphics);
+            // Then draw points (as points are on top of lines)
+            for (point, style) in (&points, &point_styles).join() {
+              draw_point(point, style, &*viewport, context, graphics);
+            }
+          });
         }
-      });
+      }
     } else {
       finished.0 = true;
     }

@@ -1,4 +1,4 @@
-use std::ops::{ Add, Sub, Neg, Mul, Div };
+use std::ops::{Add, Sub, Neg, Mul, Div, AddAssign};
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Vector2 {
@@ -39,6 +39,13 @@ impl Into<[f64; 2]> for Vector2 {
 impl From<[f64; 2]> for Vector2 {
   fn from([x, y]: [f64; 2]) -> Self {
     Self { x, y }
+  }
+}
+
+impl AddAssign for Vector2 {
+  fn add_assign(&mut self, other: Self) {
+    self.x += other.x;
+    self.y += other.y;
   }
 }
 

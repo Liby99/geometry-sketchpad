@@ -1,3 +1,6 @@
+#![feature(type_alias_enum_variants)]
+#![feature(duration_float)]
+
 extern crate piston_window;
 extern crate specs;
 
@@ -9,8 +12,8 @@ mod util;
 
 use piston_window::{PistonWindow, WindowSettings};
 use specs::prelude::*;
-use resources::{FinishState, Viewport, WINDOW_SIZE};
-use systems::{RenderSystem, SolverSystem};
+use resources::{FinishState, Viewport, WINDOW_SIZE, MouseState, ToolState, DeltaTime};
+use systems::{ViewportSystem, RenderSystem, SolverSystem};
 use components::{
   point::*,
   line::*,
@@ -33,7 +36,10 @@ fn main() {
 
   // Insert resources
   world.insert(FinishState::default());
-  world.insert(Viewport::new(vec2![1., 1.], vec2![20., 15.], WINDOW_SIZE.into()));
+  world.insert(Viewport::default());
+  world.insert(DeltaTime::default());
+  world.insert(MouseState::default());
+  world.insert(ToolState::default());
 
   // ============ TEMP START ============
   let point_style = PointStyle { color: Color::red(), radius: 5. };
@@ -60,6 +66,7 @@ fn main() {
 
   // Create dispatcher
   let mut dispatcher = DispatcherBuilder::new()
+    .with(ViewportSystem, "viewport", &[])
     .with(SolverSystem, "solver", &[])
     .with_thread_local(render_system)
     .build();
