@@ -72,7 +72,7 @@ fn draw_point(point: &Point, style: &PointStyle, selected: bool, vp: &Viewport, 
     );
   }
   ellipse(
-    Color::black().into(),
+    Color::new(0.0, 0.0, 0.0, style.color.a).into(),
     [actual[0] - style.radius, actual[1] - style.radius, style.radius * 2., style.radius * 2.],
     context.transform,
     graphics,

@@ -13,7 +13,7 @@ mod util;
 use piston_window::{PistonWindow, WindowSettings};
 use specs::prelude::*;
 use resources::{FinishState, Viewport, WINDOW_SIZE, InputState, ToolState, DeltaTime};
-use systems::{ViewportSystem, WindowSystem, SelectPointSystem, SolverSystem};
+use systems::{ViewportSystem, WindowSystem, CreatePointSystem, SelectPointSystem, SolverSystem};
 use components::{
   point::*,
   line::*,
@@ -40,6 +40,7 @@ fn main() {
   // Create dispatcher
   let mut dispatcher = DispatcherBuilder::new()
     .with(ViewportSystem, "viewport", &[])
+    .with(CreatePointSystem::default(), "create_point", &[])
     .with(SelectPointSystem, "select_point", &[])
     .with(SolverSystem, "solver", &[])
     .with_thread_local(window_system)
