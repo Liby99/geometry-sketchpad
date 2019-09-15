@@ -12,7 +12,7 @@ mod util;
 
 use piston_window::{PistonWindow, WindowSettings};
 use specs::prelude::*;
-use resources::{FinishState, Viewport, WINDOW_SIZE, InputState, ToolState, DeltaTime};
+use resources::{FinishState, WINDOW_SIZE};
 use systems::{ViewportSystem, WindowSystem, CreatePointSystem, ChangeToolSystem, SelectPointSystem, SolverSystem};
 use components::*;
 use util::Color;
@@ -24,11 +24,11 @@ fn main() {
   let mut world = World::new();
 
   // Insert resources
-  world.insert(FinishState::default());
-  world.insert(Viewport::default());
-  world.insert(DeltaTime::default());
-  world.insert(InputState::default());
-  world.insert(ToolState::default());
+  // world.insert(FinishState::default());
+  // world.insert(Viewport::default());
+  // world.insert(DeltaTime::default());
+  // world.insert(InputState::default());
+  // world.insert(ToolState::default());
 
   // Create a window
   let window : PistonWindow = WindowSettings::new("Geometry Sketchpad - Untitled.gsp", WINDOW_SIZE).build().unwrap();
@@ -37,8 +37,8 @@ fn main() {
   // Create dispatcher
   let mut dispatcher = DispatcherBuilder::new()
     .with(ViewportSystem, "viewport", &[])
-    .with(CreatePointSystem::default(), "create_point", &[])
     .with(ChangeToolSystem, "change_tool", &[])
+    .with(CreatePointSystem::default(), "create_point", &["change_tool"])
     .with(SelectPointSystem, "select_point", &[])
     .with(SolverSystem, "solver", &[])
     .with_thread_local(window_system)

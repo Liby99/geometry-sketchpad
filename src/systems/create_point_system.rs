@@ -88,7 +88,8 @@ impl<'a> System<'a> for CreatePointSystem {
             let dist = (mouse_pos - closest_point).magnitude();
             if dist <= SNAP_TO_LINE_THRES {
               let virtual_closest_point = vp.to_virtual(closest_point.into());
-              let t = (virtual_closest_point - *origin).magnitude();
+              let diff = virtual_closest_point - *origin;
+              let t = if diff.dot(*direction) > 0.0 { diff.magnitude() } else { -diff.magnitude() };
               closest_line = match closest_line {
                 Some((_, _, _, d)) => if dist < d { Some((virtual_closest_point, ent, t, dist)) } else { closest_line },
                 None => Some((virtual_closest_point, ent, t, dist))
