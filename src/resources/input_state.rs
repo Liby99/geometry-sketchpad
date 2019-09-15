@@ -1,3 +1,6 @@
+use std::collections::BTreeMap;
+use piston_window::Key;
+
 pub struct InputState {
   pub mouse_left_button: ActiveState,
   pub mouse_right_button: ActiveState,
@@ -5,6 +8,7 @@ pub struct InputState {
   pub mouse_rel_movement: [f64; 2],
   pub rel_scroll: [f64; 2],
   pub in_focus: ActiveState,
+  pub keyboard: Keyboard,
 }
 
 impl Default for InputState {
@@ -16,6 +20,7 @@ impl Default for InputState {
       mouse_rel_movement: [0., 0.],
       in_focus: ActiveState::default(),
       rel_scroll: [0., 0.],
+      keyboard: Keyboard::default(),
     }
   }
 }
@@ -27,33 +32,83 @@ impl InputState {
     self.mouse_rel_movement = [0., 0.];
     self.in_focus.reset_relative_data();
     self.rel_scroll = [0., 0.];
+    self.keyboard.reset_relative_data();
   }
 }
 
 pub struct ActiveState {
-  down: bool,
+  pressed: bool,
   just_changed: bool,
 }
 
 impl Default for ActiveState {
   fn default() -> Self {
-    Self { down: false, just_changed: false }
+    Self { pressed: false, just_changed: false }
   }
 }
 
 impl ActiveState {
+  pub fn new(pressed: bool, just_changed: bool) -> Self {
+    Self { pressed, just_changed }
+  }
+
   pub fn set(&mut self, next: bool) {
-    if self.down != next {
-      self.down = next;
+    if self.pressed != next {
+      self.pressed = next;
       self.just_changed = true;
     }
   }
 
   pub fn just_activated(&self) -> bool {
-    self.down && self.just_changed
+    self.pressed && self.just_changed
   }
 
   pub fn reset_relative_data(&mut self) {
     self.just_changed = false;
+  }
+}
+
+pub struct Keyboard {
+  keys: BTreeMap<Key, ActiveState>,
+}
+
+impl Default for Keyboard {
+  fn default() -> Self {
+    Self { keys: BTreeMap::new() }
+  }
+}
+
+impl Keyboard {
+  pub fn set(&mut self, key: Key, pressed: bool) {
+    match self.keys.get_mut(&key) {
+      Some(state) => state.set(pressed),
+      None => if pressed { self.keys.insert(key, ActiveState::new(true, true)); }
+    }
+  }
+
+  pub fn is_activated(&self, key: Key) -> bool {
+    match self.keys.get(&key) {
+      Some(state) => state.pressed,
+      None => false,
+    }
+  }
+
+  pub fn just_activated(&self, key: Key) -> bool {
+    match self.keys.get(&key) {
+      Some(state) => state.just_activated(),
+      None => false,
+    }
+  }
+
+  pub fn reset_relative_data(&mut self) {
+    for (_, state) in self.keys.iter_mut() {
+      state.reset_relative_data();
+    }
+  }
+
+  pub fn just_activated_with_shift(&self, key: Key) -> bool {
+    let l_shift = self.is_activated(Key::LShift);
+    let r_shift = self.is_activated(Key::RShift);
+    self.just_activated(key) && (l_shift || r_shift)
   }
 }

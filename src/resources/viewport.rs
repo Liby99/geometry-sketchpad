@@ -27,6 +27,13 @@ impl Viewport {
     }
   }
 
+  pub fn set(&mut self, window_size: [f64; 2]) {
+    self.actual_size = Vector2::from(window_size);
+    self.virtual_size.y = self.virtual_size.x / self.actual_size.x * self.actual_size.y;
+    self.half_actual_size = self.actual_size / 2.0;
+    self.half_virtual_size = self.virtual_size / 2.0;
+  }
+
   pub fn actual_width(&self) -> f64 {
     self.actual_size.x
   }

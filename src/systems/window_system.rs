@@ -94,7 +94,7 @@ impl<'a> System<'a> for WindowSystem {
   type SystemData = (
     Write<'a, FinishState>,
     Write<'a, InputState>,
-    Read<'a, Viewport>,
+    Write<'a, Viewport>,
     ReadStorage<'a, Point>,
     ReadStorage<'a, PointStyle>,
     ReadStorage<'a, Line>,
@@ -105,7 +105,7 @@ impl<'a> System<'a> for WindowSystem {
   fn run(&mut self, (
     mut finished,
     mut input_state,
-    viewport,
+    mut viewport,
     points,
     point_styles,
     lines,
@@ -122,6 +122,7 @@ impl<'a> System<'a> for WindowSystem {
               match button {
                 Button::Mouse(MouseButton::Left) => input_state.mouse_left_button.set(is_pressed),
                 Button::Mouse(MouseButton::Right) => input_state.mouse_right_button.set(is_pressed),
+                Button::Keyboard(key) => input_state.keyboard.set(key, is_pressed),
                 _ => (),
               }
             },
@@ -131,12 +132,12 @@ impl<'a> System<'a> for WindowSystem {
               Motion::MouseRelative(rel_mov) => input_state.mouse_rel_movement = rel_mov,
               _ => (),
             },
-            _ => ()
+            Input::Resize(ResizeArgs { window_size, .. }) => viewport.set(window_size),
+            _ => (),
           }
         },
         _ => {
           self.window.draw_2d(&event, |context, graphics, _device| {
-            // input_events.clear(); // Every time we do render, we clear the input events
             clear(Color::white().into(), graphics); // We clean the screen
 
             // Fisrt draw lines
