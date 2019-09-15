@@ -119,13 +119,13 @@ impl ViewportTransform for Line {
   type Output = Self;
 
   fn to_actual(&self, vp: &Viewport) -> Self::Output {
-    let Line { origin, direction } = self;
-    Line { origin: origin.to_actual(vp), direction: -*direction }
+    let Line { origin, direction: Vector2 { x: dx, y: dy} } = self;
+    Line { origin: origin.to_actual(vp), direction: vec2![*dx, -dy] }
   }
 
   fn to_virtual(&self, vp: &Viewport) -> Self::Output {
-    let Line { origin, direction } = self;
-    Line { origin: origin.to_virtual(vp), direction: -*direction }
+    let Line { origin, direction: Vector2 { x: dx, y: dy} } = self;
+    Line { origin: origin.to_virtual(vp), direction: vec2![*dx, -dy] }
   }
 }
 

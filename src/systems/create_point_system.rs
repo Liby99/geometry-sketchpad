@@ -67,7 +67,7 @@ impl<'a> System<'a> for CreatePointSystem {
         };
 
         // Get initial mouse position
-        let mouse_pos = Vector2::from(input_state.mouse_abs_pos);
+        let mouse_pos = input_state.mouse_abs_pos;
         let virtual_mouse_pos = input_state.mouse_abs_pos.to_virtual(&*vp);
 
         // Then calculate the closest point this point should snap to
