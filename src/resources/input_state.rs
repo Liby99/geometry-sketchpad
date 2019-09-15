@@ -1,4 +1,4 @@
-pub struct MouseState {
+pub struct InputState {
   pub left_button: ActiveState,
   pub right_button: ActiveState,
   pub in_focus: ActiveState,
@@ -7,7 +7,7 @@ pub struct MouseState {
   pub rel_scroll: [f64; 2],
 }
 
-impl Default for MouseState {
+impl Default for InputState {
   fn default() -> Self {
     Self {
       left_button: ActiveState::default(),
@@ -20,7 +20,7 @@ impl Default for MouseState {
   }
 }
 
-impl MouseState {
+impl InputState {
   pub fn reset_relative_data(&mut self) {
     self.left_button.reset_relative_data();
     self.right_button.reset_relative_data();

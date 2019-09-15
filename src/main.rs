@@ -12,8 +12,8 @@ mod util;
 
 use piston_window::{PistonWindow, WindowSettings};
 use specs::prelude::*;
-use resources::{FinishState, Viewport, WINDOW_SIZE, MouseState, ToolState, DeltaTime};
-use systems::{ViewportSystem, RenderSystem, SolverSystem};
+use resources::{FinishState, Viewport, WINDOW_SIZE, InputState, ToolState, DeltaTime};
+use systems::{ViewportSystem, WindowSystem, SolverSystem};
 use components::{
   point::*,
   line::*,
@@ -38,7 +38,7 @@ fn main() {
   world.insert(FinishState::default());
   world.insert(Viewport::default());
   world.insert(DeltaTime::default());
-  world.insert(MouseState::default());
+  world.insert(InputState::default());
   world.insert(ToolState::default());
 
   // ============ TEMP START ============
@@ -62,13 +62,13 @@ fn main() {
 
   // Create a window
   let window : PistonWindow = WindowSettings::new("Geometry Sketchpad - Untitled.gsp", WINDOW_SIZE).build().unwrap();
-  let render_system = RenderSystem { window };
+  let window_system = WindowSystem { window };
 
   // Create dispatcher
   let mut dispatcher = DispatcherBuilder::new()
     .with(ViewportSystem, "viewport", &[])
     .with(SolverSystem, "solver", &[])
-    .with_thread_local(render_system)
+    .with_thread_local(window_system)
     .build();
 
   // Enter game main loop

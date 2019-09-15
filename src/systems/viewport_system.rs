@@ -1,7 +1,7 @@
 use specs::prelude::*;
 use crate::{
   math::Vector2,
-  resources::{MouseState, DeltaTime, Viewport},
+  resources::{InputState, DeltaTime, Viewport},
 };
 
 static SCROLL_SPEED : f64 = 1.0; // Can be adjusted
@@ -10,7 +10,7 @@ pub struct ViewportSystem;
 
 impl<'a> System<'a> for ViewportSystem {
   type SystemData = (
-    Read<'a, MouseState>,
+    Read<'a, InputState>,
     Read<'a, DeltaTime>,
     Write<'a, Viewport>,
   );

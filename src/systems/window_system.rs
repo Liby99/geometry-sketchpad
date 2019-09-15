@@ -3,7 +3,7 @@ use specs::prelude::*;
 use crate::{
   math::Vector2,
   util::Color,
-  resources::{FinishState, Viewport, MouseState}, // , InputEvents},
+  resources::{FinishState, Viewport, InputState}, // , InputEvents},
   components::{
     point::{Point, PointStyle},
     line::{Line, LineStyle},
@@ -73,14 +73,14 @@ fn draw_point(point: &Point, style: &PointStyle, vp: &Viewport, context: Context
   );
 }
 
-pub struct RenderSystem {
+pub struct WindowSystem {
   pub window: PistonWindow,
 }
 
-impl<'a> System<'a> for RenderSystem {
+impl<'a> System<'a> for WindowSystem {
   type SystemData = (
     Write<'a, FinishState>,
-    Write<'a, MouseState>,
+    Write<'a, InputState>,
     Read<'a, Viewport>,
     ReadStorage<'a, Point>,
     ReadStorage<'a, PointStyle>,
