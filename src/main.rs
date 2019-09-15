@@ -13,7 +13,7 @@ mod util;
 use piston_window::{PistonWindow, WindowSettings};
 use specs::prelude::*;
 use resources::{FinishState, Viewport, WINDOW_SIZE, InputState, ToolState, DeltaTime};
-use systems::{ViewportSystem, WindowSystem, SolverSystem};
+use systems::{ViewportSystem, WindowSystem, SelectPointSystem, SolverSystem};
 use components::{
   point::*,
   line::*,
@@ -26,20 +26,27 @@ fn main() {
   // Create a world
   let mut world = World::new();
 
-  // Register elements
-  world.register::<Point>();
-  world.register::<SymbolicPoint>();
-  world.register::<PointStyle>();
-  world.register::<Line>();
-  world.register::<SymbolicLine>();
-  world.register::<LineStyle>();
-
   // Insert resources
   world.insert(FinishState::default());
   world.insert(Viewport::default());
   world.insert(DeltaTime::default());
   world.insert(InputState::default());
   world.insert(ToolState::default());
+
+  // Create a window
+  let window : PistonWindow = WindowSettings::new("Geometry Sketchpad - Untitled.gsp", WINDOW_SIZE).build().unwrap();
+  let window_system = WindowSystem { window };
+
+  // Create dispatcher
+  let mut dispatcher = DispatcherBuilder::new()
+    .with(ViewportSystem, "viewport", &[])
+    .with(SelectPointSystem, "select_point", &[])
+    .with(SolverSystem, "solver", &[])
+    .with_thread_local(window_system)
+    .build();
+
+  // Setup resources
+  dispatcher.setup(&mut world);
 
   // ============ TEMP START ============
   let point_style = PointStyle { color: Color::red(), radius: 5. };
@@ -59,17 +66,6 @@ fn main() {
 
   // let _l3 = world.create_entity().with(SymbolicLine::TwoPoints(pe, pf)).with(line_style).build();
   // ============ TEMP END ============
-
-  // Create a window
-  let window : PistonWindow = WindowSettings::new("Geometry Sketchpad - Untitled.gsp", WINDOW_SIZE).build().unwrap();
-  let window_system = WindowSystem { window };
-
-  // Create dispatcher
-  let mut dispatcher = DispatcherBuilder::new()
-    .with(ViewportSystem, "viewport", &[])
-    .with(SolverSystem, "solver", &[])
-    .with_thread_local(window_system)
-    .build();
 
   // Enter game main loop
   while world.fetch::<FinishState>().not_finished() {

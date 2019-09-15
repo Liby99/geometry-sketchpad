@@ -1,20 +1,20 @@
 pub struct InputState {
-  pub left_button: ActiveState,
-  pub right_button: ActiveState,
-  pub in_focus: ActiveState,
-  pub abs_pos: [f64; 2],
-  pub rel_movement: [f64; 2],
+  pub mouse_left_button: ActiveState,
+  pub mouse_right_button: ActiveState,
+  pub mouse_abs_pos: [f64; 2],
+  pub mouse_rel_movement: [f64; 2],
   pub rel_scroll: [f64; 2],
+  pub in_focus: ActiveState,
 }
 
 impl Default for InputState {
   fn default() -> Self {
     Self {
-      left_button: ActiveState::default(),
-      right_button: ActiveState::default(),
+      mouse_left_button: ActiveState::default(),
+      mouse_right_button: ActiveState::default(),
+      mouse_abs_pos: [0., 0.],
+      mouse_rel_movement: [0., 0.],
       in_focus: ActiveState::default(),
-      abs_pos: [0., 0.],
-      rel_movement: [0., 0.],
       rel_scroll: [0., 0.],
     }
   }
@@ -22,10 +22,10 @@ impl Default for InputState {
 
 impl InputState {
   pub fn reset_relative_data(&mut self) {
-    self.left_button.reset_relative_data();
-    self.right_button.reset_relative_data();
+    self.mouse_left_button.reset_relative_data();
+    self.mouse_right_button.reset_relative_data();
+    self.mouse_rel_movement = [0., 0.];
     self.in_focus.reset_relative_data();
-    self.rel_movement = [0., 0.];
     self.rel_scroll = [0., 0.];
   }
 }
@@ -47,6 +47,10 @@ impl ActiveState {
       self.down = next;
       self.just_changed = true;
     }
+  }
+
+  pub fn just_activated(&self) -> bool {
+    self.down && self.just_changed
   }
 
   pub fn reset_relative_data(&mut self) {

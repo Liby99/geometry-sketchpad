@@ -30,6 +30,10 @@ impl Color {
   pub fn white() -> Self {
     Self::new(1.0, 1.0, 1.0, 1.0)
   }
+
+  pub fn magenta() -> Self {
+    Self::new(1.0, 0.0, 1.0, 1.0)
+  }
 }
 
 impl Into<[f32; 4]> for Color {
