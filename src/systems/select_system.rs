@@ -1,7 +1,7 @@
 use specs::prelude::*;
 use crate::{
   math::Vector2,
-  resources::{Viewport, InputState, ToolState},
+  resources::{Viewport, ViewportTransform, InputState, ToolState},
   components::{Point, /*Line, */Selected},
 };
 
@@ -34,7 +34,7 @@ impl<'a> System<'a> for SelectPointSystem {
 
           // TODO: CHange this logic to getting the closest point & Make this point size dependent
           for (ent, p) in (&entities, &points).join() {
-            if (Vector2::from(vp.to_actual(*p)) - mouse_pos).magnitude() <= SELECT_DIST_THRES {
+            if (Vector2::from(p.to_actual(&*vp)) - mouse_pos).magnitude() <= SELECT_DIST_THRES {
               match selected.get(ent) {
                 Some(_) => { selected.remove(ent); },
                 None => if let Err(err) = selected.insert(ent, Selected) {

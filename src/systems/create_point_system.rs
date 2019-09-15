@@ -3,7 +3,7 @@ use specs::prelude::*;
 use crate::{
   math::{Vector2, Intersect},
   util::Color,
-  resources::{ToolState, InputState, Viewport, DirtyState},
+  resources::{ToolState, InputState, Viewport, ViewportTransform, DirtyState},
   components::{Selected, Point, PointStyle, SymbolicPoint, Line},
 };
 
@@ -60,7 +60,7 @@ impl<'a> System<'a> for CreatePointSystem {
           None => {
             let ent = entities.create();
             self.hovering = Some(ent);
-            if let Err(err) = points.insert(ent, vp.to_virtual(input_state.mouse_abs_pos)) { panic!(err); };
+            if let Err(err) = points.insert(ent, input_state.mouse_abs_pos.to_virtual(&*vp)) { panic!(err); };
             if let Err(err) = styles.insert(ent, PointStyle { color: Color::new(1.0, 0.3, 0.3, 0.5), radius: 5. }) { panic!(err); };
             ent
           }
@@ -68,12 +68,12 @@ impl<'a> System<'a> for CreatePointSystem {
 
         // Get initial mouse position
         let mouse_pos = Vector2::from(input_state.mouse_abs_pos);
-        let virtual_mouse_pos = vp.to_virtual(input_state.mouse_abs_pos);
+        let virtual_mouse_pos = input_state.mouse_abs_pos.to_virtual(&*vp);
 
         // Then calculate the closest point this point should snap to
         let mut closest_point = None;
         for (_, p) in (&sym_points, &points).join() { // Only snap to points with sym_points
-          let dist = (Vector2::from(vp.to_actual(*p)) - mouse_pos).magnitude();
+          let dist = (Vector2::from(p.to_actual(&*vp)) - mouse_pos).magnitude();
           if dist <= SNAP_TO_POINT_THRES {
             closest_point = match closest_point {
               Some((_, d)) => if dist < d { Some((*p, dist)) } else { closest_point },
@@ -92,12 +92,13 @@ impl<'a> System<'a> for CreatePointSystem {
         let mut closest_line : Option<(Vector2, Entity, f64, f64)> = None; // (closest_point, line_ent, t, dist_to_line)
         let mut closest_lines : Vec<(Entity, Line)> = vec![];
         if !snapping_to_point {
-          for (ent, Line { origin, direction }) in (&*entities, &lines).join() {
-            let actual_line = Line { origin: Vector2::from(vp.to_actual(*origin)), direction: vec2![direction.x, -direction.y] };
+          for (ent, line) in (&*entities, &lines).join() {
+            let Line { origin, direction } = line;
+            let actual_line = line.to_actual(&*vp);
             let closest_point = mouse_pos.project(actual_line);
             let dist = (mouse_pos - closest_point).magnitude();
             if dist <= SNAP_TO_LINE_THRES {
-              let virtual_closest_point = vp.to_virtual(closest_point.into());
+              let virtual_closest_point = closest_point.to_virtual(&*vp);
               let diff = virtual_closest_point - *origin;
               let t = if diff.dot(*direction) > 0.0 { diff.magnitude() } else { -diff.magnitude() };
               closest_lines.push((ent, Line { origin: *origin, direction: *direction }));
@@ -120,7 +121,7 @@ impl<'a> System<'a> for CreatePointSystem {
         for comb in closest_lines.iter().combinations(2) {
           if let &[(l1_ent, l1), (l2_ent, l2)] = &*comb {
             if let Some(itsct) = l1.intersect(*l2) {
-              let actual : Vector2 = vp.to_actual(itsct).into();
+              let actual : Vector2 = itsct.to_actual(&*vp);
               let dist = (mouse_pos - actual).magnitude();
               if dist <= SNAP_TO_POINT_THRES {
                 closest_intersection = match closest_intersection {

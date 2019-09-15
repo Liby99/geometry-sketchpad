@@ -3,7 +3,7 @@ use specs::prelude::*;
 use crate::{
   math::Intersect,
   util::Color,
-  resources::{FinishState, Viewport, InputState, DirtyState},
+  resources::{FinishState, Viewport, ViewportTransform, InputState, DirtyState},
   components::{Selected, Point, PointStyle, Line, LineStyle},
 };
 
@@ -11,14 +11,14 @@ fn draw_line(line: &Line, style: &LineStyle, vp: &Viewport, context: Context, gr
   let aabb = vp.virtual_aabb();
   let itsct = line.intersect(aabb);
   if let Some((from, to)) = itsct {
-    let from = vp.to_actual(from);
-    let to = vp.to_actual(to);
+    let from = from.to_actual(vp);
+    let to = to.to_actual(vp);
     line_from_to(style.color.into(), style.width, from, to, context.transform, graphics);
   }
 }
 
 fn draw_point(point: &Point, style: &PointStyle, selected: bool, vp: &Viewport, context: Context, graphics: &mut G2d) {
-  let actual = vp.to_actual(*point);
+  let actual = point.to_actual(vp);
   if selected {
     let radius = style.radius + 3.0;
     circle_arc(
@@ -26,21 +26,21 @@ fn draw_point(point: &Point, style: &PointStyle, selected: bool, vp: &Viewport, 
       1.0,
       0.0,
       std::f64::consts::PI * 1.9999,
-      [actual[0] - radius, actual[1] - radius, radius * 2., radius * 2.],
+      [actual.x - radius, actual.y - radius, radius * 2., radius * 2.],
       context.transform,
       graphics
     );
   }
   ellipse(
     Color::new(0.0, 0.0, 0.0, style.color.a).into(),
-    [actual[0] - style.radius, actual[1] - style.radius, style.radius * 2., style.radius * 2.],
+    [actual.x - style.radius, actual.y - style.radius, style.radius * 2., style.radius * 2.],
     context.transform,
     graphics,
   );
   let center_radius = style.radius - 1.5;
   ellipse(
     style.color.into(),
-    [actual[0] - center_radius, actual[1] - center_radius, center_radius * 2., center_radius * 2.],
+    [actual.x - center_radius, actual.y - center_radius, center_radius * 2., center_radius * 2.],
     context.transform,
     graphics,
   );
@@ -97,9 +97,9 @@ impl<'a> System<'a> for WindowSystem {
               }
             },
             Input::Move(motion) => match motion {
-              Motion::MouseScroll(rel_scroll) => input_state.rel_scroll = rel_scroll,
-              Motion::MouseCursor(abs_pos) => input_state.mouse_abs_pos = abs_pos,
-              Motion::MouseRelative(rel_mov) => input_state.mouse_rel_movement = rel_mov,
+              Motion::MouseScroll(rel_scroll) => input_state.rel_scroll = rel_scroll.into(),
+              Motion::MouseCursor(abs_pos) => input_state.mouse_abs_pos = abs_pos.into(),
+              Motion::MouseRelative(rel_mov) => input_state.mouse_rel_movement = rel_mov.into(),
               _ => dirty_state.is_input_dirty = false,
             },
             Input::Resize(ResizeArgs { window_size, .. }) => viewport.set(window_size),

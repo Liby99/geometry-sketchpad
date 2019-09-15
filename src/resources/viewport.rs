@@ -1,4 +1,4 @@
-use crate::math::{Vector2, AABB};
+use crate::math::{Vector2, Line, AABB};
 
 pub static WINDOW_SIZE : [f64; 2] = [960., 720.];
 
@@ -86,18 +86,46 @@ impl Viewport {
     AABB::new(self.x_min(), self.y_min(), self.virtual_width(), self.virtual_height())
   }
 
-  pub fn to_actual(&self, point: Vector2) -> [f64; 2] {
-    let Vector2 { x, y } = point;
-    let x_p = (x - self.virtual_center.x + self.half_virtual_width()) / self.virtual_width() * self.actual_width();
-    let y_p = (self.virtual_center.y - y + self.half_virtual_height()) / self.virtual_height() * self.actual_height();
-    [x_p, y_p]
+  pub fn actual_aabb(&self) -> AABB {
+    AABB::new(0., 0., self.actual_width(), self.actual_height())
+  }
+}
+
+pub trait ViewportTransform {
+  type Output;
+  fn to_actual(&self, vp: &Viewport) -> Self::Output;
+  fn to_virtual(&self, vp: &Viewport) -> Self::Output;
+}
+
+impl ViewportTransform for Vector2 {
+  type Output = Self;
+
+  fn to_actual(&self, vp: &Viewport) -> Self::Output {
+    let Vector2 { x, y } = self;
+    let x_p = (x - vp.virtual_center.x + vp.half_virtual_width()) / vp.virtual_width() * vp.actual_width();
+    let y_p = (vp.virtual_center.y - y + vp.half_virtual_height()) / vp.virtual_height() * vp.actual_height();
+    vec2![x_p, y_p]
   }
 
-  pub fn to_virtual(&self, pos: [f64; 2]) -> Vector2 {
-    let [x_p, y_p] = pos;
-    let x = (x_p - self.half_actual_width()) / self.actual_width() * self.virtual_width() + self.virtual_center.x;
-    let y = (self.half_actual_height() - y_p) / self.actual_height() * self.virtual_height() + self.virtual_center.y;
+  fn to_virtual(&self, vp: &Viewport) -> Self::Output {
+    let Vector2 { x: x_p, y: y_p } = self;
+    let x = (x_p - vp.half_actual_width()) / vp.actual_width() * vp.virtual_width() + vp.virtual_center.x;
+    let y = (vp.half_actual_height() - y_p) / vp.actual_height() * vp.virtual_height() + vp.virtual_center.y;
     vec2![x, y]
+  }
+}
+
+impl ViewportTransform for Line {
+  type Output = Self;
+
+  fn to_actual(&self, vp: &Viewport) -> Self::Output {
+    let Line { origin, direction } = self;
+    Line { origin: origin.to_actual(vp), direction: -*direction }
+  }
+
+  fn to_virtual(&self, vp: &Viewport) -> Self::Output {
+    let Line { origin, direction } = self;
+    Line { origin: origin.to_virtual(vp), direction: -*direction }
   }
 }
 
@@ -107,13 +135,13 @@ mod tests {
 
   #[test]
   fn test_to_actual() {
-    let vp = Viewport::default();
-    assert!(vp.to_actual(vec2![0., 0.]) == [480., 360.]);
-    assert!(vp.to_actual(vec2![-10., 7.5]) == [0., 0.]);
-    assert!(vp.to_actual(vec2![-10., -7.5]) == [0., 720.]);
-    assert!(vp.to_actual(vec2![10., 7.5]) == [960., 0.]);
-    assert!(vp.to_actual(vec2![10., -7.5]) == [960., 720.]);
-    assert!(vp.to_actual(vec2![0., 5.]) == [480., 120.]);
-    assert!(vp.to_actual(vec2![5., 5.]) == [720., 120.]);
+    let vp = &Viewport::default();
+    assert!(vec2![0., 0.].to_actual(vp) == vec2![480., 360.]);
+    assert!(vec2![0., 0.].to_actual(vp) == vec2![0., 0.]);
+    assert!(vec2![0., 0.].to_actual(vp) == vec2![0., 720.]);
+    assert!(vec2![0., 0.].to_actual(vp) == vec2![960., 0.]);
+    assert!(vec2![0., 0.].to_actual(vp) == vec2![960., 720.]);
+    assert!(vec2![0., 0.].to_actual(vp) == vec2![480., 120.]);
+    assert!(vec2![0., 0.].to_actual(vp) == vec2![720., 120.]);
   }
 }
