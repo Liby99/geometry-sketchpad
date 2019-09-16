@@ -137,11 +137,11 @@ mod tests {
   fn test_to_actual() {
     let vp = &Viewport::default();
     assert!(vec2![0., 0.].to_actual(vp) == vec2![480., 360.]);
-    assert!(vec2![0., 0.].to_actual(vp) == vec2![0., 0.]);
-    assert!(vec2![0., 0.].to_actual(vp) == vec2![0., 720.]);
-    assert!(vec2![0., 0.].to_actual(vp) == vec2![960., 0.]);
-    assert!(vec2![0., 0.].to_actual(vp) == vec2![960., 720.]);
-    assert!(vec2![0., 0.].to_actual(vp) == vec2![480., 120.]);
-    assert!(vec2![0., 0.].to_actual(vp) == vec2![720., 120.]);
+    assert!(vec2![-10., 7.5].to_actual(vp) == vec2![0., 0.]);
+    assert!(vec2![-10., -7.5].to_actual(vp) == vec2![0., 720.]);
+    assert!(vec2![10., 7.5].to_actual(vp) == vec2![960., 0.]);
+    assert!(vec2![10., -7.5].to_actual(vp) == vec2![960., 720.]);
+    assert!(vec2![0., 5.].to_actual(vp) == vec2![480., 120.]);
+    assert!(vec2![5., 5.].to_actual(vp) == vec2![720., 120.]);
   }
 }

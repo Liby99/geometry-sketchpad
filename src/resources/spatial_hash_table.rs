@@ -66,8 +66,8 @@ impl<T: Clone + Eq + Hash> SpatialHashTable<T> {
         let mut curr_y = p1.y;
         let mut curr_x_tile = init_x_tile as i64;
         let mut curr_y_tile = init_y_tile as i64;
-        while 0 <= curr_x_tile && curr_x_tile < self.x_tiles as i64 && 0 <= curr_y_tile && curr_y_tile < self.y_tiles as i64 {
-          let next_y = curr_y_tile as f64 * TILE_SIZE;
+        while curr_x_tile < self.x_tiles as i64 && 0 <= curr_y_tile && curr_y_tile < self.y_tiles as i64 {
+          let next_y = (curr_y_tile + if dir.y > 0.0 { 1 } else { 0 }) as f64 * TILE_SIZE;
           let tile_offset_y = (next_y - curr_y) * yi;
           let next_x_diff = tile_offset_y / dir.y.abs() * dir.x;
           let next_x = curr_x + next_x_diff;
@@ -97,7 +97,6 @@ impl<T: Clone + Eq + Hash> SpatialHashTable<T> {
     } else {
       None
     }
-    // println!("(x: {}, x_tile: {}, y: {}, y_tile: {}, TILE_SIZE: {})", x, x_tile, y, y_tile, TILE_SIZE);
   }
 
   fn get_unlimited_cell(&self, p: Point) -> (i64, i64) {
@@ -136,19 +135,19 @@ impl<T: Clone + Eq + Hash> SpatialHashTable<T> {
     }
   }
 
-  pub fn is_left_border(&self, tile: Tile) -> bool {
+  fn is_left_border(&self, tile: Tile) -> bool {
     tile % self.x_tiles == 0
   }
 
-  pub fn is_right_border(&self, tile: Tile) -> bool {
+  fn is_right_border(&self, tile: Tile) -> bool {
     tile % self.x_tiles == self.x_tiles - 1
   }
 
-  pub fn is_top_border(&self, tile: Tile) -> bool {
+  fn is_top_border(&self, tile: Tile) -> bool {
     tile / self.x_tiles < 1
   }
 
-  pub fn is_bottom_border(&self, tile: Tile) -> bool {
+  fn is_bottom_border(&self, tile: Tile) -> bool {
     tile / self.x_tiles >= self.y_tiles - 1
   }
 }
@@ -233,6 +232,8 @@ mod tests {
     let l = Line { origin: vec2![-0.5, 0.0], direction: vec2![(2.0 as f64).sqrt(), -(2.0 as f64).sqrt()] };
     table.insert_line(0, l, vp);
 
+    println!("{:?}", table);
+
     assert!(table.table[0] == vec![0]);
     assert!(table.table[1].is_empty());
     assert!(table.table[2] == vec![0]);
@@ -265,7 +266,7 @@ mod tests {
     table.init_viewport(vp);
 
     let sqrt17 = (17.0 as f64).sqrt();
-    let l = Line { origin: vec2![0.0, 0.0], direction: vec2![4.0 / sqrt17, 1.0 / sqrt17] };
+    let l = Line { origin: vec2![0.0, -0.1], direction: vec2![4.0 / sqrt17, 1.0 / sqrt17] };
     table.insert_line(0, l, vp);
 
     println!("{:?}", table);

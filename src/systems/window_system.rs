@@ -102,7 +102,10 @@ impl<'a> System<'a> for WindowSystem {
               Motion::MouseRelative(rel_mov) => input_state.mouse_rel_movement = rel_mov.into(),
               _ => dirty_state.is_input_dirty = false,
             },
-            Input::Resize(ResizeArgs { window_size, .. }) => viewport.set(window_size),
+            Input::Resize(ResizeArgs { window_size, .. }) => {
+              viewport.set(window_size);
+              dirty_state.is_viewport_dirty = true;
+            },
             _ => dirty_state.is_input_dirty = false,
           }
         },
