@@ -32,7 +32,7 @@ fn main() {
     .with(ViewportSystem, "viewport", &[])
     .with(ChangeToolSystem, "change_tool", &[])
     .with(CreatePointSystem::default(), "create_point", &["change_tool"])
-    .with(SelectPointSystem, "select_point", &[])
+    .with(SelectSystem, "select", &[])
     .with(SolverSystem, "solver", &[])
     .with(SpatialHashCache, "spatial_cache", &["solver"])
     .with_thread_local(window_system)
