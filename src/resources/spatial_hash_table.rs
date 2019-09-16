@@ -61,50 +61,27 @@ impl<T: Clone + Eq + Hash> SpatialHashTable<T> {
         let dir = (p2 - p1).normalized();
         let p1 = p1 + dir;
         let (init_x_tile, init_y_tile) = self.get_unlimited_cell(p1);
-        if dir.y < 0.0 {
-          let mut curr_x = p1.x;
-          let mut curr_y = p1.y;
-          let mut curr_x_tile = init_x_tile as i64;
-          let mut curr_y_tile = init_y_tile as i64;
-          while 0 <= curr_x_tile && curr_x_tile < self.x_tiles as i64 && 0 <= curr_y_tile && curr_y_tile < self.y_tiles as i64 {
-            let tile_offset_y = curr_y - curr_y_tile as f64 * TILE_SIZE;
-            let next_y = curr_y_tile as f64 * TILE_SIZE;
-            let next_x_diff = tile_offset_y / dir.y.abs() * dir.x;
-            let next_x = curr_x + next_x_diff;
-            let next_x_tile = (next_x / TILE_SIZE) as i64;
-            for tile_x in curr_x_tile..(next_x_tile + 1) {
-              if tile_x < self.x_tiles as i64 {
-                let tile = self.get_cell_by_x_y(tile_x as usize, curr_y_tile as usize);
-                self.table[tile].push(ent.clone());
-              }
+        let yi = if dir.y < 0.0 { -1.0 } else { 1.0 };
+        let mut curr_x = p1.x;
+        let mut curr_y = p1.y;
+        let mut curr_x_tile = init_x_tile as i64;
+        let mut curr_y_tile = init_y_tile as i64;
+        while 0 <= curr_x_tile && curr_x_tile < self.x_tiles as i64 && 0 <= curr_y_tile && curr_y_tile < self.y_tiles as i64 {
+          let next_y = curr_y_tile as f64 * TILE_SIZE;
+          let tile_offset_y = (next_y - curr_y) * yi;
+          let next_x_diff = tile_offset_y / dir.y.abs() * dir.x;
+          let next_x = curr_x + next_x_diff;
+          let next_x_tile = (next_x / TILE_SIZE) as i64;
+          for tile_x in curr_x_tile..(next_x_tile + 1) {
+            if tile_x < self.x_tiles as i64 {
+              let tile = self.get_cell_by_x_y(tile_x as usize, curr_y_tile as usize);
+              self.table[tile].push(ent.clone());
             }
-            curr_x = next_x;
-            curr_y = next_y;
-            curr_x_tile = next_x_tile;
-            curr_y_tile = curr_y_tile - 1;
           }
-        } else {
-          let mut curr_x = p1.x;
-          let mut curr_y = p1.y;
-          let mut curr_x_tile = init_x_tile as i64;
-          let mut curr_y_tile = init_y_tile as i64;
-          while 0 <= curr_x_tile && curr_x_tile < self.x_tiles as i64 && 0 <= curr_y_tile && curr_y_tile < self.y_tiles as i64 {
-            let next_y = (curr_y_tile + 1) as f64 * TILE_SIZE;
-            let offset_y = next_y - curr_y;
-            let next_x_diff = offset_y / dir.y.abs() * dir.x;
-            let next_x = curr_x + next_x_diff;
-            let next_x_tile = (next_x / TILE_SIZE) as i64;
-            for tile_x in curr_x_tile..(next_x_tile + 1) {
-              if tile_x < self.x_tiles as i64 {
-                let tile = self.get_cell_by_x_y(tile_x as usize, curr_y_tile as usize);
-                self.table[tile].push(ent.clone());
-              }
-            }
-            curr_x = next_x;
-            curr_y = next_y;
-            curr_x_tile = next_x_tile;
-            curr_y_tile = curr_y_tile + 1;
-          }
+          curr_x = next_x;
+          curr_y = next_y;
+          curr_x_tile = next_x_tile;
+          curr_y_tile = curr_y_tile + yi as i64;
         }
       }
     }
