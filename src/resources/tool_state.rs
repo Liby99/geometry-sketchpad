@@ -5,6 +5,6 @@ pub enum ToolState {
 
 impl Default for ToolState {
   fn default() -> Self {
-    Self::Point
+    Self::Select
   }
 }

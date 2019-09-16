@@ -8,9 +8,9 @@ pub struct Vector2 {
 }
 
 macro_rules! vec2 {
-  () => (Vector2::zero());
-  ($c:expr) => (Vector2::new($c, $c));
-  ($x:expr, $y:expr) => (Vector2::new($x, $y));
+  () => (Vector2 { x: 0.0, y: 0.0 });
+  ($c:expr) => (Vector2 { x: $c, y: $c });
+  ($x:expr, $y:expr) => (Vector2 { x: $x, y: $y });
 }
 
 impl Vector2 {

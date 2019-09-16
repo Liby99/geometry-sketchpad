@@ -1,19 +1,25 @@
 use piston_window::*;
 use specs::prelude::*;
 use crate::{
-  math::Intersect,
+  math::{Vector2, Intersect},
   util::Color,
   resources::{FinishState, Viewport, ViewportTransform, InputState, DirtyState},
   components::{Selected, Point, PointStyle, Line, LineStyle},
 };
 
-fn draw_line(line: &Line, style: &LineStyle, vp: &Viewport, context: Context, graphics: &mut G2d) {
+fn draw_line(line: &Line, style: &LineStyle, selected: bool, vp: &Viewport, context: Context, graphics: &mut G2d) {
   let aabb = vp.virtual_aabb();
   let itsct = line.intersect(aabb);
   if let Some((from, to)) = itsct {
     let from = from.to_actual(vp);
     let to = to.to_actual(vp);
     line_from_to(style.color.into(), style.width, from, to, context.transform, graphics);
+    if selected {
+      let Vector2 { x: dx, y: dy } = (to - from).normalized();
+      let perp_dir = vec2![-dy, dx] * (style.width / 2.0 + 3.0);
+      line_from_to(Color::magenta().into(), 0.5, from - perp_dir, to - perp_dir, context.transform, graphics);
+      line_from_to(Color::magenta().into(), 0.5, from + perp_dir, to + perp_dir, context.transform, graphics);
+    }
   }
 }
 
@@ -23,7 +29,7 @@ fn draw_point(point: &Point, style: &PointStyle, selected: bool, vp: &Viewport, 
     let radius = style.radius + 3.0;
     circle_arc(
       Color::magenta().into(),
-      1.0,
+      0.5,
       0.0,
       std::f64::consts::PI * 1.9999,
       [actual.x - radius, actual.y - radius, radius * 2., radius * 2.],
@@ -113,9 +119,14 @@ impl<'a> System<'a> for WindowSystem {
           self.window.draw_2d(&event, |context, graphics, _device| {
             clear(Color::white().into(), graphics); // We clean the screen
 
+            // Fisrt draw regular lines
+            for (line, style, _) in (&lines, &line_styles, !&selected).join() {
+              draw_line(line, style, false, &*viewport, context, graphics);
+            }
+
             // Fisrt draw lines
-            for (line, style) in (&lines, &line_styles).join() {
-              draw_line(line, style, &*viewport, context, graphics);
+            for (line, style, _) in (&lines, &line_styles, &selected).join() {
+              draw_line(line, style, true, &*viewport, context, graphics);
             }
 
             // Then draw regular points (not selected)

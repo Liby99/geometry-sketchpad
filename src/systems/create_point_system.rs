@@ -23,7 +23,7 @@ impl Default for CreatePointSystem {
 
 enum PointResult {
   AllowCreation { sym_point: SymbolicPoint, snap_point: Vector2 },
-  JustSnapping { snap_point: Vector2 },
+  JustSnapping { sym_point: Entity, snap_point: Vector2 },
   Nothing,
 }
 
@@ -68,9 +68,9 @@ impl<'a> System<'a> for CreatePointSystem {
           Some(ent) => ent,
           None => {
             let ent = entities.create();
-            self.hovering = Some(ent);
             if let Err(err) = points.insert(ent, input_state.mouse_abs_pos.to_virtual(&*vp)) { panic!(err); };
             if let Err(err) = styles.insert(ent, PointStyle { color: Color::new(1.0, 0.3, 0.3, 0.5), radius: 5. }) { panic!(err); };
+            self.hovering = Some(ent);
             ent
           }
         };
@@ -94,16 +94,10 @@ impl<'a> System<'a> for CreatePointSystem {
             if let Some(p) = points.get(entity) {
               let norm_dist = (p.to_actual(&*vp) - mouse_pos).magnitude() / SNAP_TO_POINT_THRES;
               if norm_dist < 1.0 {
-                if let Some(smallest_dist) = maybe_smallest_dist {
-                  if norm_dist < smallest_dist {
-                    is_snapping_to_point = true;
-                    maybe_smallest_dist = Some(norm_dist);
-                    result = PointResult::JustSnapping { snap_point: *p };
-                  }
-                } else {
+                if maybe_smallest_dist.is_none() || norm_dist < maybe_smallest_dist.unwrap() {
                   is_snapping_to_point = true;
                   maybe_smallest_dist = Some(norm_dist);
-                  result = PointResult::JustSnapping { snap_point: *p };
+                  result = PointResult::JustSnapping { sym_point: entity, snap_point: *p };
                 }
               }
             } else if let Some(l) = lines.get(entity) {
@@ -113,27 +107,17 @@ impl<'a> System<'a> for CreatePointSystem {
                 closest_lines.push((entity, *l));
               }
               let norm_dist = dist / SNAP_TO_LINE_THRES;
-              if norm_dist < 1.0 {
-                if !is_snapping_to_point {
-                  let virtual_proj_point = actual_proj_point.to_virtual(&*vp);
-                  let p_to_origin = virtual_proj_point - l.origin;
-                  let p_to_origin_dist = p_to_origin.magnitude();
-                  let t = if p_to_origin.dot(l.direction) > 0.0 { p_to_origin_dist } else { -p_to_origin_dist };
-                  if let Some(smallest_dist) = maybe_smallest_dist {
-                    if norm_dist < smallest_dist {
-                      maybe_smallest_dist = Some(norm_dist);
-                      result = PointResult::AllowCreation {
-                        sym_point: SymbolicPoint::OnLine(entity, t),
-                        snap_point: virtual_proj_point,
-                      };
-                    }
-                  } else {
-                    maybe_smallest_dist = Some(norm_dist);
-                    result = PointResult::AllowCreation {
-                      sym_point: SymbolicPoint::OnLine(entity, t),
-                      snap_point: virtual_proj_point,
-                    };
-                  }
+              if norm_dist < 1.0 && !is_snapping_to_point {
+                let virtual_proj_point = actual_proj_point.to_virtual(&*vp);
+                let p_to_origin = virtual_proj_point - l.origin;
+                let p_to_origin_dist = p_to_origin.magnitude();
+                let t = if p_to_origin.dot(l.direction) > 0.0 { p_to_origin_dist } else { -p_to_origin_dist };
+                if maybe_smallest_dist.is_none() || norm_dist < maybe_smallest_dist.unwrap() {
+                  maybe_smallest_dist = Some(norm_dist);
+                  result = PointResult::AllowCreation {
+                    sym_point: SymbolicPoint::OnLine(entity, t),
+                    snap_point: virtual_proj_point,
+                  };
                 }
               }
             }
@@ -148,15 +132,7 @@ impl<'a> System<'a> for CreatePointSystem {
                   let actual : Vector2 = itsct.to_actual(&*vp);
                   let norm_dist = (mouse_pos - actual).magnitude() / SNAP_TO_INTERSECTION_THRES;
                   if norm_dist < 1.0 {
-                    if let Some(smallest_dist) = maybe_smallest_dist {
-                      if norm_dist < smallest_dist {
-                        maybe_smallest_dist = Some(norm_dist);
-                        result = PointResult::AllowCreation {
-                          sym_point: SymbolicPoint::LineLineIntersect(*l1_ent, *l2_ent),
-                          snap_point: itsct,
-                        };
-                      }
-                    } else {
+                    if maybe_smallest_dist.is_none() || norm_dist < maybe_smallest_dist.unwrap() {
                       maybe_smallest_dist = Some(norm_dist);
                       result = PointResult::AllowCreation {
                         sym_point: SymbolicPoint::LineLineIntersect(*l1_ent, *l2_ent),
@@ -175,7 +151,7 @@ impl<'a> System<'a> for CreatePointSystem {
         let point_style = PointStyle { color: Color::red(), radius: 5. };
         let (hover_pos, hover_style) = match result {
           PointResult::AllowCreation { snap_point, .. } => (snap_point, snapping_style),
-          PointResult::JustSnapping { snap_point } => (snap_point, snapping_style),
+          PointResult::JustSnapping { snap_point, .. } => (snap_point, snapping_style),
           PointResult::Nothing => (virtual_mouse_pos, regular_style),
         };
         if let Err(err) = points.insert(hover_point, hover_pos) { panic!(err); };

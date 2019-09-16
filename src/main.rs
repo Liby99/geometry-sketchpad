@@ -12,8 +12,8 @@ mod util;
 
 use piston_window::{PistonWindow, WindowSettings};
 use specs::prelude::*;
-use resources::{FinishState, WINDOW_SIZE};
-use systems::{ViewportSystem, WindowSystem, CreatePointSystem, ChangeToolSystem, SelectPointSystem, SolverSystem, SpatialHashCache};
+use resources::*;
+use systems::*;
 use components::*;
 use util::Color;
 use math::Vector2;
@@ -50,7 +50,7 @@ fn main() {
   let pc = world.create_entity().with(SymbolicPoint::Free(vec2![2., 2.])).with(point_style).build();
   let pd = world.create_entity().with(SymbolicPoint::Free(vec2![4., 0.])).with(point_style).build();
 
-  let _lx = world.create_entity().with(SymbolicLine::TwoPoints(pa, pd)).with(line_style).build();
+  let _lx = world.create_entity().with(SymbolicLine::TwoPoints(pa, pd)).with(line_style).with(Selected).build();
   let _l1 = world.create_entity().with(SymbolicLine::TwoPoints(pa, pb)).with(line_style).build();
   let _l2 = world.create_entity().with(SymbolicLine::TwoPoints(pc, pd)).with(line_style).build();
 
