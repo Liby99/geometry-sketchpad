@@ -58,8 +58,9 @@ impl<T: Clone + Eq + Hash> SpatialHashTable<T> {
       } else {
         // Making sure p1 to p2 is from left to right
         let (p1, p2) = if p1.x > p2.x { (p2, p1) } else { (p1, p2) };
-        let (init_x_tile, init_y_tile) = self.get_unlimited_cell(p1);
         let dir = (p2 - p1).normalized();
+        let p1 = p1 + dir;
+        let (init_x_tile, init_y_tile) = self.get_unlimited_cell(p1);
         if dir.y < 0.0 {
           let mut curr_x = p1.x;
           let mut curr_y = p1.y;
@@ -298,5 +299,22 @@ mod tests {
         _ => assert!(table.table[i].is_empty())
       }
     }
+  }
+
+  #[test]
+  fn test_insert_line_6() {
+    let vp = &Viewport::new(vec2![0., 0.], vec2![2., 2.], vec2![80., 80.]); // 田
+    let mut table : SpatialHashTable<i32> = SpatialHashTable::default();
+    table.init_viewport(vp);
+
+    let l = Line { origin: vec2![0.0, -0.5], direction: vec2![(2.0 as f64).sqrt(), (2.0 as f64).sqrt()] };
+    table.insert_line(0, l, vp);
+
+    println!("{:?}", table);
+
+    assert!(table.table[0].is_empty());
+    assert!(table.table[1] == vec![0]);
+    assert!(table.table[2] == vec![0]);
+    assert!(table.table[3] == vec![0]);
   }
 }

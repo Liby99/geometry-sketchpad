@@ -116,19 +116,21 @@ impl<'a> System<'a> for CreatePointSystem {
               if norm_dist < 1.0 {
                 if !is_snapping_to_point {
                   let virtual_proj_point = actual_proj_point.to_virtual(&*vp);
-                  let virtual_proj_point_to_origin = (virtual_proj_point - l.origin).magnitude();
+                  let p_to_origin = virtual_proj_point - l.origin;
+                  let p_to_origin_dist = p_to_origin.magnitude();
+                  let t = if p_to_origin.dot(l.direction) > 0.0 { p_to_origin_dist } else { -p_to_origin_dist };
                   if let Some(smallest_dist) = maybe_smallest_dist {
                     if norm_dist < smallest_dist {
                       maybe_smallest_dist = Some(norm_dist);
                       result = PointResult::AllowCreation {
-                        sym_point: SymbolicPoint::OnLine(entity, virtual_proj_point_to_origin),
+                        sym_point: SymbolicPoint::OnLine(entity, t),
                         snap_point: virtual_proj_point,
                       };
                     }
                   } else {
                     maybe_smallest_dist = Some(norm_dist);
                     result = PointResult::AllowCreation {
-                      sym_point: SymbolicPoint::OnLine(entity, virtual_proj_point_to_origin),
+                      sym_point: SymbolicPoint::OnLine(entity, t),
                       snap_point: virtual_proj_point,
                     };
                   }
@@ -180,7 +182,12 @@ impl<'a> System<'a> for CreatePointSystem {
         if let Err(err) = styles.insert(hover_point, hover_style) { panic!(err); };
 
         if input_state.mouse_left_button.just_activated() {
-          if let PointResult::AllowCreation { sym_point, .. } = result {
+          let maybe_sym_point_to_put = match result {
+            PointResult::AllowCreation { sym_point, .. } => Some(sym_point),
+            PointResult::Nothing => Some(SymbolicPoint::Free(virtual_mouse_pos)),
+            _ => None
+          };
+          if let Some(sym_point) = maybe_sym_point_to_put {
 
             // Create the new point
             let new_point = entities.create();
@@ -192,103 +199,6 @@ impl<'a> System<'a> for CreatePointSystem {
             dirty_state.is_solver_dirty = true;
           }
         }
-
-        // // Then calculate the closest point this point should snap to
-        // let mut closest_point = None;
-        // for (_, p) in (&sym_points, &points).join() { // Only snap to points with sym_points
-        //   let dist = (Vector2::from(p.to_actual(&*vp)) - mouse_pos).magnitude();
-        //   if dist <= SNAP_TO_POINT_THRES {
-        //     closest_point = match closest_point {
-        //       Some((_, d)) => if dist < d { Some((*p, dist)) } else { closest_point },
-        //       None => Some((*p, dist))
-        //     };
-        //   }
-        // }
-
-        // // Check if is snapping to point
-        // let snapping_to_point = closest_point.is_some();
-        // if let Some((p, _)) = closest_point {
-        //   if let Err(err) = points.insert(hover_point, p) { panic!(err); };
-        // }
-
-        // // Check if snapping to a line
-        // let mut closest_line : Option<(Vector2, Entity, f64, f64)> = None; // (closest_point, line_ent, t, dist_to_line)
-        // let mut closest_lines : Vec<(Entity, Line)> = vec![];
-        // if !snapping_to_point {
-        //   for (ent, line) in (&*entities, &lines).join() {
-        //     let Line { origin, direction } = line;
-        //     let actual_line = line.to_actual(&*vp);
-        //     let closest_point = mouse_pos.project(actual_line);
-        //     let dist = (mouse_pos - closest_point).magnitude();
-        //     if dist <= SNAP_TO_LINE_THRES {
-        //       let virtual_closest_point = closest_point.to_virtual(&*vp);
-        //       let diff = virtual_closest_point - *origin;
-        //       let t = if diff.dot(*direction) > 0.0 { diff.magnitude() } else { -diff.magnitude() };
-        //       closest_lines.push((ent, Line { origin: *origin, direction: *direction }));
-        //       closest_line = match closest_line {
-        //         Some((_, _, _, d)) => if dist < d { Some((virtual_closest_point, ent, t, dist)) } else { closest_line },
-        //         None => Some((virtual_closest_point, ent, t, dist))
-        //       };
-        //     }
-        //   }
-        // }
-
-        // // If snapping to line, then put the hover_point on the Point
-        // let snapping_to_line = closest_line.is_some();
-        // if let Some((p, _, _, _)) = closest_line {
-        //   if let Err(err) = points.insert(hover_point, p) { panic!(err); };
-        // }
-
-        // // Check if snapping to an intersection
-        // let mut closest_intersection : Option<(Entity, Entity, Vector2, f64)> = None;
-        // for comb in closest_lines.iter().combinations(2) {
-        //   if let &[(l1_ent, l1), (l2_ent, l2)] = &*comb {
-        //     if let Some(itsct) = l1.intersect(*l2) {
-        //       let actual : Vector2 = itsct.to_actual(&*vp);
-        //       let dist = (mouse_pos - actual).magnitude();
-        //       if dist <= SNAP_TO_POINT_THRES {
-        //         closest_intersection = match closest_intersection {
-        //           Some((_, _, _, d)) => if dist < d { Some((*l1_ent, *l2_ent, itsct, dist)) } else { closest_intersection },
-        //           None => Some((*l1_ent, *l2_ent, itsct, dist))
-        //         }
-        //       }
-        //     }
-        //   }
-        // }
-
-        // // If snapping to intersection, then put the hover_point on the intersection
-        // let snapping_to_intersection = closest_intersection.is_some();
-        // if let Some((_, _, p, _)) = closest_intersection {
-        //   if let Err(err) = points.insert(hover_point, p) { panic!(err); };
-        // }
-
-        // // Change the style if snapping. If so then update the style. Else restore the style
-        // if snapping_to_point || snapping_to_line || snapping_to_intersection {
-        //   if let Err(err) = styles.insert(hover_point, PointStyle { color: Color::red(), radius: 6. }) { panic!(err); };
-        // } else {
-        //   if let Err(err) = points.insert(hover_point, virtual_mouse_pos) { panic!(err); };
-        //   if let Err(err) = styles.insert(hover_point, PointStyle { color: Color::new(1.0, 0.3, 0.3, 0.5), radius: 5. }) { panic!(err); };
-        // }
-
-        // // Only insert free point for now
-        // if input_state.mouse_left_button.just_activated() {
-        //   if !snapping_to_point {
-        //     let ent = entities.create();
-        //     let sym_point = if let Some((l1_ent, l2_ent, _, _)) = closest_intersection {
-        //       SymbolicPoint::LineLineIntersect(l1_ent, l2_ent)
-        //     } else if let Some((_, line_ent, t, _)) = closest_line {
-        //       SymbolicPoint::OnLine(line_ent, t)
-        //     } else {
-        //       SymbolicPoint::Free(virtual_mouse_pos)
-        //     };
-        //     if let Err(err) = sym_points.insert(ent, sym_point) { panic!(err); };
-        //     if let Err(err) = styles.insert(ent, PointStyle { color: Color::red(), radius: 5. }) { panic!(err); };
-        //     if let Err(err) = selected.insert(ent, Selected) { panic!(err); };
-
-        //     // Set the solver dirty since a new thing has been inserted
-        //     dirty_state.is_solver_dirty = true;
-        //   }
-        // }
       },
       _ => { // If in other case, remove the hovering point
         match self.hovering {
