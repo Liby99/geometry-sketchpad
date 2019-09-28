@@ -100,6 +100,14 @@ fn solve_line<'a>(
           },
           None => SolveResult::Request(ToCompute::Point(*p1_ent))
         },
+
+        SymbolicLine::Parallel(line_ent, point_ent) => match points.get(*point_ent) {
+          Some(pos) => match lines.get(*line_ent) {
+            Some(Line { direction, .. }) => SolveResult::SolvedLine(Line { origin: *pos, direction: *direction }),
+            None => SolveResult::Request(ToCompute::Line(*line_ent))
+          },
+          None => SolveResult::Request(ToCompute::Point(*point_ent))
+        }
       },
       None => panic!("Could not find to compute line"),
     },

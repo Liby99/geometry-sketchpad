@@ -1,6 +1,5 @@
 use specs::prelude::*;
 use crate::{
-  math::Vector2,
   resources::{Viewport, ViewportTransform, SpatialHashTable, InputState, ToolState},
   components::{Point, Line, Selected},
 };
@@ -11,7 +10,6 @@ pub struct SelectSystem;
 
 impl<'a> System<'a> for SelectSystem {
   type SystemData = (
-    Entities<'a>,
     Read<'a, ToolState>,
     Read<'a, InputState>,
     Read<'a, Viewport>,
@@ -22,7 +20,6 @@ impl<'a> System<'a> for SelectSystem {
   );
 
   fn run(&mut self, (
-    entities,
     tool,
     input,
     vp,

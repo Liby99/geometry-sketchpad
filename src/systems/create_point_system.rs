@@ -3,7 +3,7 @@ use specs::prelude::*;
 use crate::{
   math::{Vector2, Intersect},
   util::Color,
-  resources::{ToolState, InputState, Viewport, ViewportTransform, DirtyState, SpatialHashTable},
+  resources::*,
   components::{Selected, Point, PointStyle, SymbolicPoint, Line},
 };
 
@@ -170,6 +170,15 @@ impl<'a> System<'a> for CreatePointSystem {
             if let Err(err) = sym_points.insert(new_point, sym_point) { panic!(err) };
             if let Err(err) = styles.insert(new_point, point_style) { panic!(err) };
             if let Err(err) = selected.insert(new_point, Selected) { panic!(err) };
+
+            // Update ancestor line(s)
+            // match sym_point {
+            //   SymbolicPoint::OnLine(parent, _) => {
+            //     if let Some(&mut parent_desc_points) = desc_points.get_mut(parent) {
+
+            //     }
+            //   }
+            // }
 
             // Set the solver to be dirty
             dirty_state.is_solver_dirty = true;

@@ -32,6 +32,7 @@ fn main() {
     .with(ViewportSystem, "viewport", &[])
     .with(ChangeToolSystem, "change_tool", &[])
     .with(CreatePointSystem::default(), "create_point", &["change_tool"])
+    .with(CreateParallelLine, "create_parallel_line", &[])
     .with(SelectSystem, "select", &[])
     .with(SolverSystem, "solver", &[])
     .with(SpatialHashCache, "spatial_cache", &["solver"])
@@ -58,6 +59,7 @@ fn main() {
   // let pf = world.create_entity().with(SymbolicPoint::OnLine(lx, 3.)).with(point_style).build();
 
   // let _l3 = world.create_entity().with(SymbolicLine::TwoPoints(pe, pf)).with(line_style).build();
+  // let _l4 = world.create_entity().with(SymbolicLine::Parallel(lx, pe)).with(line_style).build();
   // ============ TEMP END ============
 
   // Enter game main loop

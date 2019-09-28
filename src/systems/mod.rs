@@ -3,6 +3,7 @@ mod solver_system;
 mod select_system;
 mod viewport_system;
 mod create_point_system;
+mod create_parallel_line;
 mod change_tool_system;
 mod spatial_hash_cache;
 
@@ -13,3 +14,4 @@ pub use viewport_system::ViewportSystem;
 pub use create_point_system::CreatePointSystem;
 pub use change_tool_system::ChangeToolSystem;
 pub use spatial_hash_cache::SpatialHashCache;
+pub use create_parallel_line::CreateParallelLine;
