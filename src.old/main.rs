@@ -4,17 +4,19 @@
 extern crate piston_window;
 extern crate specs;
 
-#[macro_use] mod util;
-mod components;
-mod resources;
+#[macro_use] mod math;
 mod systems;
+mod resources;
+mod components;
+mod util;
 
 use piston_window::{PistonWindow, WindowSettings};
 use specs::prelude::*;
-use util::{Color, Vector2};
-use components::*;
 use resources::*;
 use systems::*;
+use components::*;
+use util::Color;
+use math::Vector2;
 
 fn main() {
 
@@ -27,6 +29,14 @@ fn main() {
 
   // Create dispatcher
   let mut dispatcher = DispatcherBuilder::new()
+    .with(ViewportSystem, "viewport", &[])
+    .with(ChangeToolSystem, "change_tool", &[])
+    .with(CreatePointSystem::default(), "create_point", &["change_tool"])
+    .with(CreateParallelLine, "create_parallel_line", &[])
+    .with(SelectSystem, "select", &[])
+    .with(SolverSystem, "solver", &[])
+    .with(ComputeDescendant, "compute_descendant", &["solver"])
+    .with(SpatialHashCache, "spatial_cache", &["solver"])
     .with_thread_local(window_system)
     .build();
 

@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 use piston_window::Key;
-use crate::util::Vector2;
+use crate::math::Vector2;
 
 pub struct InputState {
   pub mouse_left_button: ActiveState,

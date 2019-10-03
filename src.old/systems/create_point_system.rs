@@ -182,6 +182,7 @@ impl<'a> System<'a> for CreatePointSystem {
 
             // Set the solver to be dirty
             dirty_state.is_solver_dirty = true;
+            dirty_state.is_sym_elem_dirty = true;
           }
         }
       },

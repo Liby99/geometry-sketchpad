@@ -65,6 +65,7 @@ impl<'a> System<'a> for CreateParallelLine {
             if let Err(err) = line_styles.insert(ent, LineStyle { color: Color::blue(), width: 2.0 }) { panic!(err) };
             if let Err(err) = selected.insert(ent, Selected) { panic!(err) };
             dirty_state.is_solver_dirty = true;
+            dirty_state.is_sym_elem_dirty = true;
           }
         }
       }

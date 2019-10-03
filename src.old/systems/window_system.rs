@@ -1,9 +1,9 @@
 use piston_window::*;
 use specs::prelude::*;
 use crate::{
-  util::{Vector2, Intersect},
+  math::{Vector2, Intersect},
   util::Color,
-  resources::{FinishState, Viewport, ViewportTransform, InputState/*, DirtyState */},
+  resources::{FinishState, Viewport, ViewportTransform, InputState, DirtyState},
   components::{Selected, Point, PointStyle, Line, LineStyle},
 };
 
@@ -60,7 +60,7 @@ impl<'a> System<'a> for WindowSystem {
   type SystemData = (
     Write<'a, FinishState>,
     Write<'a, InputState>,
-    // Write<'a, DirtyState>,
+    Write<'a, DirtyState>,
     Write<'a, Viewport>,
     ReadStorage<'a, Point>,
     ReadStorage<'a, PointStyle>,
@@ -72,7 +72,7 @@ impl<'a> System<'a> for WindowSystem {
   fn run(&mut self, (
     mut finished,
     mut input_state,
-    // mut dirty_state,
+    mut dirty_state,
     mut viewport,
     points,
     point_styles,
@@ -82,7 +82,7 @@ impl<'a> System<'a> for WindowSystem {
   ): Self::SystemData) {
 
     // Reset information
-    // dirty_state.reset();
+    dirty_state.reset();
     input_state.reset_relative_data();
 
     // Handle window events
@@ -91,7 +91,7 @@ impl<'a> System<'a> for WindowSystem {
         Event::Input(input, _) => {
 
           // Set the input state dirty
-          // dirty_state.is_input_dirty = true;
+          dirty_state.is_input_dirty = true;
           match input {
             Input::Button(ButtonArgs { state, button, .. }) => {
               let is_pressed = state == ButtonState::Press;
@@ -99,23 +99,20 @@ impl<'a> System<'a> for WindowSystem {
                 Button::Mouse(MouseButton::Left) => input_state.mouse_left_button.set(is_pressed),
                 Button::Mouse(MouseButton::Right) => input_state.mouse_right_button.set(is_pressed),
                 Button::Keyboard(key) => input_state.keyboard.set(key, is_pressed),
-                _ => (),
-                // _ => dirty_state.is_input_dirty = false,
+                _ => dirty_state.is_input_dirty = false,
               }
             },
             Input::Move(motion) => match motion {
               Motion::MouseScroll(rel_scroll) => input_state.rel_scroll = rel_scroll.into(),
               Motion::MouseCursor(abs_pos) => input_state.mouse_abs_pos = abs_pos.into(),
               Motion::MouseRelative(rel_mov) => input_state.mouse_rel_movement = rel_mov.into(),
-              _ => (),
-              // _ => dirty_state.is_input_dirty = false,
+              _ => dirty_state.is_input_dirty = false,
             },
             Input::Resize(ResizeArgs { window_size, .. }) => {
               viewport.set(window_size);
-              // dirty_state.is_viewport_dirty = true;
+              dirty_state.is_viewport_dirty = true;
             },
-            _ => (),
-            // _ => dirty_state.is_input_dirty = false,
+            _ => dirty_state.is_input_dirty = false,
           }
         },
         _ => {
