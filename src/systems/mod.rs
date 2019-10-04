@@ -1,5 +1,5 @@
 mod window_system;
-// mod solver_system;
+mod solver_system;
 // mod select_system;
 // mod viewport_system;
 // mod create_point_system;
@@ -9,7 +9,7 @@ mod window_system;
 // mod compute_desendant;
 
 pub use window_system::WindowSystem;
-// pub use solver_system::SolverSystem;
+pub use solver_system::SolverSystem;
 // pub use select_system::{SelectSystem};
 // pub use viewport_system::ViewportSystem;
 // pub use create_point_system::CreatePointSystem;
