@@ -42,15 +42,16 @@ impl<'a> System<'a> for SnapPointRenderer {
     // Check if we need to render the snap point
     if let Some(SnapPoint { position, symbo }) = maybe_snap_point.get() {
 
-      // First insert (update) the point
+      // First insert (update) the point position
       if let Err(err) = points.insert(ent, position) { panic!(err) };
 
-      // Then make sure we render it correctly
-      let style = match symbo {
+      // Then insert the style.
+      // If not snapped then it's slightly dimmer;
+      // if snapped then it's larger and bright
+      if let Err(err) = styles.insert(ent, match symbo {
         SnapPointType::NotSnapped => PointStyle { color: Color::new(1.0, 0.3, 0.3, 0.5), radius: 5. },
-        _ => PointStyle { color: Color::red(), radius: 6. },
-      };
-      if let Err(err) = styles.insert(ent, style) { panic!(err) };
+        _                         => PointStyle { color: Color::red(),                   radius: 6. },
+      }) { panic!(err) };
     } else {
       points.remove(ent);
       styles.remove(ent);
