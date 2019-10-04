@@ -70,22 +70,25 @@ impl Viewport {
     self.virtual_center.x - self.half_virtual_size.x
   }
 
-  // pub fn x_max(&self) -> f64 {
-  //   self.virtual_center.x + self.half_virtual_size.x
-  // }
+  #[allow(dead_code)]
+  pub fn x_max(&self) -> f64 {
+    self.virtual_center.x + self.half_virtual_size.x
+  }
 
   pub fn y_min(&self) -> f64 {
     self.virtual_center.y - self.half_virtual_size.y
   }
 
-  // pub fn y_max(&self) -> f64 {
-  //   self.virtual_center.y + self.half_virtual_size.y
-  // }
+  #[allow(dead_code)]
+  pub fn y_max(&self) -> f64 {
+    self.virtual_center.y + self.half_virtual_size.y
+  }
 
   pub fn virtual_aabb(&self) -> AABB {
     AABB::new(self.x_min(), self.y_min(), self.virtual_width(), self.virtual_height())
   }
 
+  #[allow(dead_code)]
   pub fn actual_aabb(&self) -> AABB {
     AABB::new(0., 0., self.actual_width(), self.actual_height())
   }

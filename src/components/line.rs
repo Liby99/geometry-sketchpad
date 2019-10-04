@@ -13,6 +13,7 @@ impl Component for LineStyle {
 }
 
 #[derive(Debug, Copy, Clone)]
+#[allow(dead_code)]
 pub enum SymbolicLine {
   TwoPoints(Entity, Entity), // Should be two points
   Parallel(Entity, Entity), // (line_entity, point_entity)

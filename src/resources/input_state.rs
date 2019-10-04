@@ -87,6 +87,7 @@ impl Keyboard {
     }
   }
 
+  #[allow(dead_code)]
   pub fn is_activated(&self, key: Key) -> bool {
     match self.keys.get(&key) {
       Some(state) => state.pressed,
@@ -94,6 +95,7 @@ impl Keyboard {
     }
   }
 
+  #[allow(dead_code)]
   pub fn just_activated(&self, key: Key) -> bool {
     match self.keys.get(&key) {
       Some(state) => state.just_activated(),
@@ -107,6 +109,7 @@ impl Keyboard {
     }
   }
 
+  #[allow(dead_code)]
   pub fn just_activated_with_shift(&self, key: Key) -> bool {
     let l_shift = self.is_activated(Key::LShift);
     let r_shift = self.is_activated(Key::RShift);

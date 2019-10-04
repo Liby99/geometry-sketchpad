@@ -15,6 +15,7 @@ impl Color {
     Self::new(1.0, 0.0, 0.0, 1.0)
   }
 
+  #[allow(dead_code)]
   pub fn green() -> Self {
     Self::new(0.0, 1.0, 0.0, 1.0)
   }
@@ -23,6 +24,7 @@ impl Color {
     Self::new(0.0, 0.0, 1.0, 1.0)
   }
 
+  #[allow(dead_code)]
   pub fn black() -> Self {
     Self::new(0.0, 0.0, 0.0, 1.0)
   }
