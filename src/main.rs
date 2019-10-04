@@ -27,6 +27,8 @@ fn main() {
 
   // Create dispatcher
   let mut dispatcher = DispatcherBuilder::new()
+    .with(ViewportSystem, "viewport_system", &[])
+    .with(SpatialHashCache, "spatial_hash_cache", &["viewport_system"])
     .with(ExitSystem, "exit_system", &[])
     .with(SolverSystem, "solver_system", &[])
     .with_thread_local(window_system)

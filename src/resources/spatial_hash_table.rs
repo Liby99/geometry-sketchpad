@@ -4,18 +4,15 @@ use super::{Viewport, ViewportTransform};
 use crate::util::{Vector2, Intersect};
 use crate::components::{Point, Line};
 
-#[allow(dead_code)]
 static TILE_SIZE : f64 = 40.0;
 
 #[derive(Debug)]
-#[allow(dead_code)]
 pub struct SpatialHashTable<T: Clone + Eq + Hash> {
   x_tiles: usize,
   y_tiles: usize,
   table: Vec<Vec<T>>,
 }
 
-#[allow(dead_code)]
 pub type Tile = usize;
 
 impl<T: Clone + Eq + Hash> Default for SpatialHashTable<T> {
@@ -25,7 +22,6 @@ impl<T: Clone + Eq + Hash> Default for SpatialHashTable<T> {
 }
 
 impl<T: Clone + Eq + Hash> SpatialHashTable<T> {
-  #[allow(dead_code)]
   pub fn init_viewport(&mut self, vp: &Viewport) {
     self.x_tiles = (vp.actual_width() / TILE_SIZE).ceil() as usize;
     self.y_tiles = (vp.actual_height() / TILE_SIZE).ceil() as usize;
@@ -33,7 +29,6 @@ impl<T: Clone + Eq + Hash> SpatialHashTable<T> {
   }
 
   // p: point in virtual space
-  #[allow(dead_code)]
   pub fn insert_point(&mut self, ent: T, p: Point, vp: &Viewport) {
     if let Some(id) = self.get_cell(p.to_actual(vp)) {
       self.table[id].push(ent);
@@ -41,7 +36,6 @@ impl<T: Clone + Eq + Hash> SpatialHashTable<T> {
   }
 
   /// l: line in virtual space
-  #[allow(dead_code)]
   pub fn insert_line(&mut self, ent: T, l: Line, vp: &Viewport) {
     let aabb = vp.actual_aabb();
     if let Some((p1, p2)) = l.to_actual(vp).intersect(aabb) {
@@ -117,7 +111,6 @@ impl<T: Clone + Eq + Hash> SpatialHashTable<T> {
   }
 
   /// p: point in virtual space
-  #[allow(dead_code)]
   pub fn get_neighbor_entities(&self, p: Point, vp: &Viewport) -> Option<Vec<T>> {
     if let Some(center_tile) = self.get_cell(p.to_actual(vp)) {
       let mut tiles = vec![center_tile];

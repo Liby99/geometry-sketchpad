@@ -2,7 +2,7 @@ use piston_window::*;
 use specs::prelude::*;
 use crate::{
   util::{Vector2, Intersect, Color, Key},
-  resources::{FinishState, Viewport, ViewportTransform, InputState/*, DirtyState */},
+  resources::{FinishState, Viewport, ViewportTransform, InputState, Events},
   components::{Selected, Point, PointStyle, Line, LineStyle},
 };
 
@@ -59,7 +59,7 @@ impl<'a> System<'a> for WindowSystem {
   type SystemData = (
     Write<'a, FinishState>,
     Write<'a, InputState>,
-    // Write<'a, DirtyState>,
+    Write<'a, Events>,
     Write<'a, Viewport>,
     ReadStorage<'a, Point>,
     ReadStorage<'a, PointStyle>,
@@ -71,7 +71,7 @@ impl<'a> System<'a> for WindowSystem {
   fn run(&mut self, (
     mut finished,
     mut input_state,
-    // mut dirty_state,
+    mut events,
     mut viewport,
     points,
     point_styles,
@@ -81,7 +81,7 @@ impl<'a> System<'a> for WindowSystem {
   ): Self::SystemData) {
 
     // Reset information
-    // dirty_state.reset();
+    events.clear();
     input_state.reset_relative_data();
 
     // Handle window events
@@ -148,7 +148,7 @@ impl<'a> System<'a> for WindowSystem {
         }
       }
     } else {
-      finished.0 = true;
+      finished.set_finished();
     }
   }
 }
