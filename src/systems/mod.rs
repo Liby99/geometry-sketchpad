@@ -7,6 +7,7 @@ mod solver_system;
 // mod change_tool_system;
 // mod spatial_hash_cache;
 // mod compute_desendant;
+mod exit_system;
 
 pub use window_system::WindowSystem;
 pub use solver_system::SolverSystem;
@@ -17,3 +18,4 @@ pub use solver_system::SolverSystem;
 // pub use spatial_hash_cache::SpatialHashCache;
 // pub use create_parallel_line::CreateParallelLine;
 // pub use compute_desendant::ComputeDescendant;
+pub use exit_system::ExitSystem;

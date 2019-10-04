@@ -1,6 +1,5 @@
-use std::collections::BTreeMap;
-use piston_window::Key;
-use crate::util::Vector2;
+use std::collections::HashMap;
+use crate::util::{Vector2, Key};
 
 pub struct InputState {
   pub mouse_left_button: ActiveState,
@@ -70,12 +69,12 @@ impl ActiveState {
 }
 
 pub struct Keyboard {
-  keys: BTreeMap<Key, ActiveState>,
+  keys: HashMap<Key, ActiveState>,
 }
 
 impl Default for Keyboard {
   fn default() -> Self {
-    Self { keys: BTreeMap::new() }
+    Self { keys: HashMap::new() }
   }
 }
 
@@ -87,7 +86,6 @@ impl Keyboard {
     }
   }
 
-  #[allow(dead_code)]
   pub fn is_activated(&self, key: Key) -> bool {
     match self.keys.get(&key) {
       Some(state) => state.pressed,
@@ -95,7 +93,6 @@ impl Keyboard {
     }
   }
 
-  #[allow(dead_code)]
   pub fn just_activated(&self, key: Key) -> bool {
     match self.keys.get(&key) {
       Some(state) => state.just_activated(),
@@ -107,12 +104,5 @@ impl Keyboard {
     for (_, state) in self.keys.iter_mut() {
       state.reset_relative_data();
     }
-  }
-
-  #[allow(dead_code)]
-  pub fn just_activated_with_shift(&self, key: Key) -> bool {
-    let l_shift = self.is_activated(Key::LShift);
-    let r_shift = self.is_activated(Key::RShift);
-    self.just_activated(key) && (l_shift || r_shift)
   }
 }

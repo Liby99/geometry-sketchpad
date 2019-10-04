@@ -27,6 +27,7 @@ fn main() {
 
   // Create dispatcher
   let mut dispatcher = DispatcherBuilder::new()
+    .with(ExitSystem, "exit_system", &[])
     .with(SolverSystem, "solver_system", &[])
     .with_thread_local(window_system)
     .build();
