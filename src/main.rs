@@ -30,6 +30,8 @@ fn main() {
     .with(ViewportSystem, "viewport_system", &[])
     .with(SpatialHashCache, "spatial_hash_cache", &["viewport_system"])
     .with(ChangeToolSystem, "change_tool_system", &[])
+    .with(SnapPointSystem, "snap_point_system", &["spatial_hash_cache", "change_tool_system"])
+    .with(SnapPointRenderer::default(), "snap_point_renderer", &["snap_point_system"])
     .with(ExitSystem, "exit_system", &[])
     .with(SolverSystem, "solver_system", &[])
     .with_thread_local(window_system)

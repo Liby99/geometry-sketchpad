@@ -8,7 +8,7 @@ mod tool_state;
 mod spatial_hash_table;
 // mod descendant_map;
 // mod last_active_point;
-// mod snap_point;
+mod snap_point;
 
 pub use finish_state::FinishState;
 pub use viewport::{Viewport, ViewportTransform, WINDOW_SIZE};
@@ -20,4 +20,4 @@ pub use tool_state::ToolState;
 pub use spatial_hash_table::SpatialHashTable;
 // pub use descendant_map::DescendantMap;
 // pub use last_active_point::LastActivePoint;
-// pub use snap_point::SnapPoint;
+pub use snap_point::*;
