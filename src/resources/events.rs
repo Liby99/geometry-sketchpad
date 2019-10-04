@@ -1,13 +1,23 @@
+use specs::prelude::*;
 use crate::util::Vector2;
 
 pub enum Event {
   Viewport(ViewportEvent),
+  Geometry(GeometryEvent),
 }
 
 pub enum ViewportEvent {
   // Scale(f32), // Delta, Maybe add later
   Move(Vector2), // Delta
   Resize(Vector2), // New size
+}
+
+pub enum GeometryEvent {
+  Inserted(Geometry, Entity),
+}
+
+pub enum Geometry {
+  Point,
 }
 
 pub struct Events(Vec<Event>);

@@ -18,10 +18,6 @@ impl MaybeSnapPoint {
     self.0 = None;
   }
 
-  pub fn is_none(&self) -> bool {
-    self.0.is_none()
-  }
-
   pub fn get(&self) -> Option<SnapPoint> {
     self.0
   }
