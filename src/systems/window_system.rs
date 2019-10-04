@@ -1,8 +1,8 @@
-use piston_window::*;
+use piston_window::{Event as PistonEvent, *};
 use specs::prelude::*;
 use crate::{
   util::{Vector2, Intersect, Color, Key},
-  resources::{FinishState, Viewport, ViewportTransform, InputState, Events},
+  resources::{FinishState, Viewport, ViewportTransform, InputState, Events, Event, ViewportEvent/*, DeltaTime*/},
   components::{Selected, Point, PointStyle, Line, LineStyle},
 };
 
@@ -61,6 +61,7 @@ impl<'a> System<'a> for WindowSystem {
     Write<'a, InputState>,
     Write<'a, Events>,
     Write<'a, Viewport>,
+    // Write<'a, DeltaTime>,
     ReadStorage<'a, Point>,
     ReadStorage<'a, PointStyle>,
     ReadStorage<'a, Line>,
@@ -73,6 +74,7 @@ impl<'a> System<'a> for WindowSystem {
     mut input_state,
     mut events,
     mut viewport,
+    // mut delta_time,
     points,
     point_styles,
     lines,
@@ -82,14 +84,13 @@ impl<'a> System<'a> for WindowSystem {
 
     // Reset information
     events.clear();
+    // delta_time.update();
     input_state.reset_relative_data();
 
     // Handle window events
     if let Some(event) = self.window.next() {
       match event {
-        Event::Input(input, _) => {
-          // Set the input state dirty
-          // dirty_state.is_input_dirty = true;
+        PistonEvent::Input(input, _) => {
           match input {
             Input::Button(ButtonArgs { state, button, scancode }) => {
               let is_pressed = state == ButtonState::Press;
@@ -101,7 +102,6 @@ impl<'a> System<'a> for WindowSystem {
                   input_state.keyboard.set(key, is_pressed)
                 },
                 _ => (),
-                // _ => dirty_state.is_input_dirty = false,
               }
             },
             Input::Move(motion) => {
@@ -110,15 +110,13 @@ impl<'a> System<'a> for WindowSystem {
                 Motion::MouseCursor(abs_pos) => input_state.mouse_abs_pos = abs_pos.into(),
                 Motion::MouseRelative(rel_mov) => input_state.mouse_rel_movement = rel_mov.into(),
                 _ => (),
-                // _ => dirty_state.is_input_dirty = false,
               }
             },
             Input::Resize(ResizeArgs { window_size, .. }) => {
               viewport.set(window_size);
-              // dirty_state.is_viewport_dirty = true;
+              events.push(Event::Viewport(ViewportEvent::Resize(Vector2::from(window_size))));
             },
             _ => (),
-            // _ => dirty_state.is_input_dirty = false,
           }
         },
         _ => {

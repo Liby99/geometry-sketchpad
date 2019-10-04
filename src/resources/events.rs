@@ -5,7 +5,7 @@ pub enum Event {
 }
 
 pub enum ViewportEvent {
-  Scale(f32), // Delta
+  // Scale(f32), // Delta, Maybe add later
   Move(Vector2), // Delta
   Resize(Vector2), // New size
 }
