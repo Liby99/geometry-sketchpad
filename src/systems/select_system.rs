@@ -55,15 +55,11 @@ impl<'a> System<'a> for SelectSystem {
           }
 
           if let Some((ent, _)) = maybe_selected_point.or(maybe_selected_line) {
-
-            // Select or deselect based on its select state
             match selected.get(ent) {
               Some(_) => { selected.remove(ent); },
               None => if let Err(err) = selected.insert(ent, Selected) { panic!(err); },
             }
           } else {
-
-            // If nothing selected, clear the selection
             selected.clear();
           }
         }
