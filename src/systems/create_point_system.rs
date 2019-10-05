@@ -1,7 +1,8 @@
 use specs::prelude::*;
+use shrev::EventChannel;
 use crate::{
   util::Color,
-  resources::{ToolState, InputState, MaybeSnapPoint, SnapPoint, SnapPointType},
+  resources::{ToolState, InputState, MaybeSnapPoint, SnapPoint, SnapPointType, SketchEvent, Geometry},
   components::{SymbolicPoint, PointStyle, Selected},
 };
 
@@ -13,6 +14,7 @@ impl<'a> System<'a> for CreatePointSystem {
     Read<'a, ToolState>,
     Read<'a, InputState>,
     Read<'a, MaybeSnapPoint>,
+    Write<'a, EventChannel<SketchEvent>>,
     WriteStorage<'a, SymbolicPoint>,
     WriteStorage<'a, PointStyle>,
     WriteStorage<'a, Selected>,
@@ -23,6 +25,7 @@ impl<'a> System<'a> for CreatePointSystem {
     tool_state,
     input_state,
     maybe_snap_point,
+    mut sketch_events,
     mut sym_points,
     mut styles,
     mut selected,
@@ -49,7 +52,7 @@ impl<'a> System<'a> for CreatePointSystem {
             if let Err(err) = selected.insert(ent, Selected) { panic!(err) };
 
             // Then emit an event
-            // events.push(InsertPoint(ent));
+            sketch_events.single_write(SketchEvent::Inserted(ent, Geometry::Point(position)));
           }
         }
       }
