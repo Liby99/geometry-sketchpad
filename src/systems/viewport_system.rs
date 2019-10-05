@@ -1,7 +1,7 @@
 use specs::prelude::*;
 use crate::{
   util::Vector2,
-  resources::{InputState, Events, Event, ViewportEvent, Viewport},
+  resources::{InputState, Viewport},
 };
 
 static SCROLL_SPEED : f64 = 1.0; // Can be adjusted
@@ -11,11 +11,13 @@ pub struct ViewportSystem;
 impl<'a> System<'a> for ViewportSystem {
   type SystemData = (
     Read<'a, InputState>,
-    Write<'a, Events>,
     Write<'a, Viewport>,
   );
 
-  fn run(&mut self, (mouse, mut events, mut vp): Self::SystemData) {
+  fn run(&mut self, (
+    mouse,
+    mut vp
+  ): Self::SystemData) {
     let Vector2 { x, y } = mouse.rel_scroll;
     if x != 0.0 && y != 0.0 {
       // TODO: Normalize to actual size
@@ -25,7 +27,7 @@ impl<'a> System<'a> for ViewportSystem {
       vp.virtual_center += diff;
 
       // Push the event
-      events.push(Event::Viewport(ViewportEvent::Move(diff)));
+      // events.push(Event::Viewport(ViewportEvent::Move(diff)));
     }
   }
 }

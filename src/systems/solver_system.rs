@@ -1,7 +1,6 @@
 use specs::prelude::*;
 use crate::{
   util::Intersect,
-  // resources::DirtyState,
   components::{SymbolicPoint, Point, SymbolicLine, Line},
 };
 
@@ -119,7 +118,6 @@ pub struct SolverSystem;
 impl<'a> System<'a> for SolverSystem {
   type SystemData = (
     Entities<'a>,
-    // Read<'a, DirtyState>,
     ReadStorage<'a, SymbolicPoint>,
     ReadStorage<'a, SymbolicLine>,
     WriteStorage<'a, Point>,
@@ -128,7 +126,6 @@ impl<'a> System<'a> for SolverSystem {
 
   fn run(&mut self, (
     entities,
-    // dirty_state,
     sym_points,
     sym_lines,
     mut points,

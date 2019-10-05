@@ -2,7 +2,7 @@ use piston_window::{Event as PistonEvent, *};
 use specs::prelude::*;
 use crate::{
   util::{Vector2, Intersect, Color, Key},
-  resources::{FinishState, Viewport, ViewportTransform, InputState, Events, Event, ViewportEvent/*, DeltaTime*/},
+  resources::{FinishState, Viewport, ViewportTransform, InputState},
   components::{Selected, Point, PointStyle, Line, LineStyle},
 };
 
@@ -59,8 +59,8 @@ impl<'a> System<'a> for WindowSystem {
   type SystemData = (
     Write<'a, FinishState>,
     Write<'a, InputState>,
-    Write<'a, Events>,
     Write<'a, Viewport>,
+    // Write<'a, EventChannel<ViewportEvent>>,
     // Write<'a, DeltaTime>,
     ReadStorage<'a, Point>,
     ReadStorage<'a, PointStyle>,
@@ -72,9 +72,7 @@ impl<'a> System<'a> for WindowSystem {
   fn run(&mut self, (
     mut finished,
     mut input_state,
-    mut events,
     mut viewport,
-    // mut delta_time,
     points,
     point_styles,
     lines,
@@ -83,7 +81,6 @@ impl<'a> System<'a> for WindowSystem {
   ): Self::SystemData) {
 
     // Reset information
-    events.clear();
     // delta_time.update();
     input_state.reset_relative_data();
 
@@ -114,7 +111,7 @@ impl<'a> System<'a> for WindowSystem {
             },
             Input::Resize(ResizeArgs { window_size, .. }) => {
               viewport.set(window_size);
-              events.push(Event::Viewport(ViewportEvent::Resize(Vector2::from(window_size))));
+              // events.push(Event::Viewport(ViewportEvent::Resize(Vector2::from(window_size))));
             },
             _ => (),
           }
@@ -146,10 +143,6 @@ impl<'a> System<'a> for WindowSystem {
               point_amount += 1;
               draw_point(point, style, true, &*viewport, context, graphics);
             }
-
-            // if input_state.keyboard.just_activated(Key::A) {
-            println!("Render: {}", point_amount);
-            // }
           });
         }
       }
