@@ -1,6 +1,8 @@
 use specs::prelude::*;
+use shrev::{EventChannel, ReaderId};
 use crate::{
   util::Intersect,
+  resources::{SketchEvent, Geometry},
   components::{SymbolicPoint, Point, SymbolicLine, Line},
 };
 
@@ -19,13 +21,13 @@ enum SolveResult {
 
 fn insert_point<'a>(points: &mut WriteStorage<'a, Point>, ent: Entity, p: Point) {
   if let Err(err) = points.insert(ent, p) {
-    panic!("Error when inserting position: {:?}", err);
+    panic!("[solver_system] Error when inserting position: {:?}", err);
   }
 }
 
 fn insert_line<'a>(lines: &mut WriteStorage<'a, Line>, ent: Entity, line: Line) {
   if let Err(err) = lines.insert(ent, line) {
-    panic!("Error when inserting position: {:?}", err);
+    panic!("[solver_system] Error when inserting position: {:?}", err);
   }
 }
 
@@ -67,7 +69,7 @@ fn solve_point<'a>(
           None => SolveResult::Request(ToCompute::Line(*l1_ent)),
         },
       },
-      None => panic!("Could not find to compute point"),
+      None => panic!("[solver_system] Could not find to compute point"),
     },
   }
 }
@@ -108,24 +110,43 @@ fn solve_line<'a>(
           None => SolveResult::Request(ToCompute::Point(*point_ent))
         }
       },
-      None => panic!("Could not find to compute line"),
+      None => panic!("[solver_system] Could not find to compute line"),
     },
   }
 }
 
-pub struct SolverSystem;
+pub struct SolverSystem {
+  need_initialize: bool,
+  sketch_events_reader_id: Option<ReaderId<SketchEvent>>,
+}
+
+impl Default for SolverSystem {
+  fn default() -> Self {
+    Self {
+      need_initialize: true,
+      sketch_events_reader_id: None,
+    }
+  }
+}
 
 impl<'a> System<'a> for SolverSystem {
   type SystemData = (
     Entities<'a>,
+    Read<'a, EventChannel<SketchEvent>>,
     ReadStorage<'a, SymbolicPoint>,
     ReadStorage<'a, SymbolicLine>,
     WriteStorage<'a, Point>,
     WriteStorage<'a, Line>,
   );
 
+  fn setup(&mut self, world: &mut World) {
+    Self::SystemData::setup(world);
+    self.sketch_events_reader_id = Some(world.fetch_mut::<EventChannel<SketchEvent>>().register_reader());
+  }
+
   fn run(&mut self, (
     entities,
+    sketch_events,
     sym_points,
     sym_lines,
     mut points,
@@ -133,17 +154,52 @@ impl<'a> System<'a> for SolverSystem {
   ): Self::SystemData) {
     let mut stack = vec![];
 
-    // Fisrt push all the lines into stack
-    for (ent, _) in (&*entities, &sym_lines).join() {
-      lines.remove(ent);
-      stack.push(ToCompute::Line(ent));
-    }
+    // Note: There are two crucial parts:
+    //  1. Determine which entities to compute
+    //  2. Compute
+    // The algorithm is then basically
+    //  1. Push all the entities to compute into the stack
+    //  2. Solve the entities sequentially
+    // For 1, we need
+    //  - When starting up the program, we need all geometries get compute
+    //    from scratch. So we push everything onto the stack.
+    //  - Else, we read through the sketch events and make any changes
+    //    - If inserted new, then just add that new thing to the stack
+    //    - If updated, then push all descendents of that updated geom onto
+    //      the stack
+    //    - If removed, we don't really care since other algorithms should
+    //      already removed all the descendents
 
-    // Then push all the points into stack
-    // As we want to first calculate points
-    for (ent, _) in (&*entities, &sym_points).join() {
-      points.remove(ent);
-      stack.push(ToCompute::Point(ent));
+    // This happens when starting up the program
+    if self.need_initialize {
+      self.need_initialize = false; // set to false afterwards
+
+      // Fisrt push all the lines into stack
+      for (ent, _) in (&*entities, &sym_lines).join() {
+        lines.remove(ent);
+        stack.push(ToCompute::Line(ent));
+      }
+
+      // Then push all the points into stack
+      // As we want to first calculate points
+      for (ent, _) in (&*entities, &sym_points).join() {
+        points.remove(ent);
+        stack.push(ToCompute::Point(ent));
+      }
+    } else {
+
+      // In this else branch, we need to go through all the events
+      if let Some(sketch_events_reader_id) = &mut self.sketch_events_reader_id {
+        for event in sketch_events.read(sketch_events_reader_id) {
+          match event {
+            SketchEvent::Inserted(_, geom) => match geom {
+              Geometry::Point(_) => (), // Do nothing because a point is already inserted to points in create_point_system
+            },
+          }
+        }
+      } else {
+        panic!("[solver_system] No sketch events reader id");
+      }
     }
 
     // Calculate all the elements in the stack

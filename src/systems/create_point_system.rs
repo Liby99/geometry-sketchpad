@@ -3,7 +3,7 @@ use shrev::EventChannel;
 use crate::{
   util::Color,
   resources::{ToolState, InputState, MaybeSnapPoint, SnapPoint, SnapPointType, SketchEvent, Geometry},
-  components::{SymbolicPoint, PointStyle, Selected},
+  components::{SymbolicPoint, PointStyle, Point, Selected},
 };
 
 pub struct CreatePointSystem;
@@ -16,6 +16,7 @@ impl<'a> System<'a> for CreatePointSystem {
     Read<'a, MaybeSnapPoint>,
     Write<'a, EventChannel<SketchEvent>>,
     WriteStorage<'a, SymbolicPoint>,
+    WriteStorage<'a, Point>,
     WriteStorage<'a, PointStyle>,
     WriteStorage<'a, Selected>,
   );
@@ -27,6 +28,7 @@ impl<'a> System<'a> for CreatePointSystem {
     maybe_snap_point,
     mut sketch_events,
     mut sym_points,
+    mut points,
     mut styles,
     mut selected,
   ): Self::SystemData) {
@@ -48,6 +50,7 @@ impl<'a> System<'a> for CreatePointSystem {
             // First create the entity
             let ent = entities.create();
             if let Err(err) = sym_points.insert(ent, sym_point) { panic!(err) };
+            if let Err(err) = points.insert(ent, position) { panic!(err) };
             if let Err(err) = styles.insert(ent, PointStyle { color: Color::red(), radius: 5. }) { panic!(err) };
             if let Err(err) = selected.insert(ent, Selected) { panic!(err) };
 
