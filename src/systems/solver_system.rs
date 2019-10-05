@@ -193,7 +193,7 @@ impl<'a> System<'a> for SolverSystem {
         for event in sketch_events.read(sketch_events_reader_id) {
           match event {
             SketchEvent::Inserted(entity, geom) => match geom {
-              Geometry::Point(_) => (), // Do nothing because a point is already inserted to points in create_point_system
+              Geometry::Point => stack.push(ToCompute::Point(*entity)),
               Geometry::Line => stack.push(ToCompute::Line(*entity)),
             },
           }
