@@ -69,14 +69,17 @@ impl<'a> System<'a> for CreateLineSystem {
           // Need to check first point is not second point
           if first_point_entity != curr_point_entity {
 
+            let sym_line = SymbolicLine::TwoPoints(first_point_entity, curr_point_entity);
+            let line_style = LineStyle { color: Color::blue(), width: 2. };
+
             // Create a new point from `first_point_entity` to `curr_entity`
             let entity = entities.create();
-            if let Err(err) = sym_lines.insert(entity, SymbolicLine::TwoPoints(first_point_entity, curr_point_entity)) { panic!(err) }
-            if let Err(err) = styles.insert(entity, LineStyle { color: Color::blue(), width: 2. }) { panic!(err) }
+            if let Err(err) = sym_lines.insert(entity, sym_line) { panic!(err) }
+            if let Err(err) = styles.insert(entity, line_style) { panic!(err) }
             if let Err(err) = selected.insert(entity, Selected) { panic!(err) }
 
             // Push event to created lines
-            sketch_events.single_write(SketchEvent::Inserted(entity, Geometry::Line));
+            sketch_events.single_write(SketchEvent::Inserted(entity, Geometry::Line(sym_line, line_style)));
 
             // Reset the maybe first point
             create_line_data.maybe_first_point = None;

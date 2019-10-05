@@ -71,13 +71,10 @@ impl<'a> System<'a> for DependencyGraphCache {
         for event in sketch_events.read(reader_id) {
           match event {
             SketchEvent::Inserted(entity, geom) => match geom {
-              Geometry::Point => if let Some(sym_point) = sym_points.get(*entity) {
-                add_point(&mut dependency_graph, entity, sym_point);
-              },
-              Geometry::Line => if let Some(sym_line) = sym_lines.get(*entity) {
-                add_line(&mut dependency_graph, entity, sym_line);
-              },
+              Geometry::Point(sym_point, _) => add_point(&mut dependency_graph, entity, sym_point),
+              Geometry::Line(sym_line, _) => add_line(&mut dependency_graph, entity, sym_line),
             },
+            SketchEvent::Removed(entity, _) => dependency_graph.remove(entity),
           }
         }
       } else {

@@ -193,9 +193,10 @@ impl<'a> System<'a> for SolverSystem {
         for event in sketch_events.read(sketch_events_reader_id) {
           match event {
             SketchEvent::Inserted(entity, geom) => match geom {
-              Geometry::Point => stack.push(ToCompute::Point(*entity)),
-              Geometry::Line => stack.push(ToCompute::Line(*entity)),
+              Geometry::Point(_, _) => stack.push(ToCompute::Point(*entity)),
+              Geometry::Line(_, _) => stack.push(ToCompute::Line(*entity)),
             },
+            SketchEvent::Removed(_, _) => (), // Do nothing since they are already removed
           }
         }
       } else {

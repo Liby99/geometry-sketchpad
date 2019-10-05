@@ -1,8 +1,9 @@
 use std::collections::HashSet;
 use specs::prelude::*;
+use shrev::EventChannel;
 use crate::{
   util::Key,
-  resources::{DependencyGraph, InputState},
+  resources::{DependencyGraph, InputState, SketchEvent, Geometry},
   components::*,
 };
 
@@ -13,6 +14,7 @@ impl<'a> System<'a> for RemoveGeomSystem {
     Entities<'a>,
     Read<'a, InputState>,
     Write<'a, DependencyGraph>,
+    Write<'a, EventChannel<SketchEvent>>,
     WriteStorage<'a, Point>,
     WriteStorage<'a, SymbolicPoint>,
     WriteStorage<'a, PointStyle>,
@@ -26,6 +28,7 @@ impl<'a> System<'a> for RemoveGeomSystem {
     entities,
     input_state,
     mut dep_graph,
+    mut sketch_events,
     mut points,
     mut sym_points,
     mut point_styles,
@@ -49,18 +52,31 @@ impl<'a> System<'a> for RemoveGeomSystem {
         for child in dep_graph.get(&entity) {
           stack.push(*child);
         }
-        dep_graph.remove(&entity);
       }
 
       // Remove everything
       for entity in to_remove {
+
+        // Remove the thing from
         points.remove(entity);
-        sym_points.remove(entity);
-        point_styles.remove(entity);
+        let maybe_sym_pt = sym_points.remove(entity);
+        let maybe_pt_sty = point_styles.remove(entity);
         lines.remove(entity);
-        sym_lines.remove(entity);
-        line_styles.remove(entity);
+        let maybe_sym_ln = sym_lines.remove(entity);
+        let maybe_ln_sty = line_styles.remove(entity);
         selected.remove(entity);
+
+        // Push the event
+        if let Some(sym_pt) = maybe_sym_pt {
+          if let Some(pt_sty) = maybe_pt_sty {
+            sketch_events.single_write(SketchEvent::Removed(entity, Geometry::Point(sym_pt, pt_sty)));
+          }
+        }
+        if let Some(sym_ln) = maybe_sym_ln {
+          if let Some(ln_sty) = maybe_ln_sty {
+            sketch_events.single_write(SketchEvent::Removed(entity, Geometry::Line(sym_ln, ln_sty)));
+          }
+        }
       }
     }
   }

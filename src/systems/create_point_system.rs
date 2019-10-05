@@ -56,15 +56,17 @@ impl<'a> System<'a> for CreatePointSystem {
           // Check if we need to create a point
           if let Some(sym_point) = symbolic_point {
 
+            let point_style = PointStyle { color: Color::red(), radius: 5. };
+
             // First create the entity
             let entity = entities.create();
             if let Err(err) = sym_points.insert(entity, sym_point) { panic!(err) };
             if let Err(err) = points.insert(entity, position) { panic!(err) };
-            if let Err(err) = styles.insert(entity, PointStyle { color: Color::red(), radius: 5. }) { panic!(err) };
+            if let Err(err) = styles.insert(entity, point_style) { panic!(err) };
             if let Err(err) = selected.insert(entity, Selected) { panic!(err) };
 
             // Then emit an event
-            sketch_events.single_write(SketchEvent::Inserted(entity, Geometry::Point));
+            sketch_events.single_write(SketchEvent::Inserted(entity, Geometry::Point(sym_point, point_style)));
 
             // Mark this created entity as the last active point
             last_active_point_event.single_write(LastActivePoint::new(entity));

@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::hash::Hash;
 use itertools::Itertools;
 use super::{Viewport, ViewportTransform};
@@ -10,7 +11,7 @@ static TILE_SIZE : f64 = 40.0;
 pub struct SpatialHashTable<T: Clone + Eq + Hash> {
   x_tiles: usize,
   y_tiles: usize,
-  table: Vec<Vec<T>>,
+  table: Vec<HashSet<T>>,
 }
 
 pub type Tile = usize;
@@ -25,13 +26,13 @@ impl<T: Clone + Eq + Hash> SpatialHashTable<T> {
   pub fn init_viewport(&mut self, vp: &Viewport) {
     self.x_tiles = (vp.actual_width() / TILE_SIZE).ceil() as usize;
     self.y_tiles = (vp.actual_height() / TILE_SIZE).ceil() as usize;
-    self.table = vec![vec![]; self.x_tiles * self.y_tiles];
+    self.table = vec![HashSet::new(); self.x_tiles * self.y_tiles];
   }
 
   // p: point in virtual space
   pub fn insert_point(&mut self, ent: T, p: Point, vp: &Viewport) {
     if let Some(id) = self.get_cell(p.to_actual(vp)) {
-      self.table[id].push(ent);
+      self.table[id].insert(ent);
     }
   }
 
@@ -45,14 +46,14 @@ impl<T: Clone + Eq + Hash> SpatialHashTable<T> {
         if 0 <= init_x_tile && init_x_tile < self.x_tiles as i64 {
           for y_tile in 0..self.y_tiles {
             let tile = self.get_cell_by_x_y(init_x_tile as usize, y_tile);
-            self.table[tile].push(ent.clone());
+            self.table[tile].insert(ent.clone());
           }
         }
       } else if init_y_tile == end_y_tile {
         if 0 <= init_y_tile && init_y_tile < self.y_tiles as i64 {
           for x_tile in 0..self.x_tiles {
             let tile = self.get_cell_by_x_y(x_tile, init_y_tile as usize);
-            self.table[tile].push(ent.clone());
+            self.table[tile].insert(ent.clone());
           }
         }
       } else {
@@ -75,7 +76,7 @@ impl<T: Clone + Eq + Hash> SpatialHashTable<T> {
           for tile_x in curr_x_tile..(next_x_tile + 1) {
             if tile_x < self.x_tiles as i64 {
               let tile = self.get_cell_by_x_y(tile_x as usize, curr_y_tile as usize);
-              self.table[tile].push(ent.clone());
+              self.table[tile].insert(ent.clone());
             }
           }
           curr_x = next_x;
@@ -84,6 +85,12 @@ impl<T: Clone + Eq + Hash> SpatialHashTable<T> {
           curr_y_tile = curr_y_tile + yi as i64;
         }
       }
+    }
+  }
+
+  pub fn remove_from_all(&mut self, ent: T) {
+    for cell in &mut self.table {
+      cell.remove(&ent);
     }
   }
 
@@ -168,7 +175,7 @@ mod tests {
     assert!(table.table[0].is_empty());
     assert!(table.table[1].is_empty());
     assert!(table.table[2].is_empty());
-    assert!(table.table[3] == vec![0]);
+    assert!(table.table[3].contains(&0));
   }
 
   #[test]
@@ -183,7 +190,7 @@ mod tests {
     assert!(table.table[0].is_empty());
     assert!(table.table[1].is_empty());
     assert!(table.table[2].is_empty());
-    assert!(table.table[3] == vec![0]);
+    assert!(table.table[3].contains(&0));
   }
 
   #[test]
@@ -195,9 +202,9 @@ mod tests {
     let l = Line { origin: vec2![-0.5, 0.0], direction: vec2![0.0, 1.0] };
     table.insert_line(0, l, vp);
 
-    assert!(table.table[0] == vec![0]);
+    assert!(table.table[0].contains(&0));
     assert!(table.table[1].is_empty());
-    assert!(table.table[2] == vec![0]);
+    assert!(table.table[2].contains(&0));
     assert!(table.table[3].is_empty());
   }
 
@@ -210,9 +217,9 @@ mod tests {
     let l = Line { origin: vec2![-0.5, 0.0], direction: vec2![(2.0 as f64).sqrt(), (2.0 as f64).sqrt()] };
     table.insert_line(0, l, vp);
 
-    assert!(table.table[0] == vec![0]);
-    assert!(table.table[1] == vec![0]);
-    assert!(table.table[2] == vec![0]);
+    assert!(table.table[0].contains(&0));
+    assert!(table.table[1].contains(&0));
+    assert!(table.table[2].contains(&0));
     assert!(table.table[3].is_empty());
   }
 
@@ -234,10 +241,10 @@ mod tests {
 
     println!("{:?}", table);
 
-    assert!(table.table[0] == vec![0]);
+    assert!(table.table[0].contains(&0));
     assert!(table.table[1].is_empty());
-    assert!(table.table[2] == vec![0]);
-    assert!(table.table[3] == vec![0]);
+    assert!(table.table[2].contains(&0));
+    assert!(table.table[3].contains(&0));
   }
 
   #[test]
@@ -253,7 +260,7 @@ mod tests {
 
     for i in 0..16 {
       match i {
-        2 | 3 | 5 | 6 | 8 | 9 | 12 => assert!(table.table[i] == vec![0]),
+        2 | 3 | 5 | 6 | 8 | 9 | 12 => assert!(table.table[i].contains(&0)),
         _ => assert!(table.table[i].is_empty())
       }
     }
@@ -273,7 +280,7 @@ mod tests {
 
     for i in 0..16 {
       match i {
-        6 | 7 | 8 | 9 | 10 => assert!(table.table[i] == vec![0]),
+        6 | 7 | 8 | 9 | 10 => assert!(table.table[i].contains(&0)),
         _ => assert!(table.table[i].is_empty())
       }
     }
@@ -291,8 +298,8 @@ mod tests {
     println!("{:?}", table);
 
     assert!(table.table[0].is_empty());
-    assert!(table.table[1] == vec![0]);
-    assert!(table.table[2] == vec![0]);
-    assert!(table.table[3] == vec![0]);
+    assert!(table.table[1].contains(&0));
+    assert!(table.table[2].contains(&0));
+    assert!(table.table[3].contains(&0));
   }
 }
