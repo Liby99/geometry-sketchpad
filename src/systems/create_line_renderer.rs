@@ -15,6 +15,12 @@ impl Default for CreateLineRenderer {
   }
 }
 
+/// # Create Line Renderer
+///
+/// This `CreateLineRenderer` system intends to render a dimmed line when the first
+/// point is created and before placing the second point. Given the first point,
+/// it will take the second point from the `SnapPoint`. It will only show line when
+/// 1. It's currently Line Tool
 impl<'a> System<'a> for CreateLineRenderer {
   type SystemData = (
     Entities<'a>,

@@ -6,6 +6,15 @@ use crate::{
 
 pub struct ChangeToolSystem;
 
+/// # Change Tool System
+///
+/// Reading the Keyboard Input and potentially change the Tool State
+///
+/// If user pressing, the tool will be shifted to...
+/// - s, Select Tool
+/// - p, Create Point Tool
+/// - l, Create Line Tool
+/// - (TOTO) c, Create Circle Tool
 impl<'a> System<'a> for ChangeToolSystem {
   type SystemData = (
     Read<'a, InputState>,

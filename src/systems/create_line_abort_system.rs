@@ -6,6 +6,15 @@ use crate::{
 
 pub struct CreateLineAbortSystem;
 
+/// # Create Line Abort System
+///
+/// This system intended to provide mechanism to abort a line creation process
+/// When a user already place the first point of the line, if the user
+/// regret this decision, they can press `Escape` to abort this line creation
+/// process.
+///
+/// TODO: If a new point is created during this line creation process, we should
+/// remove that new point as well when aborting (for better ergonomics)
 impl<'a> System<'a> for CreateLineAbortSystem {
   type SystemData = (
     Read<'a, InputState>,

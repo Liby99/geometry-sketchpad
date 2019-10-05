@@ -3,7 +3,7 @@ use specs::prelude::*;
 use shrev::EventChannel;
 use crate::{
   util::{Vector2, Intersect, Color, Key},
-  resources::{FinishState, Viewport, ViewportTransform, InputState, ViewportEvent},
+  resources::{DeltaTime, FinishState, Viewport, ViewportTransform, InputState, ViewportEvent},
   components::{Selected, Point, PointStyle, Line, LineStyle},
 };
 
@@ -58,6 +58,7 @@ pub struct WindowSystem {
 
 impl<'a> System<'a> for WindowSystem {
   type SystemData = (
+    Write<'a, DeltaTime>,
     Write<'a, FinishState>,
     Write<'a, InputState>,
     Write<'a, Viewport>,
@@ -70,6 +71,7 @@ impl<'a> System<'a> for WindowSystem {
   );
 
   fn run(&mut self, (
+    mut delta_time,
     mut finished,
     mut input_state,
     mut viewport,
@@ -119,7 +121,9 @@ impl<'a> System<'a> for WindowSystem {
             }
           },
           PistonEvent::Loop(lp) => match lp {
-            Loop::Update(UpdateArgs { dt: _dt }) => (), // TODO: update delta time
+            Loop::Update(UpdateArgs { dt }) => {
+              delta_time.set(dt);
+            },
             Loop::Render(_) => {
               self.window.draw_2d(&event, |context, graphics, _device| {
                 clear(Color::white().into(), graphics); // We clean the screen
@@ -154,6 +158,7 @@ impl<'a> System<'a> for WindowSystem {
         }
       } else {
         finished.set_finished();
+        break;
       }
     }
   }
