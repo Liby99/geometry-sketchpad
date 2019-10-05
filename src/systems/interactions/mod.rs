@@ -12,3 +12,6 @@ pub use remove_selected_via_delete::*;
 
 mod mouse_event_emitter;
 pub use mouse_event_emitter::*;
+
+mod select_all_via_keyboard;
+pub use select_all_via_keyboard::*;

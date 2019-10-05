@@ -196,6 +196,7 @@ impl<'a> System<'a> for SolverSystem {
               Geometry::Line(_, _) => stack.push(ToCompute::Line(*entity)),
             },
             SketchEvent::Remove(_, _) => (), // Do nothing since they are already removed
+            SketchEvent::Select(_) | SketchEvent::Deselect(_) => (), // Do nothing to select/deselect event
           }
         }
       } else {

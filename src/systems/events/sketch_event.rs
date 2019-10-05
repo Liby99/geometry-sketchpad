@@ -3,6 +3,8 @@ use shrev::{EventChannel, ReaderId};
 use crate::components::{SymbolicLine, SymbolicPoint, LineStyle, PointStyle};
 
 pub enum SketchEvent {
+  Select(Entity),
+  Deselect(Entity),
   Insert(Entity, Geometry),
   Remove(Entity, Geometry),
 }

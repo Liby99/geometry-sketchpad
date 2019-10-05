@@ -95,7 +95,7 @@ impl<'a> System<'a> for RemoveSelectedHandler {
 
             break;
           },
-          // _ => ()
+          _ => ()
         }
       }
     }

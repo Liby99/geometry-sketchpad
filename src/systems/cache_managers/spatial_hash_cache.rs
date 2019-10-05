@@ -93,6 +93,7 @@ impl<'a> System<'a> for SpatialHashCache {
               }
             },
             SketchEvent::Remove(entity, _) => table.remove_from_all(*entity),
+            SketchEvent::Select(_) | SketchEvent::Deselect(_) => (),
           }
         }
       } else {

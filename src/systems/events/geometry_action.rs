@@ -1,8 +1,8 @@
 use shrev::{EventChannel, ReaderId};
 
 pub enum GeometryAction {
-  // SelectAll,
-  // DeselectAll,
+  SelectAll,
+  DeselectAll,
   RemoveSelected,
 }
 
