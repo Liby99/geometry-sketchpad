@@ -34,6 +34,9 @@ fn main() {
     .with(interactions::RemoveSelectedViaDelete, "remove_selected_via_delete", &[])
     .with(interactions::MouseEventEmitter::default(), "mouse_event_emitter", &[])
 
+    // Temp
+    // .with(interactions::MouseEventDebugSystem::default(), "debug_system", &["mouse_event_emitter"])
+
     // State Managers
     .with(state_managers::ExitStateManager::default(), "exit_state_manager", &["exit_via_keyboard"])
     .with(state_managers::ToolStateManager::default(), "tool_state_manager", &["change_tool_via_keyboard"])
@@ -55,8 +58,6 @@ fn main() {
     .with(CreateLineAbortSystem, "create_line_abort_system", &[])
     .with(CreateLineSystem::default(), "create_line_system", &["create_point_system"])
     .with(CreateLineRenderer::default(), "create_line_renderer", &["create_line_system"])
-
-    .with(DebugSystem::default(), "debug_system", &["mouse_event_emitter"])
 
     // Solver & final rendering
     .with(geometry_systems::SolverSystem::default(), "solver_system", &["create_point_system", "create_line_system"])

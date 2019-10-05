@@ -22,6 +22,3 @@ pub use create_point_system::CreatePointSystem;
 pub use create_line_system::CreateLineSystem;
 pub use create_line_abort_system::CreateLineAbortSystem;
 pub use create_line_renderer::CreateLineRenderer;
-
-mod debug_system;
-pub use debug_system::*;
