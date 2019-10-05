@@ -36,6 +36,7 @@ fn main() {
     .with(SnapPointRenderer::default(), "snap_point_renderer", &["snap_point_system"])
     .with(CreatePointSystem, "create_point_system", &["snap_point_system"])
     .with(CreateLineSystem::default(), "create_line_system", &["create_point_system"])
+    .with(CreateLineRenderer::default(), "create_line_renderer", &["create_line_system"])
     .with(SolverSystem::default(), "solver_system", &["create_point_system", "create_line_system"])
     .with_thread_local(window_system)
     .build();
