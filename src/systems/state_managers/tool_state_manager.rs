@@ -1,7 +1,7 @@
 use specs::prelude::*;
 use shrev::{EventChannel, ReaderId};
 use crate::{
-  systems::events::tool_change_event::ToolChangeEvent,
+  systems::events::ToolChangeEvent,
   resources::ToolState,
 };
 

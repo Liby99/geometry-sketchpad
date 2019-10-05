@@ -3,8 +3,12 @@ use specs::prelude::*;
 use shrev::EventChannel;
 use crate::{
   util::{Vector2, Intersect, Color, Key},
-  resources::{DeltaTime, FinishState, Viewport, ViewportTransform, InputState, ViewportEvent},
+  resources::{DeltaTime, Viewport, ViewportTransform, InputState, ViewportEvent},
   components::{Selected, Point, PointStyle, Line, LineStyle},
+  systems::{
+    events::{ExitEvent},
+    state_managers::{ExitEventChannel},
+  },
 };
 
 fn draw_line(line: &Line, style: &LineStyle, selected: bool, vp: &Viewport, context: Context, graphics: &mut G2d) {
@@ -59,7 +63,7 @@ pub struct WindowSystem {
 impl<'a> System<'a> for WindowSystem {
   type SystemData = (
     Write<'a, DeltaTime>,
-    Write<'a, FinishState>,
+    Write<'a, ExitEventChannel>,
     Write<'a, InputState>,
     Write<'a, Viewport>,
     Write<'a, EventChannel<ViewportEvent>>,
@@ -72,7 +76,7 @@ impl<'a> System<'a> for WindowSystem {
 
   fn run(&mut self, (
     mut delta_time,
-    mut finished,
+    mut exit_event_channel,
     mut input_state,
     mut viewport,
     mut viewport_events,
@@ -157,7 +161,7 @@ impl<'a> System<'a> for WindowSystem {
           _ => (),
         }
       } else {
-        finished.set_finished();
+        exit_event_channel.single_write(ExitEvent);
         break;
       }
     }

@@ -4,7 +4,7 @@ use shrev::EventChannel;
 pub use crate::{
   util::Key,
   resources::{InputState, Tool},
-  systems::events::tool_change_event::ToolChangeEvent,
+  systems::events::ToolChangeEvent,
 };
 
 pub struct ChangeToolViaKeyboard;
