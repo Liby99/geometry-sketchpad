@@ -1,6 +1,6 @@
 pub mod events;
 pub mod interactions;
-pub mod data_structure_managers;
+pub mod cache_managers;
 pub mod state_managers;
 pub mod geometry_actions;
 pub mod geometry_systems;

@@ -42,8 +42,8 @@ fn main() {
     .with(state_managers::ViewportStateManager::default(), "viewport_state_manager", &["move_viewport_via_scroll"])
 
     // Data structures
-    .with(data_structure_managers::DependencyGraphCache::default(), "dependency_graph_cache", &[])
-    .with(data_structure_managers::SpatialHashCache::default(), "spatial_hash_cache", &["viewport_state_manager"])
+    .with(cache_managers::DependencyGraphCache::default(), "dependency_graph_cache", &[])
+    .with(cache_managers::SpatialHashCache::default(), "spatial_hash_cache", &["viewport_state_manager"])
 
     // Geometry action handlers
     .with(geometry_actions::RemoveSelectedHandler::default(), "remove_selected_handler", &["remove_selected_via_delete", "dependency_graph_cache"])
