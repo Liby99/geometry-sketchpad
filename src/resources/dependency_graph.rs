@@ -14,8 +14,8 @@ impl DependencyGraph {
     self.0.entry(*parent).or_insert(HashSet::new()).insert(*child);
   }
 
-  pub fn get(&mut self, parent: &Entity) -> &HashSet<Entity> {
-    self.0.entry(*parent).or_insert(HashSet::new())
+  pub fn get(&self, parent: &Entity) -> Option<&HashSet<Entity>> {
+    self.0.get(parent)
   }
 
   pub fn remove(&mut self, parent: &Entity) {

@@ -6,3 +6,6 @@ pub use exit_via_keyboard::ExitViaKeyboard;
 
 mod move_viewport_via_scroll;
 pub use move_viewport_via_scroll::MoveViewportViaScroll;
+
+mod remove_selected_via_delete;
+pub use remove_selected_via_delete::*;

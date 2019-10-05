@@ -6,3 +6,6 @@ pub use exit_event::*;
 
 mod viewport_event;
 pub use viewport_event::*;
+
+mod geometry_action;
+pub use geometry_action::*;
