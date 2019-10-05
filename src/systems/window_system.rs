@@ -85,65 +85,76 @@ impl<'a> System<'a> for WindowSystem {
     input_state.reset_relative_data();
 
     // Handle window events
-    if let Some(event) = self.window.next() {
-      match event {
-        PistonEvent::Input(input, _) => {
-          match input {
-            Input::Button(ButtonArgs { state, button, scancode }) => {
-              let is_pressed = state == ButtonState::Press;
-              match button {
-                Button::Mouse(MouseButton::Left) => input_state.mouse_left_button.set(is_pressed),
-                Button::Mouse(MouseButton::Right) => input_state.mouse_right_button.set(is_pressed),
-                Button::Keyboard(piston_key) => {
-                  let key = Key::from((piston_key, scancode));
-                  input_state.keyboard.set(key, is_pressed)
-                },
-                _ => (),
-              }
-            },
-            Input::Move(motion) => {
-              match motion {
-                Motion::MouseScroll(rel_scroll) => input_state.rel_scroll = rel_scroll.into(),
-                Motion::MouseCursor(abs_pos) => input_state.mouse_abs_pos = abs_pos.into(),
-                Motion::MouseRelative(rel_mov) => input_state.mouse_rel_movement = rel_mov.into(),
-                _ => (),
-              }
-            },
-            Input::Resize(ResizeArgs { window_size, .. }) => {
-              viewport_events.single_write(ViewportEvent::Resize(Vector2::from(window_size)));
-              viewport.set(window_size);
+    // Will loop through and handle events until a render event happens (See line 149)
+    loop {
+      if let Some(event) = self.window.next() {
+        match event {
+          PistonEvent::Input(input, _) => {
+            match input {
+              Input::Button(ButtonArgs { state, button, scancode }) => {
+                let is_pressed = state == ButtonState::Press;
+                match button {
+                  Button::Mouse(MouseButton::Left) => input_state.mouse_left_button.set(is_pressed),
+                  Button::Mouse(MouseButton::Right) => input_state.mouse_right_button.set(is_pressed),
+                  Button::Keyboard(piston_key) => {
+                    let key = Key::from((piston_key, scancode));
+                    input_state.keyboard.set(key, is_pressed)
+                  },
+                  _ => (),
+                }
+              },
+              Input::Move(motion) => {
+                match motion {
+                  Motion::MouseScroll(rel_scroll) => input_state.rel_scroll = rel_scroll.into(),
+                  Motion::MouseCursor(abs_pos) => input_state.mouse_abs_pos = abs_pos.into(),
+                  Motion::MouseRelative(rel_mov) => input_state.mouse_rel_movement = rel_mov.into(),
+                  _ => (),
+                }
+              },
+              Input::Resize(ResizeArgs { window_size, .. }) => {
+                viewport_events.single_write(ViewportEvent::Resize(Vector2::from(window_size)));
+                viewport.set(window_size);
+              },
+              _ => (),
+            }
+          },
+          PistonEvent::Loop(lp) => match lp {
+            Loop::Update(UpdateArgs { dt: _dt }) => (), // TODO: update delta time
+            Loop::Render(_) => {
+              self.window.draw_2d(&event, |context, graphics, _device| {
+                clear(Color::white().into(), graphics); // We clean the screen
+
+                // Fisrt draw regular lines
+                for (line, style, _) in (&lines, &line_styles, !&selected).join() {
+                  draw_line(line, style, false, &*viewport, context, graphics);
+                }
+
+                // Fisrt draw lines
+                for (line, style, _) in (&lines, &line_styles, &selected).join() {
+                  draw_line(line, style, true, &*viewport, context, graphics);
+                }
+
+                // Then draw regular points (not selected)
+                for (point, style, _) in (&points, &point_styles, !&selected).join() {
+                  draw_point(point, style, false, &*viewport, context, graphics);
+                }
+
+                // Then draw selected points (as points are on top of lines)
+                for (point, style, _) in (&points, &point_styles, &selected).join() {
+                  draw_point(point, style, true, &*viewport, context, graphics);
+                }
+              });
+
+              // Loop
+              break;
             },
             _ => (),
-          }
-        },
-        _ => {
-          self.window.draw_2d(&event, |context, graphics, _device| {
-            clear(Color::white().into(), graphics); // We clean the screen
-
-            // Fisrt draw regular lines
-            for (line, style, _) in (&lines, &line_styles, !&selected).join() {
-              draw_line(line, style, false, &*viewport, context, graphics);
-            }
-
-            // Fisrt draw lines
-            for (line, style, _) in (&lines, &line_styles, &selected).join() {
-              draw_line(line, style, true, &*viewport, context, graphics);
-            }
-
-            // Then draw regular points (not selected)
-            for (point, style, _) in (&points, &point_styles, !&selected).join() {
-              draw_point(point, style, false, &*viewport, context, graphics);
-            }
-
-            // Then draw selected points (as points are on top of lines)
-            for (point, style, _) in (&points, &point_styles, &selected).join() {
-              draw_point(point, style, true, &*viewport, context, graphics);
-            }
-          });
+          },
+          _ => (),
         }
+      } else {
+        finished.set_finished();
       }
-    } else {
-      finished.set_finished();
     }
   }
 }
