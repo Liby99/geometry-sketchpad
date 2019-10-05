@@ -16,7 +16,7 @@ pub use drag_event::DragEvent;
 pub use finish_state::FinishState;
 pub use viewport::*;
 pub use input_state::{InputState, ActiveState};
-pub use tool_state::ToolState;
+pub use tool_state::{Tool, ToolState};
 pub use spatial_hash_table::SpatialHashTable;
 pub use snap_point::*;
 pub use sketch_event::*;

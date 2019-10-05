@@ -3,7 +3,7 @@ use specs::prelude::*;
 use shrev::{EventChannel, ReaderId};
 use crate::{
   util::Color,
-  resources::{ToolState, LastActivePoint, SketchEvent, Geometry, CreateLineData},
+  resources::{ToolState, Tool, LastActivePoint, SketchEvent, Geometry, CreateLineData},
   components::{SymbolicLine, LineStyle, Selected},
 };
 
@@ -42,8 +42,8 @@ impl<'a> System<'a> for CreateLineSystem {
 
     // First deal with tooling states
     if let Some(reader_id) = &mut self.last_active_point_event_reader_id {
-      match *tool_state {
-        ToolState::Line => (),
+      match tool_state.get() {
+        Tool::Line => (),
         _ => {
           drop(reader_id);
           self.last_active_point_event_reader_id = None;
@@ -51,8 +51,8 @@ impl<'a> System<'a> for CreateLineSystem {
         }
       }
     } else {
-      match *tool_state {
-        ToolState::Line => {
+      match tool_state.get() {
+        Tool::Line => {
           self.last_active_point_event_reader_id = Some(last_active_point_event.register_reader());
         },
         _ => ()

@@ -1,6 +1,6 @@
 use specs::prelude::*;
 use crate::{
-  resources::{Viewport, ViewportTransform, SpatialHashTable, InputState, ToolState},
+  resources::{Viewport, ViewportTransform, SpatialHashTable, InputState, ToolState, Tool},
   components::{Point, Line, Selected},
 };
 
@@ -20,7 +20,7 @@ impl<'a> System<'a> for SelectSystem {
   );
 
   fn run(&mut self, (
-    tool,
+    tool_state,
     input,
     vp,
     spatial_table,
@@ -28,8 +28,8 @@ impl<'a> System<'a> for SelectSystem {
     lines,
     mut selected,
   ): Self::SystemData) {
-    match *tool {
-      ToolState::Select => {
+    match tool_state.get() {
+      Tool::Select => {
         if input.mouse_left_button.just_activated() {
           let mouse_pos = input.mouse_abs_pos;
           let virtual_mouse_pos = input.mouse_abs_pos.to_virtual(&*vp);

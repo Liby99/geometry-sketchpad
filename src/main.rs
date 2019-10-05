@@ -30,8 +30,12 @@ fn main() {
     // Interactions
     .with(ExitSystem, "exit_system", &[])
     .with(ViewportSystem, "viewport_system", &[])
-    .with(ChangeToolSystem, "change_tool_system", &[])
     .with(DragEventEmitter::default(), "drag_event_emitter", &[])
+
+    .with(interactions::ChangeToolViaKeyboard, "change_tool_via_keyboard", &[])
+
+    // State Managers
+    .with(state_managers::ToolStateManager::default(), "tool_state_manager", &["change_tool_via_keyboard"])
 
     // Data structures
     .with(DependencyGraphCache::default(), "dependency_graph_cache", &[])
@@ -40,7 +44,7 @@ fn main() {
     // Create geometry systems
     .with(RemoveGeomSystem, "remove_geom_system", &["dependency_graph_cache"])
     .with(SelectSystem, "select_system", &["spatial_hash_cache"])
-    .with(SnapPointSystem, "snap_point_system", &["spatial_hash_cache", "change_tool_system"])
+    .with(SnapPointSystem, "snap_point_system", &["spatial_hash_cache", "tool_state_manager"])
     .with(SnapPointRenderer::default(), "snap_point_renderer", &["snap_point_system"])
     .with(CreatePointSystem, "create_point_system", &["snap_point_system"])
     .with(CreateLineAbortSystem, "create_line_abort_system", &[])
