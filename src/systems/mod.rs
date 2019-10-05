@@ -12,6 +12,7 @@ mod change_tool_system;
 mod spatial_hash_cache;
 mod exit_system;
 mod dependency_graph_cache;
+mod remove_geom_system;
 
 pub use window_system::WindowSystem;
 pub use select_system::SelectSystem;
@@ -27,3 +28,4 @@ pub use viewport_system::ViewportSystem;
 pub use change_tool_system::ChangeToolSystem;
 pub use spatial_hash_cache::SpatialHashCache;
 pub use exit_system::ExitSystem;
+pub use remove_geom_system::RemoveGeomSystem;
