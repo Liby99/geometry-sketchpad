@@ -27,7 +27,6 @@ impl<'a> System<'a> for ViewportSystem {
       vp.virtual_center += diff;
 
       // Push the event
-      // events.push(Event::Viewport(ViewportEvent::Move(diff)));
     }
   }
 }

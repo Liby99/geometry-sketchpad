@@ -5,8 +5,6 @@ use crate::{
   components::{SymbolicPoint, PointStyle, Selected},
 };
 
-pub struct InsertPoint(Entity);
-
 pub struct CreatePointSystem;
 
 impl<'a> System<'a> for CreatePointSystem {

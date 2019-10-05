@@ -81,7 +81,6 @@ impl<'a> System<'a> for WindowSystem {
   ): Self::SystemData) {
 
     // Reset information
-    // delta_time.update();
     input_state.reset_relative_data();
 
     // Handle window events
@@ -111,7 +110,6 @@ impl<'a> System<'a> for WindowSystem {
             },
             Input::Resize(ResizeArgs { window_size, .. }) => {
               viewport.set(window_size);
-              // events.push(Event::Viewport(ViewportEvent::Resize(Vector2::from(window_size))));
             },
             _ => (),
           }
@@ -130,17 +128,13 @@ impl<'a> System<'a> for WindowSystem {
               draw_line(line, style, true, &*viewport, context, graphics);
             }
 
-            let mut point_amount = 0;
-
             // Then draw regular points (not selected)
             for (point, style, _) in (&points, &point_styles, !&selected).join() {
-              point_amount += 1;
               draw_point(point, style, false, &*viewport, context, graphics);
             }
 
             // Then draw selected points (as points are on top of lines)
             for (point, style, _) in (&points, &point_styles, &selected).join() {
-              point_amount += 1;
               draw_point(point, style, true, &*viewport, context, graphics);
             }
           });
