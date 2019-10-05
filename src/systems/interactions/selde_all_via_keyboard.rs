@@ -5,9 +5,9 @@ use crate::{
   systems::events::{GeometryAction, GeometryActionChannel},
 };
 
-pub struct SelectAllViaKeyboard;
+pub struct SeldeAllViaKeyboard;
 
-impl<'a> System<'a> for SelectAllViaKeyboard {
+impl<'a> System<'a> for SeldeAllViaKeyboard {
   type SystemData = (
     Read<'a, InputState>,
     Write<'a, GeometryActionChannel>,

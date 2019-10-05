@@ -6,17 +6,17 @@ use crate::{
   },
 };
 
-pub struct SelectAllHandler {
+pub struct SeldeAllHandler {
   geometry_action_reader: Option<GeometryActionReader>,
 }
 
-impl Default for SelectAllHandler {
+impl Default for SeldeAllHandler {
   fn default() -> Self {
     Self { geometry_action_reader: None }
   }
 }
 
-impl<'a> System<'a> for SelectAllHandler {
+impl<'a> System<'a> for SeldeAllHandler {
   type SystemData = (
     Entities<'a>,
     Read<'a, GeometryActionChannel>,

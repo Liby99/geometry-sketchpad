@@ -4,17 +4,17 @@ use crate::{
   systems::events::{SketchEventReader, SketchEventChannel, SketchEvent},
 };
 
-pub struct SelectHandler {
+pub struct SeldeHandler {
   sketch_event_reader: Option<SketchEventReader>,
 }
 
-impl Default for SelectHandler {
+impl Default for SeldeHandler {
   fn default() -> Self {
     Self { sketch_event_reader: None }
   }
 }
 
-impl<'a> System<'a> for SelectHandler {
+impl<'a> System<'a> for SeldeHandler {
   type SystemData = (
     Read<'a, SketchEventChannel>,
     WriteStorage<'a, Selected>,
