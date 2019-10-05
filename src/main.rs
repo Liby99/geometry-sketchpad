@@ -41,8 +41,8 @@ fn main() {
     .with(state_managers::ViewportStateManager::default(), "viewport_state_manager", &["move_viewport_via_scroll"])
 
     // Data structures
-    .with(DependencyGraphCache::default(), "dependency_graph_cache", &[])
-    .with(SpatialHashCache::default(), "spatial_hash_cache", &["viewport_state_manager"])
+    .with(data_structure_managers::DependencyGraphCache::default(), "dependency_graph_cache", &[])
+    .with(data_structure_managers::SpatialHashCache::default(), "spatial_hash_cache", &["viewport_state_manager"])
 
     // Create geometry systems
     .with(RemoveGeomSystem, "remove_geom_system", &["dependency_graph_cache"])
