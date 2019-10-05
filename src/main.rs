@@ -12,8 +12,6 @@ mod systems;
 
 use piston_window::{PistonWindow, WindowSettings};
 use specs::prelude::*;
-use util::{Color, Vector2};
-use components::*;
 use resources::*;
 use systems::*;
 
@@ -43,26 +41,6 @@ fn main() {
 
   // Setup resources
   dispatcher.setup(&mut world);
-
-  // ============ TEMP START ============
-  let point_style = PointStyle { color: Color::red(), radius: 5. };
-  let line_style = LineStyle { color: Color::blue(), width: 2. };
-
-  let pa = world.create_entity().with(SymbolicPoint::Free(vec2![-4., 0.])).with(point_style).build();
-  let pb = world.create_entity().with(SymbolicPoint::Free(vec2![-2., 2.])).with(point_style).build();
-  let pc = world.create_entity().with(SymbolicPoint::Free(vec2![2., 2.])).with(point_style).build();
-  let pd = world.create_entity().with(SymbolicPoint::Free(vec2![4., 0.])).with(point_style).build();
-
-  let _lx = world.create_entity().with(SymbolicLine::TwoPoints(pa, pd)).with(line_style).with(Selected).build();
-  let _l1 = world.create_entity().with(SymbolicLine::TwoPoints(pa, pb)).with(line_style).build();
-  let _l2 = world.create_entity().with(SymbolicLine::TwoPoints(pc, pd)).with(line_style).build();
-
-  // let pe = world.create_entity().with(SymbolicPoint::LineLineIntersect(l1, l2)).with(point_style).build();
-  // let pf = world.create_entity().with(SymbolicPoint::OnLine(lx, 3.)).with(point_style).build();
-
-  // let _l3 = world.create_entity().with(SymbolicLine::TwoPoints(pe, pf)).with(line_style).build();
-  // let _l4 = world.create_entity().with(SymbolicLine::Parallel(lx, pe)).with(line_style).build();
-  // ============ TEMP END ============
 
   // Enter game main loop
   while world.fetch::<FinishState>().not_finished() {
