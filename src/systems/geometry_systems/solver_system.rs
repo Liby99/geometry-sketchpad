@@ -1,9 +1,8 @@
 use specs::prelude::*;
-use shrev::{EventChannel, ReaderId};
 use crate::{
   util::Intersect,
-  resources::{SketchEvent, Geometry},
   components::{SymbolicPoint, Point, SymbolicLine, Line},
+  systems::events::{SketchEvent, SketchEventChannel, SketchEventReader, Geometry}
 };
 
 enum ToCompute {
@@ -117,7 +116,7 @@ fn solve_line<'a>(
 
 pub struct SolverSystem {
   need_initialize: bool,
-  sketch_events_reader_id: Option<ReaderId<SketchEvent>>,
+  sketch_events_reader_id: Option<SketchEventReader>,
 }
 
 impl Default for SolverSystem {
@@ -132,7 +131,7 @@ impl Default for SolverSystem {
 impl<'a> System<'a> for SolverSystem {
   type SystemData = (
     Entities<'a>,
-    Read<'a, EventChannel<SketchEvent>>,
+    Read<'a, SketchEventChannel>,
     ReadStorage<'a, SymbolicPoint>,
     ReadStorage<'a, SymbolicLine>,
     WriteStorage<'a, Point>,
@@ -141,7 +140,7 @@ impl<'a> System<'a> for SolverSystem {
 
   fn setup(&mut self, world: &mut World) {
     Self::SystemData::setup(world);
-    self.sketch_events_reader_id = Some(world.fetch_mut::<EventChannel<SketchEvent>>().register_reader());
+    self.sketch_events_reader_id = Some(world.fetch_mut::<SketchEventChannel>().register_reader());
   }
 
   fn run(&mut self, (
@@ -192,11 +191,11 @@ impl<'a> System<'a> for SolverSystem {
       if let Some(sketch_events_reader_id) = &mut self.sketch_events_reader_id {
         for event in sketch_events.read(sketch_events_reader_id) {
           match event {
-            SketchEvent::Inserted(entity, geom) => match geom {
+            SketchEvent::Insert(entity, geom) => match geom {
               Geometry::Point(_, _) => stack.push(ToCompute::Point(*entity)),
               Geometry::Line(_, _) => stack.push(ToCompute::Line(*entity)),
             },
-            SketchEvent::Removed(_, _) => (), // Do nothing since they are already removed
+            SketchEvent::Remove(_, _) => (), // Do nothing since they are already removed
           }
         }
       } else {

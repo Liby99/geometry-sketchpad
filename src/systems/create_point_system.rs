@@ -2,8 +2,9 @@ use specs::prelude::*;
 use shrev::EventChannel;
 use crate::{
   util::Color,
-  resources::{ToolState, InputState, MaybeSnapPoint, SnapPoint, SnapPointType, SketchEvent, Geometry, LastActivePoint},
+  resources::{ToolState, InputState, MaybeSnapPoint, SnapPoint, SnapPointType, LastActivePoint},
   components::{SymbolicPoint, Point, PointStyle, Selected},
+  systems::events::{SketchEvent, Geometry, SketchEventChannel},
 };
 
 pub struct CreatePointSystem;
@@ -14,7 +15,7 @@ impl<'a> System<'a> for CreatePointSystem {
     Read<'a, ToolState>,
     Read<'a, InputState>,
     Read<'a, MaybeSnapPoint>,
-    Write<'a, EventChannel<SketchEvent>>,
+    Write<'a, SketchEventChannel>,
     Write<'a, EventChannel<LastActivePoint>>,
     WriteStorage<'a, SymbolicPoint>,
     WriteStorage<'a, Point>,
@@ -66,7 +67,7 @@ impl<'a> System<'a> for CreatePointSystem {
             if let Err(err) = selected.insert(entity, Selected) { panic!(err) };
 
             // Then emit an event
-            sketch_events.single_write(SketchEvent::Inserted(entity, Geometry::Point(sym_point, point_style)));
+            sketch_events.single_write(SketchEvent::Insert(entity, Geometry::Point(sym_point, point_style)));
 
             // Mark this created entity as the last active point
             last_active_point_event.single_write(LastActivePoint::new(entity));

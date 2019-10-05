@@ -9,3 +9,6 @@ pub use viewport_event::*;
 
 mod geometry_action;
 pub use geometry_action::*;
+
+mod sketch_event;
+pub use sketch_event::*;

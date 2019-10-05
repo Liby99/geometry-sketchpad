@@ -1,14 +1,13 @@
 use specs::prelude::*;
-use shrev::{EventChannel, ReaderId};
 use crate::{
-  resources::{SpatialHashTable, Viewport, SketchEvent, Geometry},
+  resources::{SpatialHashTable, Viewport},
   components::{SymbolicLine, Line, SymbolicPoint, Point},
-  systems::events::{ViewportEvent, ViewportEventChannel},
+  systems::events::{ViewportEventChannel, ViewportEventReader, Geometry, SketchEvent, SketchEventChannel, SketchEventReader},
 };
 
 pub struct SpatialHashCache {
-  viewport_events_reader_id: Option<ReaderId<ViewportEvent>>,
-  sketch_events_reader_id: Option<ReaderId<SketchEvent>>,
+  viewport_events_reader_id: Option<ViewportEventReader>,
+  sketch_events_reader_id: Option<SketchEventReader>,
 }
 
 impl Default for SpatialHashCache {
@@ -38,7 +37,7 @@ impl<'a> System<'a> for SpatialHashCache {
     Entities<'a>,
     Read<'a, Viewport>,
     Read<'a, ViewportEventChannel>,
-    Read<'a, EventChannel<SketchEvent>>,
+    Read<'a, SketchEventChannel>,
     Write<'a, SpatialHashTable<Entity>>,
     ReadStorage<'a, SymbolicLine>,
     ReadStorage<'a, Line>,
@@ -51,7 +50,7 @@ impl<'a> System<'a> for SpatialHashCache {
 
     // Setup the reader id
     self.viewport_events_reader_id = Some(world.fetch_mut::<ViewportEventChannel>().register_reader());
-    self.sketch_events_reader_id = Some(world.fetch_mut::<EventChannel<SketchEvent>>().register_reader());
+    self.sketch_events_reader_id = Some(world.fetch_mut::<SketchEventChannel>().register_reader());
   }
 
   fn run(&mut self, (
@@ -83,7 +82,7 @@ impl<'a> System<'a> for SpatialHashCache {
       if let Some(sketch_event_reader_id) = &mut self.sketch_events_reader_id {
         for event in sketch_events.read(sketch_event_reader_id) {
           match event {
-            SketchEvent::Inserted(entity, geom) => match geom {
+            SketchEvent::Insert(entity, geom) => match geom {
               Geometry::Point(_, _) => match points.get(*entity) {
                 Some(position) => table.insert_point(*entity, *position, &*vp),
                 None => panic!("[spatial_hash_cache] Cannot find given point"),
@@ -93,7 +92,7 @@ impl<'a> System<'a> for SpatialHashCache {
                 None => panic!("[spatial_hash_cache] Cannot find given line"),
               }
             },
-            SketchEvent::Removed(entity, _) => table.remove_from_all(*entity),
+            SketchEvent::Remove(entity, _) => table.remove_from_all(*entity),
           }
         }
       } else {

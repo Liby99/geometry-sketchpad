@@ -1,11 +1,10 @@
 use std::collections::HashSet;
 use specs::prelude::*;
-use shrev::EventChannel;
 use crate::{
-  resources::{DependencyGraph, SketchEvent, Geometry},
+  resources::{DependencyGraph},
   components::*,
   systems::{
-    events::{GeometryAction, GeometryActionReader, GeometryActionChannel},
+    events::{GeometryAction, GeometryActionReader, GeometryActionChannel, SketchEvent, SketchEventChannel, Geometry},
   },
 };
 
@@ -24,7 +23,7 @@ impl<'a> System<'a> for RemoveSelectedHandler {
     Entities<'a>,
     Read<'a, GeometryActionChannel>,
     Read<'a, DependencyGraph>,
-    Write<'a, EventChannel<SketchEvent>>,
+    Write<'a, SketchEventChannel>,
     ReadStorage<'a, SymbolicPoint>,
     ReadStorage<'a, PointStyle>,
     ReadStorage<'a, SymbolicLine>,
@@ -84,12 +83,12 @@ impl<'a> System<'a> for RemoveSelectedHandler {
               // Push the event
               if let Some(sym_pt) = maybe_sym_pt {
                 if let Some(pt_sty) = maybe_pt_sty {
-                  sketch_events.single_write(SketchEvent::Removed(entity, Geometry::Point(*sym_pt, *pt_sty)));
+                  sketch_events.single_write(SketchEvent::Remove(entity, Geometry::Point(*sym_pt, *pt_sty)));
                 }
               }
               if let Some(sym_ln) = maybe_sym_ln {
                 if let Some(ln_sty) = maybe_ln_sty {
-                  sketch_events.single_write(SketchEvent::Removed(entity, Geometry::Line(*sym_ln, *ln_sty)));
+                  sketch_events.single_write(SketchEvent::Remove(entity, Geometry::Line(*sym_ln, *ln_sty)));
                 }
               }
             }

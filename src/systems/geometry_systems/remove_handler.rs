@@ -1,12 +1,11 @@
 use specs::prelude::*;
-use shrev::{EventChannel, ReaderId};
 use crate::{
-  resources::{SketchEvent},
   components::{SymbolicPoint, Point, PointStyle, SymbolicLine, Line, LineStyle, Selected},
+  systems::events::{SketchEvent, SketchEventChannel, SketchEventReader},
 };
 
 pub struct RemoveHandler {
-  sketch_event_reader: Option<ReaderId<SketchEvent>>,
+  sketch_event_reader: Option<SketchEventReader>,
 }
 
 impl Default for RemoveHandler {
@@ -17,7 +16,7 @@ impl Default for RemoveHandler {
 
 impl<'a> System<'a> for RemoveHandler {
   type SystemData = (
-    Read<'a, EventChannel<SketchEvent>>,
+    Read<'a, SketchEventChannel>,
     WriteStorage<'a, SymbolicPoint>,
     WriteStorage<'a, Point>,
     WriteStorage<'a, PointStyle>,
@@ -29,7 +28,7 @@ impl<'a> System<'a> for RemoveHandler {
 
   fn setup(&mut self, world: &mut World) {
     Self::SystemData::setup(world);
-    self.sketch_event_reader = Some(world.fetch_mut::<EventChannel<SketchEvent>>().register_reader());
+    self.sketch_event_reader = Some(world.fetch_mut::<SketchEventChannel>().register_reader());
   }
 
   fn run(&mut self, (
@@ -45,7 +44,7 @@ impl<'a> System<'a> for RemoveHandler {
     if let Some(reader_id) = &mut self.sketch_event_reader {
       for event in sketch_event_channel.read(reader_id) {
         match event {
-          SketchEvent::Removed(entity, _) => {
+          SketchEvent::Remove(entity, _) => {
             sym_points.remove(*entity);
             points.remove(*entity);
             point_styles.remove(*entity);

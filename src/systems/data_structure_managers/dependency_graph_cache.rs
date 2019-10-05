@@ -1,13 +1,13 @@
 use specs::prelude::*;
-use shrev::{EventChannel, ReaderId};
 use crate::{
-  resources::{DependencyGraph, SketchEvent, Geometry},
+  resources::{DependencyGraph},
   components::{SymbolicLine, SymbolicPoint},
+  systems::events::{Geometry, SketchEvent, SketchEventChannel, SketchEventReader},
 };
 
 pub struct DependencyGraphCache {
   initialized: bool,
-  sketch_events_reader_id: Option<ReaderId<SketchEvent>>,
+  sketch_events_reader_id: Option<SketchEventReader>,
 }
 
 impl Default for DependencyGraphCache {
@@ -48,7 +48,7 @@ fn add_line(dependency_graph: &mut DependencyGraph, ent: &Entity, sym_line: &Sym
 impl<'a> System<'a> for DependencyGraphCache {
   type SystemData = (
     Entities<'a>,
-    Read<'a, EventChannel<SketchEvent>>,
+    Read<'a, SketchEventChannel>,
     Write<'a, DependencyGraph>,
     ReadStorage<'a, SymbolicPoint>,
     ReadStorage<'a, SymbolicLine>,
@@ -56,7 +56,7 @@ impl<'a> System<'a> for DependencyGraphCache {
 
   fn setup(&mut self, world: &mut World) {
     Self::SystemData::setup(world);
-    self.sketch_events_reader_id = Some(world.fetch_mut::<EventChannel<SketchEvent>>().register_reader());
+    self.sketch_events_reader_id = Some(world.fetch_mut::<SketchEventChannel>().register_reader());
   }
 
   fn run(&mut self, (
@@ -70,11 +70,11 @@ impl<'a> System<'a> for DependencyGraphCache {
       if let Some(reader_id) = &mut self.sketch_events_reader_id {
         for event in sketch_events.read(reader_id) {
           match event {
-            SketchEvent::Inserted(entity, geom) => match geom {
+            SketchEvent::Insert(entity, geom) => match geom {
               Geometry::Point(sym_point, _) => add_point(&mut dependency_graph, entity, sym_point),
               Geometry::Line(sym_line, _) => add_line(&mut dependency_graph, entity, sym_line),
             },
-            SketchEvent::Removed(entity, _) => dependency_graph.remove(entity),
+            SketchEvent::Remove(entity, _) => dependency_graph.remove(entity),
           }
         }
       } else {

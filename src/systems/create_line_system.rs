@@ -3,8 +3,9 @@ use specs::prelude::*;
 use shrev::{EventChannel, ReaderId};
 use crate::{
   util::Color,
-  resources::{ToolState, Tool, LastActivePoint, SketchEvent, Geometry, CreateLineData},
+  resources::{ToolState, Tool, LastActivePoint, CreateLineData},
   components::{SymbolicLine, LineStyle, Selected},
+  systems::events::{SketchEvent, Geometry, SketchEventChannel},
 };
 
 pub struct CreateLineSystem {
@@ -23,7 +24,7 @@ impl<'a> System<'a> for CreateLineSystem {
     Read<'a, ToolState>,
     Write<'a, CreateLineData>,
     Write<'a, EventChannel<LastActivePoint>>,
-    Write<'a, EventChannel<SketchEvent>>,
+    Write<'a, SketchEventChannel>,
     WriteStorage<'a, SymbolicLine>,
     WriteStorage<'a, LineStyle>,
     WriteStorage<'a, Selected>,
@@ -79,7 +80,7 @@ impl<'a> System<'a> for CreateLineSystem {
             if let Err(err) = selected.insert(entity, Selected) { panic!(err) }
 
             // Push event to created lines
-            sketch_events.single_write(SketchEvent::Inserted(entity, Geometry::Line(sym_line, line_style)));
+            sketch_events.single_write(SketchEvent::Insert(entity, Geometry::Line(sym_line, line_style)));
 
             // Reset the maybe first point
             create_line_data.maybe_first_point = None;
