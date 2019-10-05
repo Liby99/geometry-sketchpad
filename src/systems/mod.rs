@@ -11,12 +11,14 @@ mod viewport_system;
 mod change_tool_system;
 mod spatial_hash_cache;
 mod exit_system;
+mod dependency_graph_cache;
 
 pub use window_system::WindowSystem;
 pub use select_system::SelectSystem;
 pub use snap_point_system::SnapPointSystem;
 pub use snap_point_renderer::SnapPointRenderer;
 pub use create_point_system::CreatePointSystem;
+pub use dependency_graph_cache::DependencyGraphCache;
 pub use create_line_system::CreateLineSystem;
 pub use create_line_abort_system::CreateLineAbortSystem;
 pub use create_line_renderer::CreateLineRenderer;

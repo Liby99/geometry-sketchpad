@@ -33,6 +33,7 @@ fn main() {
     .with(ChangeToolSystem, "change_tool_system", &[])
 
     // Data structures
+    .with(DependencyGraphCache::default(), "dependency_graph_cache", &[])
     .with(SpatialHashCache::default(), "spatial_hash_cache", &["viewport_system"])
 
     // Create geometry systems
