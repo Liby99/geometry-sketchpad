@@ -62,6 +62,7 @@ impl<'a> System<'a> for SelectSystem {
               None => if let Err(err) = selected.insert(ent, Selected) { panic!(err); },
             }
           } else {
+
             // If nothing selected, clear the selection
             selected.clear();
           }

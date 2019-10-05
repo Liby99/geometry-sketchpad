@@ -36,6 +36,7 @@ fn main() {
     .with(SpatialHashCache::default(), "spatial_hash_cache", &["viewport_system"])
 
     // Create geometry systems
+    .with(SelectSystem, "select_system", &["spatial_hash_cache"])
     .with(SnapPointSystem, "snap_point_system", &["spatial_hash_cache", "change_tool_system"])
     .with(SnapPointRenderer::default(), "snap_point_renderer", &["snap_point_system"])
     .with(CreatePointSystem, "create_point_system", &["snap_point_system"])
