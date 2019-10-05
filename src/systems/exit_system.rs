@@ -13,7 +13,7 @@ impl<'a> System<'a> for ExitSystem {
   );
 
   fn run(&mut self, (input_state, mut finish_state): Self::SystemData) {
-    if input_state.keyboard.just_activated(Key::Q) &&
+    if (input_state.keyboard.just_activated(Key::Q) || input_state.keyboard.just_activated(Key::W)) &&
       (input_state.keyboard.is_activated(Key::LCommand) || input_state.keyboard.is_activated(Key::RCommand)) {
       finish_state.set_finished();
     }
