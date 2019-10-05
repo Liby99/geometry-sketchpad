@@ -2,6 +2,11 @@ use crate::util::{Vector2, Line, AABB};
 
 pub static WINDOW_SIZE : [f64; 2] = [960., 720.];
 
+pub enum ViewportEvent {
+  Move(Vector2),
+  Resize(Vector2),
+}
+
 pub struct Viewport {
   pub virtual_center: Vector2,
   pub virtual_size: Vector2,

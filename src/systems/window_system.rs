@@ -1,8 +1,9 @@
 use piston_window::{Event as PistonEvent, *};
 use specs::prelude::*;
+use shrev::EventChannel;
 use crate::{
   util::{Vector2, Intersect, Color, Key},
-  resources::{FinishState, Viewport, ViewportTransform, InputState},
+  resources::{FinishState, Viewport, ViewportTransform, InputState, ViewportEvent},
   components::{Selected, Point, PointStyle, Line, LineStyle},
 };
 
@@ -60,8 +61,7 @@ impl<'a> System<'a> for WindowSystem {
     Write<'a, FinishState>,
     Write<'a, InputState>,
     Write<'a, Viewport>,
-    // Write<'a, EventChannel<ViewportEvent>>,
-    // Write<'a, DeltaTime>,
+    Write<'a, EventChannel<ViewportEvent>>,
     ReadStorage<'a, Point>,
     ReadStorage<'a, PointStyle>,
     ReadStorage<'a, Line>,
@@ -73,6 +73,7 @@ impl<'a> System<'a> for WindowSystem {
     mut finished,
     mut input_state,
     mut viewport,
+    mut viewport_events,
     points,
     point_styles,
     lines,
@@ -109,6 +110,7 @@ impl<'a> System<'a> for WindowSystem {
               }
             },
             Input::Resize(ResizeArgs { window_size, .. }) => {
+              viewport_events.single_write(ViewportEvent::Resize(Vector2::from(window_size)));
               viewport.set(window_size);
             },
             _ => (),
