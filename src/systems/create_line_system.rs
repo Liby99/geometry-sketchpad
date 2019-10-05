@@ -3,21 +3,17 @@ use specs::prelude::*;
 use shrev::{EventChannel, ReaderId};
 use crate::{
   util::Color,
-  resources::{ToolState, LastActivePoint, SketchEvent, Geometry},
+  resources::{ToolState, LastActivePoint, SketchEvent, Geometry, CreateLineData},
   components::{SymbolicLine, LineStyle, Selected},
 };
 
 pub struct CreateLineSystem {
-  maybe_first_point: Option<Entity>,
   last_active_point_event_reader_id: Option<ReaderId<LastActivePoint>>,
 }
 
 impl Default for CreateLineSystem {
   fn default() -> Self {
-    Self {
-      maybe_first_point: None,
-      last_active_point_event_reader_id: None,
-    }
+    Self { last_active_point_event_reader_id: None }
   }
 }
 
@@ -25,6 +21,7 @@ impl<'a> System<'a> for CreateLineSystem {
   type SystemData = (
     Entities<'a>,
     Read<'a, ToolState>,
+    Write<'a, CreateLineData>,
     Write<'a, EventChannel<LastActivePoint>>,
     Write<'a, EventChannel<SketchEvent>>,
     WriteStorage<'a, SymbolicLine>,
@@ -35,6 +32,7 @@ impl<'a> System<'a> for CreateLineSystem {
   fn run(&mut self, (
     entities,
     tool_state,
+    mut create_line_data,
     mut last_active_point_event,
     mut sketch_events,
     mut sym_lines,
@@ -47,9 +45,9 @@ impl<'a> System<'a> for CreateLineSystem {
       match *tool_state {
         ToolState::Line => (),
         _ => {
-          // Remove the last_active_point_event_reader_id
           drop(reader_id);
           self.last_active_point_event_reader_id = None;
+          create_line_data.maybe_first_point = None;
         }
       }
     } else {
@@ -66,7 +64,7 @@ impl<'a> System<'a> for CreateLineSystem {
     if let Some(reader_id) = &mut self.last_active_point_event_reader_id {
       for event in last_active_point_event.read(reader_id) {
         let curr_point_entity = event.get();
-        if let Some(first_point_entity) = self.maybe_first_point {
+        if let Some(first_point_entity) = create_line_data.maybe_first_point {
 
           // Create a new point from `first_point_entity` to `curr_entity`
           let entity = entities.create();
@@ -78,12 +76,12 @@ impl<'a> System<'a> for CreateLineSystem {
           sketch_events.single_write(SketchEvent::Inserted(entity, Geometry::Line));
 
           // Reset the maybe first point
-          self.maybe_first_point = None;
+          create_line_data.maybe_first_point = None;
 
         } else {
 
           // If there's no first point, then set the current point to the first point
-          self.maybe_first_point = Some(curr_point_entity);
+          create_line_data.maybe_first_point = Some(curr_point_entity);
         }
 
         // We only deal with one event
