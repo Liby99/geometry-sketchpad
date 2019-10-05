@@ -66,18 +66,21 @@ impl<'a> System<'a> for CreateLineSystem {
         let curr_point_entity = event.get();
         if let Some(first_point_entity) = create_line_data.maybe_first_point {
 
-          // Create a new point from `first_point_entity` to `curr_entity`
-          let entity = entities.create();
-          if let Err(err) = sym_lines.insert(entity, SymbolicLine::TwoPoints(first_point_entity, curr_point_entity)) { panic!(err) }
-          if let Err(err) = styles.insert(entity, LineStyle { color: Color::blue(), width: 2. }) { panic!(err) }
-          if let Err(err) = selected.insert(entity, Selected) { panic!(err) }
+          // Need to check first point is not second point
+          if first_point_entity != curr_point_entity {
 
-          // Push event to created lines
-          sketch_events.single_write(SketchEvent::Inserted(entity, Geometry::Line));
+            // Create a new point from `first_point_entity` to `curr_entity`
+            let entity = entities.create();
+            if let Err(err) = sym_lines.insert(entity, SymbolicLine::TwoPoints(first_point_entity, curr_point_entity)) { panic!(err) }
+            if let Err(err) = styles.insert(entity, LineStyle { color: Color::blue(), width: 2. }) { panic!(err) }
+            if let Err(err) = selected.insert(entity, Selected) { panic!(err) }
 
-          // Reset the maybe first point
-          create_line_data.maybe_first_point = None;
+            // Push event to created lines
+            sketch_events.single_write(SketchEvent::Inserted(entity, Geometry::Line));
 
+            // Reset the maybe first point
+            create_line_data.maybe_first_point = None;
+          }
         } else {
 
           // If there's no first point, then set the current point to the first point

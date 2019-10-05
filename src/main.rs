@@ -26,15 +26,24 @@ fn main() {
 
   // Create dispatcher
   let mut dispatcher = DispatcherBuilder::new()
+
+    // Interactions
     .with(ExitSystem, "exit_system", &[])
     .with(ViewportSystem, "viewport_system", &[])
-    .with(SpatialHashCache::default(), "spatial_hash_cache", &["viewport_system"])
     .with(ChangeToolSystem, "change_tool_system", &[])
+
+    // Data structures
+    .with(SpatialHashCache::default(), "spatial_hash_cache", &["viewport_system"])
+
+    // Create geometry systems
     .with(SnapPointSystem, "snap_point_system", &["spatial_hash_cache", "change_tool_system"])
     .with(SnapPointRenderer::default(), "snap_point_renderer", &["snap_point_system"])
     .with(CreatePointSystem, "create_point_system", &["snap_point_system"])
+    .with(CreateLineAbortSystem, "create_line_abort_system", &[])
     .with(CreateLineSystem::default(), "create_line_system", &["create_point_system"])
     .with(CreateLineRenderer::default(), "create_line_renderer", &["create_line_system"])
+
+    // Solver & final rendering
     .with(SolverSystem::default(), "solver_system", &["create_point_system", "create_line_system"])
     .with_thread_local(window_system)
     .build();

@@ -41,18 +41,31 @@ impl<'a> System<'a> for CreateLineRenderer {
       ent
     };
 
+    // Do caching
+    let mut need_render = false;
+
     // Then check if we have the first point
     if let Some(first_point_entity) = create_line_data.maybe_first_point {
       if let Some(first_point_position) = points.get(first_point_entity) {
         if let Some(SnapPoint { position: second_point_position, .. }) = maybe_snap_point.get() {
 
-          // Insert line and line styles
-          if let Err(err) = lines.insert(ent, Line::from_to(*first_point_position, second_point_position)) { panic!(err) }
-          if let Err(err) = styles.insert(ent, LineStyle { color: Color::new(0.3, 0.3, 1.0, 0.5), width: 2. }) { panic!(err) }
+          // Need to make sure that the first point is not second point
+          if *first_point_position != second_point_position {
+
+            // Insert line and line styles
+            need_render = true;
+            if let Err(err) = lines.insert(ent, Line::from_to(*first_point_position, second_point_position)) { panic!(err) }
+            if let Err(err) = styles.insert(ent, LineStyle { color: Color::new(0.3, 0.3, 1.0, 0.5), width: 2. }) { panic!(err) }
+          }
         }
       } else {
         panic!("[create_line_renderer] First point position does not exist");
       }
+    }
+
+    if !need_render {
+      lines.remove(ent);
+      styles.remove(ent);
     }
   }
 }
