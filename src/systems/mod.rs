@@ -13,7 +13,6 @@ mod create_point_system;
 mod create_line_system;
 mod create_line_abort_system;
 mod create_line_renderer;
-mod drag_event_emitter;
 
 pub use window_system::WindowSystem;
 pub use select_system::SelectSystem;
@@ -23,4 +22,6 @@ pub use create_point_system::CreatePointSystem;
 pub use create_line_system::CreateLineSystem;
 pub use create_line_abort_system::CreateLineAbortSystem;
 pub use create_line_renderer::CreateLineRenderer;
-pub use drag_event_emitter::DragEventEmitter;
+
+mod debug_system;
+pub use debug_system::*;

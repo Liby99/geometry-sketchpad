@@ -9,3 +9,6 @@ pub use move_viewport_via_scroll::MoveViewportViaScroll;
 
 mod remove_selected_via_delete;
 pub use remove_selected_via_delete::*;
+
+mod mouse_event_emitter;
+pub use mouse_event_emitter::*;

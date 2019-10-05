@@ -39,7 +39,7 @@ impl Vector2 {
   }
 
   pub fn is_not_zero(&self) -> bool {
-    self.x != 0.0 && self.y != 0.0
+    self.x != 0.0 || self.y != 0.0
   }
 }
 

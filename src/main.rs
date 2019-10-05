@@ -28,13 +28,11 @@ fn main() {
   let mut dispatcher = DispatcherBuilder::new()
 
     // Interactions
-    .with(DragEventEmitter::default(), "drag_event_emitter", &[])
-
-    // Interactions
     .with(interactions::ExitViaKeyboard, "exit_via_keyboard", &[])
     .with(interactions::ChangeToolViaKeyboard, "change_tool_via_keyboard", &[])
     .with(interactions::MoveViewportViaScroll, "move_viewport_via_scroll", &[])
     .with(interactions::RemoveSelectedViaDelete, "remove_selected_via_delete", &[])
+    .with(interactions::MouseEventEmitter::default(), "mouse_event_emitter", &[])
 
     // State Managers
     .with(state_managers::ExitStateManager::default(), "exit_state_manager", &["exit_via_keyboard"])
@@ -57,6 +55,8 @@ fn main() {
     .with(CreateLineAbortSystem, "create_line_abort_system", &[])
     .with(CreateLineSystem::default(), "create_line_system", &["create_point_system"])
     .with(CreateLineRenderer::default(), "create_line_renderer", &["create_line_system"])
+
+    .with(DebugSystem::default(), "debug_system", &["mouse_event_emitter"])
 
     // Solver & final rendering
     .with(geometry_systems::SolverSystem::default(), "solver_system", &["create_point_system", "create_line_system"])

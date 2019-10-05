@@ -12,3 +12,6 @@ pub use geometry_action::*;
 
 mod sketch_event;
 pub use sketch_event::*;
+
+mod mouse_event;
+pub use mouse_event::*;
