@@ -2,7 +2,7 @@ use specs::prelude::*;
 use shrev::EventChannel;
 use crate::{
   util::Color,
-  resources::{ToolState, InputState, MaybeSnapPoint, SnapPoint, SnapPointType, SketchEvent, Geometry},
+  resources::{ToolState, InputState, MaybeSnapPoint, SnapPoint, SnapPointType, SketchEvent, Geometry, LastActivePoint},
   components::{SymbolicPoint, PointStyle, Point, Selected},
 };
 
@@ -15,6 +15,7 @@ impl<'a> System<'a> for CreatePointSystem {
     Read<'a, InputState>,
     Read<'a, MaybeSnapPoint>,
     Write<'a, EventChannel<SketchEvent>>,
+    Write<'a, EventChannel<LastActivePoint>>,
     WriteStorage<'a, SymbolicPoint>,
     WriteStorage<'a, Point>,
     WriteStorage<'a, PointStyle>,
@@ -27,6 +28,7 @@ impl<'a> System<'a> for CreatePointSystem {
     input_state,
     maybe_snap_point,
     mut sketch_events,
+    mut last_active_point_event,
     mut sym_points,
     mut points,
     mut styles,
@@ -41,21 +43,31 @@ impl<'a> System<'a> for CreatePointSystem {
             SnapPointType::NotSnapped => Some(SymbolicPoint::Free(position)),
             SnapPointType::SnapOnLine(line_ent, t) => Some(SymbolicPoint::OnLine(line_ent, t)),
             SnapPointType::SnapOnIntersection(l1_ent, l2_ent) => Some(SymbolicPoint::LineLineIntersect(l1_ent, l2_ent)),
-            _ => None
+            SnapPointType::SnapOnPoint(entity) => {
+
+              // If clicked on the snapped point, mark this point as last active
+              last_active_point_event.single_write(LastActivePoint::new(entity));
+
+              // Return none since we don't create new symbolic point
+              None
+            },
           };
 
           // Check if we need to create a point
           if let Some(sym_point) = symbolic_point {
 
             // First create the entity
-            let ent = entities.create();
-            if let Err(err) = sym_points.insert(ent, sym_point) { panic!(err) };
-            if let Err(err) = points.insert(ent, position) { panic!(err) };
-            if let Err(err) = styles.insert(ent, PointStyle { color: Color::red(), radius: 5. }) { panic!(err) };
-            if let Err(err) = selected.insert(ent, Selected) { panic!(err) };
+            let entity = entities.create();
+            if let Err(err) = sym_points.insert(entity, sym_point) { panic!(err) };
+            if let Err(err) = points.insert(entity, position) { panic!(err) };
+            if let Err(err) = styles.insert(entity, PointStyle { color: Color::red(), radius: 5. }) { panic!(err) };
+            if let Err(err) = selected.insert(entity, Selected) { panic!(err) };
 
             // Then emit an event
-            sketch_events.single_write(SketchEvent::Inserted(ent, Geometry::Point(position)));
+            sketch_events.single_write(SketchEvent::Inserted(entity, Geometry::Point(position)));
+
+            // Mark this created entity as the last active point
+            last_active_point_event.single_write(LastActivePoint::new(entity));
           }
         }
       }

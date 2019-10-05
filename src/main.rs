@@ -35,7 +35,8 @@ fn main() {
     .with(SnapPointSystem, "snap_point_system", &["spatial_hash_cache", "change_tool_system"])
     .with(SnapPointRenderer::default(), "snap_point_renderer", &["snap_point_system"])
     .with(CreatePointSystem, "create_point_system", &["snap_point_system"])
-    .with(SolverSystem::default(), "solver_system", &["create_point_system"]) // TODO: Make sure you understand why solver_system cannot depend on create_point_system
+    .with(CreateLineSystem::default(), "create_line_system", &["create_point_system"])
+    .with(SolverSystem::default(), "solver_system", &["create_point_system", "create_line_system"])
     .with_thread_local(window_system)
     .build();
 

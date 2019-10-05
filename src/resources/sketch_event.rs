@@ -7,4 +7,5 @@ pub enum SketchEvent {
 
 pub enum Geometry {
   Point(Vector2),
+  Line,
 }

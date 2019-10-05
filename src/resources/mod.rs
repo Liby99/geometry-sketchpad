@@ -5,6 +5,7 @@ mod tool_state;
 mod spatial_hash_table;
 mod snap_point;
 mod sketch_event;
+mod last_active_point;
 
 pub use finish_state::FinishState;
 pub use viewport::*;
@@ -13,3 +14,4 @@ pub use tool_state::ToolState;
 pub use spatial_hash_table::SpatialHashTable;
 pub use snap_point::*;
 pub use sketch_event::*;
+pub use last_active_point::*;

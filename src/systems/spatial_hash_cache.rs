@@ -84,6 +84,10 @@ impl<'a> System<'a> for SpatialHashCache {
           match event {
             SketchEvent::Inserted(entity, geom) => match geom {
               Geometry::Point(position) => table.insert_point(*entity, *position, &*vp),
+              Geometry::Line => match lines.get(*entity) {
+                Some(line) => table.insert_line(*entity, *line, &*vp),
+                None => panic!("[spatial_hash_cache] Cannot find given line"),
+              }
             },
           }
         }
