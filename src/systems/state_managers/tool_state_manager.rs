@@ -1,12 +1,11 @@
 use specs::prelude::*;
-use shrev::{EventChannel, ReaderId};
 use crate::{
-  systems::events::ToolChangeEvent,
+  systems::events::{ToolChangeEventChannel, ToolChangeEventReader, ToolChangeEvent},
   resources::ToolState,
 };
 
 pub struct ToolStateManager {
-  tool_change_event_reader_id: Option<ReaderId<ToolChangeEvent>>,
+  tool_change_event_reader_id: Option<ToolChangeEventReader>,
 }
 
 impl Default for ToolStateManager {
@@ -17,13 +16,13 @@ impl Default for ToolStateManager {
 
 impl<'a> System<'a> for ToolStateManager {
   type SystemData = (
-    Read<'a, EventChannel<ToolChangeEvent>>,
+    Read<'a, ToolChangeEventChannel>,
     Write<'a, ToolState>,
   );
 
   fn setup(&mut self, world: &mut World) {
     Self::SystemData::setup(world);
-    self.tool_change_event_reader_id = Some(world.fetch_mut::<EventChannel<ToolChangeEvent>>().register_reader());
+    self.tool_change_event_reader_id = Some(world.fetch_mut::<ToolChangeEventChannel>().register_reader());
   }
 
   fn run(&mut self, (tool_change_event_channel, mut tool_state): Self::SystemData) {

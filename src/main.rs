@@ -28,20 +28,21 @@ fn main() {
   let mut dispatcher = DispatcherBuilder::new()
 
     // Interactions
-    .with(ViewportSystem, "viewport_system", &[])
     .with(DragEventEmitter::default(), "drag_event_emitter", &[])
 
     // Interactions
     .with(interactions::ExitViaKeyboard, "exit_via_keyboard", &[])
     .with(interactions::ChangeToolViaKeyboard, "change_tool_via_keyboard", &[])
+    .with(interactions::MoveViewportViaScroll, "move_viewport_via_scroll", &[])
 
     // State Managers
     .with(state_managers::ExitStateManager::default(), "exit_state_manager", &["exit_via_keyboard"])
     .with(state_managers::ToolStateManager::default(), "tool_state_manager", &["change_tool_via_keyboard"])
+    .with(state_managers::ViewportStateManager::default(), "viewport_state_manager", &["move_viewport_via_scroll"])
 
     // Data structures
     .with(DependencyGraphCache::default(), "dependency_graph_cache", &[])
-    .with(SpatialHashCache::default(), "spatial_hash_cache", &["viewport_system"])
+    .with(SpatialHashCache::default(), "spatial_hash_cache", &["viewport_state_manager"])
 
     // Create geometry systems
     .with(RemoveGeomSystem, "remove_geom_system", &["dependency_graph_cache"])

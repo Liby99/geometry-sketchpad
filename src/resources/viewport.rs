@@ -2,11 +2,6 @@ use crate::util::{Vector2, Line, AABB};
 
 pub static WINDOW_SIZE : [f64; 2] = [960., 720.];
 
-pub enum ViewportEvent {
-  Move(Vector2),
-  Resize(Vector2),
-}
-
 pub struct Viewport {
   pub virtual_center: Vector2,
   pub virtual_size: Vector2,
@@ -32,11 +27,15 @@ impl Viewport {
     }
   }
 
-  pub fn set(&mut self, window_size: [f64; 2]) {
-    self.actual_size = Vector2::from(window_size);
+  pub fn set_window_size(&mut self, window_size: Vector2) {
+    self.actual_size = window_size;
     self.virtual_size.y = self.virtual_size.x / self.actual_size.x * self.actual_size.y;
     self.half_actual_size = self.actual_size / 2.0;
     self.half_virtual_size = self.virtual_size / 2.0;
+  }
+
+  pub fn scale(&self) -> f64 {
+    self.virtual_size.x / self.actual_size.x
   }
 
   pub fn actual_width(&self) -> f64 {

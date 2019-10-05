@@ -1,13 +1,11 @@
 use piston_window::{Event as PistonEvent, *};
 use specs::prelude::*;
-use shrev::EventChannel;
 use crate::{
   util::{Vector2, Intersect, Color, Key},
-  resources::{DeltaTime, Viewport, ViewportTransform, InputState, ViewportEvent},
+  resources::{DeltaTime, Viewport, ViewportTransform, InputState},
   components::{Selected, Point, PointStyle, Line, LineStyle},
   systems::{
-    events::{ExitEvent},
-    state_managers::{ExitEventChannel},
+    events::{ExitEvent, ExitEventChannel, ViewportEvent, ViewportEventChannel},
   },
 };
 
@@ -62,11 +60,11 @@ pub struct WindowSystem {
 
 impl<'a> System<'a> for WindowSystem {
   type SystemData = (
+    Read<'a, Viewport>,
     Write<'a, DeltaTime>,
     Write<'a, ExitEventChannel>,
     Write<'a, InputState>,
-    Write<'a, Viewport>,
-    Write<'a, EventChannel<ViewportEvent>>,
+    Write<'a, ViewportEventChannel>,
     ReadStorage<'a, Point>,
     ReadStorage<'a, PointStyle>,
     ReadStorage<'a, Line>,
@@ -75,10 +73,10 @@ impl<'a> System<'a> for WindowSystem {
   );
 
   fn run(&mut self, (
+    viewport,
     mut delta_time,
     mut exit_event_channel,
     mut input_state,
-    mut viewport,
     mut viewport_events,
     points,
     point_styles,
@@ -119,7 +117,6 @@ impl<'a> System<'a> for WindowSystem {
               },
               Input::Resize(ResizeArgs { window_size, .. }) => {
                 viewport_events.single_write(ViewportEvent::Resize(Vector2::from(window_size)));
-                viewport.set(window_size);
               },
               _ => (),
             }

@@ -1,8 +1,9 @@
 use specs::prelude::*;
 use shrev::{EventChannel, ReaderId};
 use crate::{
-  resources::{SpatialHashTable, Viewport, ViewportEvent, SketchEvent, Geometry},
+  resources::{SpatialHashTable, Viewport, SketchEvent, Geometry},
   components::{SymbolicLine, Line, SymbolicPoint, Point},
+  systems::events::{ViewportEvent, ViewportEventChannel},
 };
 
 pub struct SpatialHashCache {
@@ -20,7 +21,7 @@ impl Default for SpatialHashCache {
 }
 
 impl SpatialHashCache {
-  fn need_refresh(&mut self, vp_events: &EventChannel<ViewportEvent>) -> bool {
+  fn need_refresh(&mut self, vp_events: &ViewportEventChannel) -> bool {
     if let Some(vp_event_reader_id) = &mut self.viewport_events_reader_id {
       for _ in vp_events.read(vp_event_reader_id) {
         return true;
@@ -36,7 +37,7 @@ impl<'a> System<'a> for SpatialHashCache {
   type SystemData = (
     Entities<'a>,
     Read<'a, Viewport>,
-    Read<'a, EventChannel<ViewportEvent>>,
+    Read<'a, ViewportEventChannel>,
     Read<'a, EventChannel<SketchEvent>>,
     Write<'a, SpatialHashTable<Entity>>,
     ReadStorage<'a, SymbolicLine>,
@@ -49,14 +50,14 @@ impl<'a> System<'a> for SpatialHashCache {
     Self::SystemData::setup(world);
 
     // Setup the reader id
-    self.viewport_events_reader_id = Some(world.fetch_mut::<EventChannel<ViewportEvent>>().register_reader());
+    self.viewport_events_reader_id = Some(world.fetch_mut::<ViewportEventChannel>().register_reader());
     self.sketch_events_reader_id = Some(world.fetch_mut::<EventChannel<SketchEvent>>().register_reader());
   }
 
   fn run(&mut self, (
     entities,
     vp,
-    vp_events,
+    viewport_event_channel,
     sketch_events,
     mut table,
     sym_lines,
@@ -66,7 +67,7 @@ impl<'a> System<'a> for SpatialHashCache {
   ): Self::SystemData) {
 
     // First check if needs full refresh
-    if self.need_refresh(&*vp_events) {
+    if self.need_refresh(&*viewport_event_channel) {
 
       // If is then reconstruct the whole table
       table.init_viewport(&*vp);

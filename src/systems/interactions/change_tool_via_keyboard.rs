@@ -1,10 +1,9 @@
 use specs::prelude::*;
-use shrev::EventChannel;
 
 pub use crate::{
   util::Key,
   resources::{InputState, Tool},
-  systems::events::ToolChangeEvent,
+  systems::events::{ToolChangeEventChannel, ToolChangeEvent},
 };
 
 pub struct ChangeToolViaKeyboard;
@@ -12,7 +11,7 @@ pub struct ChangeToolViaKeyboard;
 impl<'a> System<'a> for ChangeToolViaKeyboard {
   type SystemData = (
     Read<'a, InputState>,
-    Write<'a, EventChannel<ToolChangeEvent>>,
+    Write<'a, ToolChangeEventChannel>,
   );
 
   fn run(&mut self, (input_state, mut tool_change_events): Self::SystemData) {

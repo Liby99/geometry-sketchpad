@@ -1,8 +1,7 @@
 use specs::prelude::*;
-use shrev::EventChannel;
 use crate::{
   util::Key,
-  systems::events::ExitEvent,
+  systems::events::{ExitEvent, ExitEventChannel},
   resources::InputState,
 };
 
@@ -11,7 +10,7 @@ pub struct ExitViaKeyboard;
 impl<'a> System<'a> for ExitViaKeyboard {
   type SystemData = (
     Read<'a, InputState>,
-    Write<'a, EventChannel<ExitEvent>>,
+    Write<'a, ExitEventChannel>,
   );
 
   fn run(&mut self, (input_state, mut finish_event_channel): Self::SystemData) {

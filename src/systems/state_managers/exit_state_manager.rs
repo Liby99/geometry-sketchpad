@@ -1,7 +1,6 @@
 use specs::prelude::*;
-use shrev::{EventChannel, ReaderId};
 use crate::{
-  systems::events::ExitEvent,
+  systems::events::{ExitEventChannel, ExitEventReader},
 };
 
 pub struct ExitState(bool);
@@ -23,7 +22,7 @@ impl ExitState {
 }
 
 pub struct ExitStateManager {
-  exit_event_reader_id: Option<ReaderId<ExitEvent>>,
+  exit_event_reader_id: Option<ExitEventReader>,
 }
 
 impl Default for ExitStateManager {
@@ -31,8 +30,6 @@ impl Default for ExitStateManager {
     Self { exit_event_reader_id: None }
   }
 }
-
-pub type ExitEventChannel = EventChannel<ExitEvent>;
 
 impl<'a> System<'a> for ExitStateManager {
   type SystemData = (
@@ -51,6 +48,8 @@ impl<'a> System<'a> for ExitStateManager {
         exit_state.set_need_exit();
         break;
       }
+    } else {
+      panic!("[exit_state_manager] No reader id");
     }
   }
 }
