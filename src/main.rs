@@ -31,6 +31,7 @@ fn main() {
     .with(ExitSystem, "exit_system", &[])
     .with(ViewportSystem, "viewport_system", &[])
     .with(ChangeToolSystem, "change_tool_system", &[])
+    .with(DragEventEmitter::default(), "drag_event_emitter", &[])
 
     // Data structures
     .with(DependencyGraphCache::default(), "dependency_graph_cache", &[])

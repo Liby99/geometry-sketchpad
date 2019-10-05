@@ -107,9 +107,9 @@ impl<'a> System<'a> for WindowSystem {
               },
               Input::Move(motion) => {
                 match motion {
-                  Motion::MouseScroll(rel_scroll) => input_state.rel_scroll = rel_scroll.into(),
+                  Motion::MouseScroll(rel_scroll) => input_state.rel_scroll += rel_scroll.into(),
                   Motion::MouseCursor(abs_pos) => input_state.mouse_abs_pos = abs_pos.into(),
-                  Motion::MouseRelative(rel_mov) => input_state.mouse_rel_movement = rel_mov.into(),
+                  Motion::MouseRelative(rel_mov) => input_state.mouse_rel_movement += rel_mov.into(),
                   _ => (),
                 }
               },

@@ -1,5 +1,6 @@
 mod delta_time;
 mod finish_state;
+mod drag_event;
 mod viewport;
 mod input_state;
 mod tool_state;
@@ -11,6 +12,7 @@ mod create_line_data;
 mod dependency_graph;
 
 pub use delta_time::DeltaTime;
+pub use drag_event::DragEvent;
 pub use finish_state::FinishState;
 pub use viewport::*;
 pub use input_state::{InputState, ActiveState};

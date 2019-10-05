@@ -37,6 +37,10 @@ impl Vector2 {
   pub fn project(self, Line { origin, direction }: Line) -> Self {
     origin + (self - origin).dot(direction) * direction
   }
+
+  pub fn is_not_zero(&self) -> bool {
+    self.x != 0.0 && self.y != 0.0
+  }
 }
 
 impl Into<[f64; 2]> for Vector2 {

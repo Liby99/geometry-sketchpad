@@ -63,6 +63,10 @@ impl ActiveState {
     self.pressed && self.just_changed
   }
 
+  pub fn just_deactivated(&self) -> bool {
+    !self.pressed && self.just_changed
+  }
+
   pub fn reset_relative_data(&mut self) {
     self.just_changed = false;
   }
@@ -96,6 +100,14 @@ impl Keyboard {
   pub fn just_activated(&self, key: Key) -> bool {
     match self.keys.get(&key) {
       Some(state) => state.just_activated(),
+      None => false,
+    }
+  }
+
+  #[allow(dead_code)] // TODO
+  pub fn just_deactivated(&self, key: Key) -> bool {
+    match self.keys.get(&key) {
+      Some(state) => state.just_deactivated(),
       None => false,
     }
   }
