@@ -1,7 +1,7 @@
 use specs::prelude::*;
 use crate::{
   util::Color,
-  resources::{ToolState, InputState, MaybeSnapPoint, SnapPoint, SnapPointType },
+  resources::{ToolState, InputState, MaybeSnapPoint, Events, Event, GeometryEvent, Geometry, SnapPoint, SnapPointType},
   components::{SymbolicPoint, PointStyle, Selected},
 };
 
@@ -13,6 +13,7 @@ impl<'a> System<'a> for CreatePointSystem {
     Read<'a, ToolState>,
     Read<'a, InputState>,
     Read<'a, MaybeSnapPoint>,
+    Write<'a, Events>,
     WriteStorage<'a, SymbolicPoint>,
     WriteStorage<'a, PointStyle>,
     WriteStorage<'a, Selected>,
@@ -23,6 +24,7 @@ impl<'a> System<'a> for CreatePointSystem {
     tool_state,
     input_state,
     maybe_snap_point,
+    mut events,
     mut sym_points,
     mut styles,
     mut selected,
@@ -49,6 +51,7 @@ impl<'a> System<'a> for CreatePointSystem {
             if let Err(err) = selected.insert(ent, Selected) { panic!(err) };
 
             // Then emit an event
+            events.push(Event::Geometry(GeometryEvent::Inserted(Geometry::Point, ent)));
           }
         }
       }

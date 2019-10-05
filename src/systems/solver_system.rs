@@ -134,23 +134,18 @@ impl<'a> System<'a> for SolverSystem {
     mut points,
     mut lines,
   ): Self::SystemData) {
-    // if !dirty_state.is_solver_dirty {
-    //   return;
-    // }
-
     let mut stack = vec![];
-
-    points.clear();
-    lines.clear();
 
     // Fisrt push all the lines into stack
     for (ent, _) in (&*entities, &sym_lines).join() {
+      lines.remove(ent);
       stack.push(ToCompute::Line(ent));
     }
 
     // Then push all the points into stack
     // As we want to first calculate points
     for (ent, _) in (&*entities, &sym_points).join() {
+      points.remove(ent);
       stack.push(ToCompute::Point(ent));
     }
 

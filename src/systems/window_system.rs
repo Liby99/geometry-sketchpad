@@ -133,15 +133,23 @@ impl<'a> System<'a> for WindowSystem {
               draw_line(line, style, true, &*viewport, context, graphics);
             }
 
+            let mut point_amount = 0;
+
             // Then draw regular points (not selected)
             for (point, style, _) in (&points, &point_styles, !&selected).join() {
+              point_amount += 1;
               draw_point(point, style, false, &*viewport, context, graphics);
             }
 
             // Then draw selected points (as points are on top of lines)
             for (point, style, _) in (&points, &point_styles, &selected).join() {
+              point_amount += 1;
               draw_point(point, style, true, &*viewport, context, graphics);
             }
+
+            // if input_state.keyboard.just_activated(Key::A) {
+            println!("Render: {}", point_amount);
+            // }
           });
         }
       }
