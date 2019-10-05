@@ -15,7 +15,7 @@ use crate::{
   util::{Vector2, Intersect},
 };
 
-static SNAP_TO_POINT_THRES : f64 = 10.0; // In actual space
+static SNAP_TO_POINT_THRES : f64 = 12.0; // In actual space
 static SNAP_TO_LINE_THRES : f64 = 6.0; // In actual space
 static SNAP_TO_INTERSECTION_THRES : f64 = 15.0; // In actual space
 
@@ -58,7 +58,10 @@ impl<'a> System<'a> for SnapPointSystem {
       if let Some(neighbor_entities) = maybe_neighbors {
 
         let mut closest_lines : Vec<(Entity, Line)> = vec![];
-        let mut maybe_smallest_dist : Option<f64> = None;
+        let mut maybe_smallest_dist_to_line : Option<f64> = None;
+        let mut maybe_snap_point_on_line = None;
+        let mut maybe_smallest_dist_to_point : Option<f64> = None;
+        let mut maybe_snap_point_on_point = None;
         let mut is_snapping_to_point = false;
 
         // Loop through all the neighbor entities
@@ -66,12 +69,12 @@ impl<'a> System<'a> for SnapPointSystem {
           if let Some(p) = points.get(entity) {
             let norm_dist = (p.to_actual(&*vp) - mouse_pos).magnitude() / SNAP_TO_POINT_THRES;
             if norm_dist < 1.0 {
-              if maybe_smallest_dist.is_none() || norm_dist < maybe_smallest_dist.unwrap() {
+              if maybe_smallest_dist_to_point.is_none() || norm_dist < maybe_smallest_dist_to_point.unwrap() {
                 is_snapping_to_point = true;
-                maybe_smallest_dist = Some(norm_dist);
+                maybe_smallest_dist_to_point = Some(norm_dist);
 
                 // Set the snap point to snap on point
-                maybe_snap_point.set(SnapPoint {
+                maybe_snap_point_on_point = Some(SnapPoint {
                   position: *p,
                   symbo: SnapPointType::SnapOnPoint(entity)
                 });
@@ -89,17 +92,22 @@ impl<'a> System<'a> for SnapPointSystem {
               let p_to_origin = virtual_proj_point - l.origin;
               let p_to_origin_dist = p_to_origin.magnitude();
               let t = if p_to_origin.dot(l.direction) > 0.0 { p_to_origin_dist } else { -p_to_origin_dist };
-              if maybe_smallest_dist.is_none() || norm_dist < maybe_smallest_dist.unwrap() {
-                maybe_smallest_dist = Some(norm_dist);
+              if maybe_smallest_dist_to_line.is_none() || norm_dist < maybe_smallest_dist_to_line.unwrap() {
+                maybe_smallest_dist_to_line = Some(norm_dist);
 
                 // Set the snap point to snap on line
-                maybe_snap_point.set(SnapPoint {
+                maybe_snap_point_on_line = Some(SnapPoint {
                   position: virtual_proj_point,
                   symbo: SnapPointType::SnapOnLine(entity, t),
                 });
               }
             }
           }
+        }
+
+        // Weight snap on point higher than snap on line
+        if let Some(snap_point) = maybe_snap_point_on_point.or(maybe_snap_point_on_line) {
+          maybe_snap_point.set(snap_point)
         }
 
         // Check if snapping to an intersection
