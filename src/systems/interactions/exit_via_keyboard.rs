@@ -1,6 +1,6 @@
 use specs::prelude::*;
 use crate::{
-  util::Key,
+  utilities::Key,
   systems::events::{ExitEvent, ExitEventChannel},
   resources::InputState,
 };

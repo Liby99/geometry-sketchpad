@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use crate::util::{Vector2, Key};
+use crate::utilities::{Vector2, Key};
 
 pub struct InputState {
   pub mouse_left_button: ActiveState,

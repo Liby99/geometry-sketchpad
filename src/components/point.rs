@@ -1,5 +1,5 @@
 use specs::prelude::*;
-use crate::util::{Color, Vector2};
+use crate::utilities::{Color, Vector2};
 
 #[derive(Debug, Copy, Clone)]
 pub struct PointStyle {

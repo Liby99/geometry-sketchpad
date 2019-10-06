@@ -1,6 +1,6 @@
 use specs::prelude::*;
 use crate::{
-  util::Key,
+  utilities::Key,
   resources::InputState,
   systems::events::{GeometryAction, GeometryActionChannel},
 };

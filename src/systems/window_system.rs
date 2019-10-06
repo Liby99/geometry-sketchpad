@@ -1,7 +1,7 @@
 use piston_window::{Event as PistonEvent, *};
 use specs::prelude::*;
 use crate::{
-  util::{Vector2, Intersect, Color, Key},
+  utilities::{Vector2, Intersect, Color, Key},
   resources::{DeltaTime, Viewport, ViewportTransform, InputState},
   components::{Selected, Point, PointStyle, Line, LineStyle, Rectangle, RectangleStyle},
   systems::{

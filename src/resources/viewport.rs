@@ -1,4 +1,4 @@
-use crate::util::{Vector2, Line, AABB};
+use crate::utilities::{Vector2, Line, AABB};
 
 pub static WINDOW_SIZE : [f64; 2] = [960., 720.];
 

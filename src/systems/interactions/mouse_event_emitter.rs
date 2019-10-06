@@ -1,7 +1,7 @@
 use std::time::SystemTime;
 use specs::prelude::*;
 use crate::{
-  util::Vector2,
+  utilities::Vector2,
   resources::InputState,
   systems::events::{MouseEventChannel, MouseEvent, MouseEventReader},
 };

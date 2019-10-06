@@ -12,7 +12,7 @@ use crate::{
     ViewportTransform
   },
   components::{Point, Line},
-  util::{Vector2, Intersect},
+  utilities::{Vector2, Intersect},
 };
 
 static SNAP_TO_POINT_THRES : f64 = 12.0; // In actual space

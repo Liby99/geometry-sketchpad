@@ -1,5 +1,5 @@
 use shrev::{EventChannel, ReaderId};
-use crate::util::Vector2;
+use crate::utilities::Vector2;
 
 pub enum ViewportEvent {
   Move(Vector2),

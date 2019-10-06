@@ -1,7 +1,7 @@
 use specs::prelude::*;
 
 pub use crate::{
-  util::Key,
+  utilities::Key,
   resources::{InputState, Tool},
   systems::events::{ToolChangeEventChannel, ToolChangeEvent},
 };

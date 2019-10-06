@@ -1,5 +1,5 @@
 use specs::prelude::*;
-use crate::util::Vector2;
+use crate::utilities::Vector2;
 
 pub struct MaybeSnapPoint(Option<SnapPoint>);
 

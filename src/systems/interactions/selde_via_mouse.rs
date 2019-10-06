@@ -2,7 +2,7 @@ use std::mem::drop;
 use std::collections::HashSet;
 use specs::prelude::*;
 use crate::{
-  util::{Vector2, AABB, Color, Intersect},
+  utilities::{Vector2, AABB, Color, Intersect},
   resources::{Viewport, ViewportTransform, SpatialHashTable, InputState, Tool},
   components::{Point, Line, LineStyle, Selected, Rectangle, RectangleStyle},
   systems::events::{

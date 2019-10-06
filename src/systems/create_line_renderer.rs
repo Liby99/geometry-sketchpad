@@ -1,6 +1,6 @@
 use specs::prelude::*;
 use crate::{
-  util::Color,
+  utilities::Color,
   resources::{CreateLineData, SnapPoint, MaybeSnapPoint},
   components::{Point, Line, LineStyle},
 };

@@ -1,5 +1,5 @@
 use shrev::{EventChannel, ReaderId};
-use crate::util::Vector2;
+use crate::utilities::Vector2;
 
 #[derive(Debug, Copy, Clone)]
 pub enum MouseEvent {

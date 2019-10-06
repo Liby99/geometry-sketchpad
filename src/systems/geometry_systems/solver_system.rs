@@ -1,6 +1,6 @@
 use specs::prelude::*;
 use crate::{
-  util::Intersect,
+  utilities::Intersect,
   components::{SymbolicPoint, Point, SymbolicLine, Line},
   systems::events::{SketchEvent, SketchEventChannel, SketchEventReader, Geometry}
 };

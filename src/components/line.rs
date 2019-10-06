@@ -1,6 +1,6 @@
 use specs::prelude::*;
-use crate::util::Color;
-pub use crate::util::Line;
+use crate::utilities::Color;
+pub use crate::utilities::Line;
 
 #[derive(Debug, Copy, Clone)]
 pub struct LineStyle {

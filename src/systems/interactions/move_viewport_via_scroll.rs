@@ -1,6 +1,6 @@
 use specs::prelude::*;
 use crate::{
-  util::Vector2,
+  utilities::Vector2,
   resources::{DeltaTime, InputState},
   systems::events::{ViewportEvent, ViewportEventChannel},
 };

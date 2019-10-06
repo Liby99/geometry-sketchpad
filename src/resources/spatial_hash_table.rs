@@ -2,7 +2,7 @@ use std::collections::HashSet;
 use std::hash::Hash;
 use itertools::Itertools;
 use super::{Viewport, ViewportTransform};
-use crate::util::{Vector2, AABB, Intersect};
+use crate::utilities::{Vector2, AABB, Intersect};
 use crate::components::{Point, Line};
 
 static TILE_SIZE : f64 = 40.0;

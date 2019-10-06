@@ -1,6 +1,6 @@
 use specs::prelude::*;
 use crate::{
-  util::{AABB, Color},
+  utilities::{AABB, Color},
   components::LineStyle,
 };
 
