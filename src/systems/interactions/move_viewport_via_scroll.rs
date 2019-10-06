@@ -8,7 +8,7 @@ use crate::{
   },
 };
 
-static SCROLL_SPEED : f64 = 1.0; // Can be adjusted
+static SCROLL_SPEED : f64 = 5.0; // Can be adjusted
 
 pub struct MoveViewportViaScroll;
 

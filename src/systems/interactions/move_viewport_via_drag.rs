@@ -12,8 +12,6 @@ use crate::{
   },
 };
 
-static DRAG_SPEED : f64 = 2.4;
-
 pub struct MoveViewportViaDrag {
   tool_change_event_reader: Option<ToolChangeEventReader>,
   mouse_event_reader: Option<MouseEventReader>,
@@ -68,7 +66,7 @@ impl<'a> System<'a> for MoveViewportViaDrag {
       for event in mouse_event_channel.read(reader_id) {
         match event {
           MouseEvent::DragMove(delta, _) => {
-            let movement = vec2![-delta.x, delta.y] * DRAG_SPEED * viewport.scale();
+            let movement = vec2![-delta.x, delta.y] * viewport.scale();
             viewport_event_channel.single_write(ViewportEvent::Move(movement));
           },
           _ => (),

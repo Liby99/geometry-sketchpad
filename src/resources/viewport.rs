@@ -2,6 +2,7 @@ use crate::utilities::{Vector2, Line, AABB};
 
 pub static WINDOW_SIZE : [f64; 2] = [960., 720.];
 
+#[derive(Debug, Clone, Copy)]
 pub struct Viewport {
   pub virtual_center: Vector2,
   pub virtual_size: Vector2,

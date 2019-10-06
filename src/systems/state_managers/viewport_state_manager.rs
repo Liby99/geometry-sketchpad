@@ -4,8 +4,6 @@ use crate::resources::{
   events::{ViewportEvent, ViewportEventChannel, ViewportEventReader},
 };
 
-static SPEED_ADJUSTMENT : f64 = 20.0;
-
 pub struct ViewportStateManager {
   viewport_event_reader: Option<ViewportEventReader>,
 }
@@ -35,8 +33,7 @@ impl<'a> System<'a> for ViewportStateManager {
       for event in viewport_event_channel.read(reader_id) {
         match event {
           ViewportEvent::Move(delta) => {
-            let virtual_to_actual_scale = viewport.scale();
-            viewport.virtual_center += *delta * virtual_to_actual_scale * SPEED_ADJUSTMENT;
+            viewport.virtual_center += *delta;
           },
           ViewportEvent::Resize(window_size) => {
             viewport.set_window_size(*window_size);
