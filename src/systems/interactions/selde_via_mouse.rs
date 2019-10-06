@@ -22,7 +22,7 @@ static SELECT_RECT_STYLE : RectangleStyle = RectangleStyle {
   fill: Color { r: 0.0, g: 0.0, b: 0.0, a: 0.05 },
 };
 
-pub struct MouseSelectSystem {
+pub struct SeldeViaMouse {
   tool_change_reader: Option<ToolChangeEventReader>,
   mouse_event_reader: Option<MouseEventReader>,
   drag_rectangle_entity: Option<Entity>,
@@ -30,7 +30,7 @@ pub struct MouseSelectSystem {
   drag_selected_new_entities: HashSet<Entity>,
 }
 
-impl Default for MouseSelectSystem {
+impl Default for SeldeViaMouse {
   fn default() -> Self {
     Self {
       tool_change_reader: None,
@@ -42,7 +42,7 @@ impl Default for MouseSelectSystem {
   }
 }
 
-impl<'a> System<'a> for MouseSelectSystem {
+impl<'a> System<'a> for SeldeViaMouse {
   type SystemData = (
     Entities<'a>,
     Read<'a, InputState>,
