@@ -34,12 +34,12 @@ fn main() {
     .with(interactions::SeldeAllViaKeyboard, "selde_all_via_keyboard", &[])
     .with(interactions::RemoveSelectedViaDelete, "remove_selected_via_delete", &[])
     .with(interactions::MouseEventEmitter::default(), "mouse_event_emitter", &[])
+    .with(interactions::MoveViewportViaDrag::default(), "move_viewport_via_drag", &["mouse_event_emitter"])
 
     // State Managers
     .with(state_managers::ExitStateManager::default(), "exit_state_manager", &["exit_via_keyboard"])
     .with(state_managers::ToolStateManager::default(), "tool_state_manager", &["change_tool_via_keyboard"])
-    .with(state_managers::ViewportStateManager::default(), "viewport_state_manager", &["move_viewport_via_scroll"])
-
+    .with(state_managers::ViewportStateManager::default(), "viewport_state_manager", &["move_viewport_via_scroll", "move_viewport_via_drag"])
     // Data structures
     .with(cache_managers::DependencyGraphCache::default(), "dependency_graph_cache", &[])
     .with(cache_managers::SpatialHashCache::default(), "spatial_hash_cache", &["viewport_state_manager"])

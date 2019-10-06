@@ -185,7 +185,7 @@ impl<'a> System<'a> for MouseSelectSystem {
             // Remove the rectangle information when dragging ends
             if let Some(ent) = self.drag_rectangle_entity {
               self.drag_start_position = None;
-              self.drag_selected_new_entities = HashSet::new();
+              self.drag_selected_new_entities.clear();
               rects.remove(ent);
             }
           },

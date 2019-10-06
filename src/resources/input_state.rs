@@ -59,6 +59,10 @@ impl ActiveState {
     }
   }
 
+  pub fn is_activated(&self) -> bool {
+    self.pressed
+  }
+
   pub fn just_activated(&self) -> bool {
     self.pressed && self.just_changed
   }

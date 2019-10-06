@@ -4,6 +4,7 @@ pub enum Tool {
   Point,
   Line,
   Circle,
+  ViewportDrag,
 }
 
 pub struct ToolState(pub Tool);
