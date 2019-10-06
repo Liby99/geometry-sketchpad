@@ -24,6 +24,9 @@ pub use selde_all_via_keyboard::*;
 mod selde_via_mouse;
 pub use selde_via_mouse::*;
 
+mod move_point_via_drag;
+pub use move_point_via_drag::*;
+
 mod snap_point_system;
 pub use snap_point_system::*;
 

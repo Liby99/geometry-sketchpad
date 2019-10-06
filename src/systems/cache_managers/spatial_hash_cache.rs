@@ -1,6 +1,7 @@
 use specs::prelude::*;
 use crate::{
   resources::{
+    DependencyGraph,
     SpatialHashTable,
     Viewport,
     events::{
@@ -44,6 +45,7 @@ impl<'a> System<'a> for SpatialHashCache {
     Read<'a, Viewport>,
     Read<'a, ViewportEventChannel>,
     Read<'a, SketchEventChannel>,
+    Read<'a, DependencyGraph>,
     Write<'a, SpatialHashTable<Entity>>,
     ReadStorage<'a, SymbolicLine>,
     ReadStorage<'a, Line>,
@@ -64,6 +66,7 @@ impl<'a> System<'a> for SpatialHashCache {
     vp,
     viewport_event_channel,
     sketch_events,
+    dependency_graph,
     mut table,
     sym_lines,
     lines,
@@ -100,6 +103,17 @@ impl<'a> System<'a> for SpatialHashCache {
             },
             SketchEvent::Remove(entity, _) => table.remove_from_all(*entity),
             SketchEvent::Select(_) | SketchEvent::Deselect(_) => (),
+            SketchEvent::MovePoint(entity, _) => {
+              let dependents = dependency_graph.get_all_dependents(entity);
+              for dependent in dependents {
+                table.remove_from_all(dependent);
+                if let Some(point) = points.get(dependent) {
+                  table.insert_point(dependent, *point, &*vp);
+                } else if let Some(line) = lines.get(dependent) {
+                  table.insert_line(dependent, *line, &*vp);
+                }
+              }
+            }
           }
         }
       } else {

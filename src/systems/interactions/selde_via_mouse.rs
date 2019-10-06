@@ -128,14 +128,13 @@ impl<'a> System<'a> for SeldeViaMouse {
               self.drag_start_position = Some(*start_position);
             }
           },
-          MouseEvent::DragMove(_) => {
+          MouseEvent::DragMove(_, curr_position) => {
 
             // Make sure we have start position before we set the dragging
             if let Some(start_position) = self.drag_start_position {
 
-              // Get the current position
-              let curr_position = input_state.mouse_abs_pos;
-              let diff = curr_position - start_position;
+              // Get the current to start difference
+              let diff = *curr_position - start_position;
 
               // Update the rectangle
               let rect = AABB {

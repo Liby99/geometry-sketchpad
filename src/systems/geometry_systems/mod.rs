@@ -7,6 +7,9 @@ pub use remove_handler::*;
 mod selde_handler;
 pub use selde_handler::*;
 
+mod move_point_handler;
+pub use move_point_handler::*;
+
 mod create_point_system;
 pub use create_point_system::*;
 

@@ -2,7 +2,10 @@ use specs::prelude::*;
 use crate::{
   utilities::Intersect,
   components::{SymbolicPoint, Point, SymbolicLine, Line},
-  resources::events::{SketchEvent, SketchEventChannel, SketchEventReader, Geometry}
+  resources::{
+    DependencyGraph,
+    events::{SketchEvent, SketchEventChannel, SketchEventReader, Geometry},
+  }
 };
 
 enum ToCompute {
@@ -131,6 +134,7 @@ impl Default for SolverSystem {
 impl<'a> System<'a> for SolverSystem {
   type SystemData = (
     Entities<'a>,
+    Read<'a, DependencyGraph>,
     Read<'a, SketchEventChannel>,
     ReadStorage<'a, SymbolicPoint>,
     ReadStorage<'a, SymbolicLine>,
@@ -145,6 +149,7 @@ impl<'a> System<'a> for SolverSystem {
 
   fn run(&mut self, (
     entities,
+    dependency_graph,
     sketch_events,
     sym_points,
     sym_lines,
@@ -197,6 +202,18 @@ impl<'a> System<'a> for SolverSystem {
             },
             SketchEvent::Remove(_, _) => (), // Do nothing since they are already removed
             SketchEvent::Select(_) | SketchEvent::Deselect(_) => (), // Do nothing to select/deselect event
+            SketchEvent::MovePoint(ent, _) => {
+              let dependents = dependency_graph.get_all_dependents(ent);
+              for dependent in dependents {
+                if let Some(_) = sym_points.get(dependent) {
+                  points.remove(dependent);
+                  stack.push(ToCompute::Point(dependent));
+                } else if let Some(_) = sym_lines.get(dependent) {
+                  lines.remove(dependent);
+                  stack.push(ToCompute::Line(dependent));
+                }
+              }
+            }
           }
         }
       } else {

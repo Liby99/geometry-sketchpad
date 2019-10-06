@@ -77,7 +77,7 @@ impl<'a> System<'a> for DependencyGraphCache {
               Geometry::Line(sym_line, _) => add_line(&mut dependency_graph, entity, sym_line),
             },
             SketchEvent::Remove(entity, _) => dependency_graph.remove(entity),
-            SketchEvent::Select(_) | SketchEvent::Deselect(_) => (),
+            SketchEvent::Select(_) | SketchEvent::Deselect(_) | SketchEvent::MovePoint(_, _) => (),
           }
         }
       } else {

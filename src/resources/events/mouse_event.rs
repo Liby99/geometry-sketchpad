@@ -8,7 +8,7 @@ pub enum MouseEvent {
   // RightClick(Vector2),
   // DoubleClick(Vector2),
   DragBegin(Vector2), // absolute position
-  DragMove(Vector2), // relative movement
+  DragMove(Vector2, Vector2), // relative movement, absolute position
   DragEnd(Vector2), // absolute position
 }
 

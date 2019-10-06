@@ -69,7 +69,7 @@ impl<'a> System<'a> for MouseEventEmitter {
           // Emit both drag begin event and move event
           if input_state.mouse_rel_movement.is_not_zero() {
             mouse_event_channel.single_write(MouseEvent::DragBegin(pos));
-            mouse_event_channel.single_write(MouseEvent::DragMove(input_state.mouse_rel_movement));
+            mouse_event_channel.single_write(MouseEvent::DragMove(input_state.mouse_rel_movement, input_state.mouse_abs_pos));
             self.state = State::Dragging(pos);
           }
         },
@@ -77,7 +77,7 @@ impl<'a> System<'a> for MouseEventEmitter {
 
           // If is already dragging, emit drag move event
           if input_state.mouse_rel_movement.is_not_zero() {
-            mouse_event_channel.single_write(MouseEvent::DragMove(input_state.mouse_rel_movement));
+            mouse_event_channel.single_write(MouseEvent::DragMove(input_state.mouse_rel_movement, input_state.mouse_abs_pos));
           }
         },
         _ => (),

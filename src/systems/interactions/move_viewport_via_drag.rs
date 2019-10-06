@@ -67,7 +67,7 @@ impl<'a> System<'a> for MoveViewportViaDrag {
     if let Some(reader_id) = &mut self.mouse_event_reader {
       for event in mouse_event_channel.read(reader_id) {
         match event {
-          MouseEvent::DragMove(delta) => {
+          MouseEvent::DragMove(delta, _) => {
             let movement = vec2![-delta.x, delta.y] * DRAG_SPEED * viewport.scale();
             viewport_event_channel.single_write(ViewportEvent::Move(movement));
           },

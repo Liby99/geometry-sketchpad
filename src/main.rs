@@ -42,6 +42,7 @@ fn main() {
     // Interations based on tool
     .with(interactions::MoveViewportViaDrag::default(), "move_viewport_via_drag", &["mouse_event_emitter", "tool_state_manager"])
     .with(interactions::SeldeViaMouse::default(), "selde_via_mouse", &["mouse_event_emitter", "tool_state_manager"])
+    .with(interactions::MovePointViaDrag::default(), "move_point_via_drag", &["mouse_event_emitter", "tool_state_manager"])
 
     // Other state Managers
     .with(state_managers::ExitStateManager::default(), "exit_state_manager", &["exit_via_keyboard"])
@@ -61,6 +62,7 @@ fn main() {
     // Create geometry systems
     .with(geometry_systems::SeldeHandler::default(), "selde_handler", &["selde_all_handler"])
     .with(geometry_systems::RemoveHandler::default(), "geometry_remove_handler", &["remove_selected_handler"])
+    .with(geometry_systems::MovePointHandler::default(), "move_point_handler", &["move_point_via_drag"])
     .with(geometry_systems::CreatePointSystem, "create_point_system", &["snap_point_system"])
     .with(geometry_systems::CreateLineSystem::default(), "create_line_system", &["create_point_system"])
 
