@@ -1,11 +1,14 @@
 use std::collections::HashSet;
 use specs::prelude::*;
 use crate::{
-  resources::{DependencyGraph},
-  components::*,
-  systems::{
-    events::{GeometryAction, GeometryActionReader, GeometryActionChannel, SketchEvent, SketchEventChannel, Geometry},
+  resources::{
+    DependencyGraph,
+    events::{
+      GeometryAction, GeometryActionReader, GeometryActionChannel,
+      SketchEvent, SketchEventChannel, Geometry
+    },
   },
+  components::{SymbolicLine, SymbolicPoint, PointStyle, LineStyle, Selected},
 };
 
 pub struct RemoveSelectedHandler {

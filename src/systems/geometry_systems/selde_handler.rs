@@ -1,7 +1,7 @@
 use specs::prelude::*;
 use crate::{
   components::{Selected},
-  systems::events::{SketchEventReader, SketchEventChannel, SketchEvent},
+  resources::events::{SketchEventReader, SketchEventChannel, SketchEvent},
 };
 
 pub struct SeldeHandler {

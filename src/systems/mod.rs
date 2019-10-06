@@ -1,4 +1,3 @@
-pub mod events;
 pub mod interactions;
 pub mod cache_managers;
 pub mod state_managers;

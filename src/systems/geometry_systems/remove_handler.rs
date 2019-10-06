@@ -1,7 +1,7 @@
 use specs::prelude::*;
 use crate::{
   components::{SymbolicPoint, Point, PointStyle, SymbolicLine, Line, LineStyle, Selected},
-  systems::events::{SketchEvent, SketchEventChannel, SketchEventReader},
+  resources::events::{SketchEvent, SketchEventChannel, SketchEventReader},
 };
 
 pub struct RemoveHandler {

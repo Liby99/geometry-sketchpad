@@ -2,11 +2,11 @@ use piston_window::{Event as PistonEvent, *};
 use specs::prelude::*;
 use crate::{
   utilities::{Vector2, Intersect, Color, Key},
-  resources::{DeltaTime, Viewport, ViewportTransform, InputState},
-  components::{Selected, Point, PointStyle, Line, LineStyle, Rectangle, RectangleStyle},
-  systems::{
+  resources::{
+    DeltaTime, Viewport, ViewportTransform, InputState,
     events::{ExitEvent, ExitEventChannel, ViewportEvent, ViewportEventChannel},
   },
+  components::{Selected, Point, PointStyle, Line, LineStyle, Rectangle, RectangleStyle},
 };
 
 fn draw_line(line: &Line, style: &LineStyle, selected: bool, vp: &Viewport, context: Context, graphics: &mut G2d) {

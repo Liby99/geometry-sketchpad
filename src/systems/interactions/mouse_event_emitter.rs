@@ -2,8 +2,10 @@ use std::time::SystemTime;
 use specs::prelude::*;
 use crate::{
   utilities::Vector2,
-  resources::InputState,
-  systems::events::{MouseEventChannel, MouseEvent, MouseEventReader},
+  resources::{
+    InputState,
+    events::{MouseEventChannel, MouseEvent, MouseEventReader},
+  },
 };
 
 static CLICK_TIME_THRESHOLD : f64 = 0.3; // In seconds

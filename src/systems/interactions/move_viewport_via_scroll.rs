@@ -1,8 +1,11 @@
 use specs::prelude::*;
 use crate::{
   utilities::Vector2,
-  resources::{DeltaTime, InputState},
-  systems::events::{ViewportEvent, ViewportEventChannel},
+  resources::{
+    DeltaTime,
+    InputState,
+    events::{ViewportEvent, ViewportEventChannel},
+  },
 };
 
 static SCROLL_SPEED : f64 = 1.0; // Can be adjusted

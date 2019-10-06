@@ -1,8 +1,11 @@
 use specs::prelude::*;
 use crate::{
   components::*,
-  systems::{
-    events::{GeometryAction, GeometryActionReader, GeometryActionChannel, SketchEvent, SketchEventChannel},
+  resources::{
+    events::{
+      GeometryAction, GeometryActionReader, GeometryActionChannel,
+      SketchEvent, SketchEventChannel
+    },
   },
 };
 

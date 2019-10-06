@@ -1,7 +1,7 @@
 use specs::prelude::*;
-use crate::{
-  resources::{Viewport},
-  systems::events::{ViewportEvent, ViewportEventChannel, ViewportEventReader},
+use crate::resources::{
+  Viewport,
+  events::{ViewportEvent, ViewportEventChannel, ViewportEventReader},
 };
 
 static SPEED_ADJUSTMENT : f64 = 20.0;

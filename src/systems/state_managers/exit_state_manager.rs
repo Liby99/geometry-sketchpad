@@ -1,6 +1,6 @@
 use specs::prelude::*;
 use crate::{
-  systems::events::{ExitEventChannel, ExitEventReader},
+  resources::events::{ExitEventChannel, ExitEventReader},
 };
 
 pub struct ExitState(bool);

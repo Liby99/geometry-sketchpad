@@ -6,9 +6,9 @@ use crate::{
   resources::{
     ToolState, Tool,
     geometry::{LastActivePoint, CreateLineData},
+    events::{SketchEvent, Geometry, SketchEventChannel},
   },
   components::{SymbolicLine, LineStyle, Selected},
-  systems::events::{SketchEvent, Geometry, SketchEventChannel},
 };
 
 pub struct CreateLineSystem {

@@ -1,11 +1,14 @@
 use specs::prelude::*;
 use crate::{
   utilities::Vector2,
-  resources::{Viewport, Tool},
-  systems::events::{
-    ViewportEvent, ViewportEventChannel,
-    ToolChangeEvent, ToolChangeEventChannel, ToolChangeEventReader,
-    MouseEvent, MouseEventChannel, MouseEventReader,
+  resources::{
+    Viewport,
+    Tool,
+    events::{
+      ViewportEvent, ViewportEventChannel,
+      ToolChangeEvent, ToolChangeEventChannel, ToolChangeEventReader,
+      MouseEvent, MouseEventChannel, MouseEventReader,
+    },
   },
 };
 

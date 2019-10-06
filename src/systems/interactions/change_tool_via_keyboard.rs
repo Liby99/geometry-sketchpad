@@ -2,8 +2,11 @@ use specs::prelude::*;
 
 pub use crate::{
   utilities::Key,
-  resources::{InputState, Tool},
-  systems::events::{ToolChangeEventChannel, ToolChangeEvent},
+  resources::{
+    InputState,
+    Tool,
+    events::{ToolChangeEventChannel, ToolChangeEvent},
+  },
 };
 
 pub struct ChangeToolViaKeyboard;

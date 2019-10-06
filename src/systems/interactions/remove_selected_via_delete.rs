@@ -1,8 +1,10 @@
 use specs::prelude::*;
 use crate::{
   utilities::Key,
-  resources::InputState,
-  systems::events::{GeometryAction, GeometryActionChannel},
+  resources::{
+    InputState,
+    events::{GeometryAction, GeometryActionChannel},
+  },
 };
 
 pub struct RemoveSelectedViaDelete;

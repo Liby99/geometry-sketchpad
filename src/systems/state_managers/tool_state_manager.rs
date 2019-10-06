@@ -1,7 +1,7 @@
 use specs::prelude::*;
-use crate::{
-  systems::events::{ToolChangeEventChannel, ToolChangeEventReader, ToolChangeEvent},
-  resources::ToolState,
+use crate::resources::{
+  ToolState,
+  events::{ToolChangeEventChannel, ToolChangeEventReader, ToolChangeEvent},
 };
 
 pub struct ToolStateManager {

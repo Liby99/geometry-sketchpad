@@ -1,8 +1,10 @@
 use specs::prelude::*;
 use crate::{
   utilities::Key,
-  systems::events::{ExitEvent, ExitEventChannel},
-  resources::InputState,
+  resources::{
+    InputState,
+    events::{ExitEvent, ExitEventChannel},
+  },
 };
 
 pub struct ExitViaKeyboard;

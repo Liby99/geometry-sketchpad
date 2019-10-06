@@ -1,8 +1,10 @@
 use specs::prelude::*;
 use crate::{
-  resources::{DependencyGraph},
+  resources::{
+    DependencyGraph,
+    events::{Geometry, SketchEvent, SketchEventChannel, SketchEventReader},
+  },
   components::{SymbolicLine, SymbolicPoint},
-  systems::events::{Geometry, SketchEvent, SketchEventChannel, SketchEventReader},
 };
 
 pub struct DependencyGraphCache {

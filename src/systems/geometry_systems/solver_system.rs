@@ -2,7 +2,7 @@ use specs::prelude::*;
 use crate::{
   utilities::Intersect,
   components::{SymbolicPoint, Point, SymbolicLine, Line},
-  systems::events::{SketchEvent, SketchEventChannel, SketchEventReader, Geometry}
+  resources::events::{SketchEvent, SketchEventChannel, SketchEventReader, Geometry}
 };
 
 enum ToCompute {

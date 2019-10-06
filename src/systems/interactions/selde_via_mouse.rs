@@ -9,14 +9,14 @@ use crate::{
     InputState,
     Tool,
     geometry::SelectRectangle,
+    events::{
+      MouseEvent, MouseEventChannel, MouseEventReader,
+      ToolChangeEvent, ToolChangeEventChannel, ToolChangeEventReader,
+      SketchEventChannel, SketchEvent,
+      GeometryActionChannel, GeometryAction,
+    },
   },
   components::{Point, Line, Selected},
-  systems::events::{
-    MouseEvent, MouseEventChannel, MouseEventReader,
-    ToolChangeEvent, ToolChangeEventChannel, ToolChangeEventReader,
-    SketchEventChannel, SketchEvent,
-    GeometryActionChannel, GeometryAction,
-  },
 };
 
 static SELECT_DIST_THRES : f64 = 5.0; // Pixel

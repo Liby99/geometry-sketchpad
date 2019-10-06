@@ -1,8 +1,14 @@
 use specs::prelude::*;
 use crate::{
-  resources::{SpatialHashTable, Viewport},
+  resources::{
+    SpatialHashTable,
+    Viewport,
+    events::{
+      ViewportEventChannel, ViewportEventReader,
+      Geometry, SketchEvent, SketchEventChannel, SketchEventReader
+    },
+  },
   components::{SymbolicLine, Line, SymbolicPoint, Point},
-  systems::events::{ViewportEventChannel, ViewportEventReader, Geometry, SketchEvent, SketchEventChannel, SketchEventReader},
 };
 
 pub struct SpatialHashCache {
