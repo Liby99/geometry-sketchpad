@@ -57,41 +57,27 @@ impl<'a> System<'a> for RemoveSelectedHandler {
 
             // Temporary cache
             let mut to_remove = HashSet::new();
-            let mut stack = vec![];
 
             // Add all the selected stuff to stack
             for (entity, _) in (&entities, &selected).join() {
-              stack.push(entity);
-            }
-
-            // Explore the stack in dependency graph and put all of the children to `to_remove`
-            while let Some(entity) = stack.pop() {
-              to_remove.insert(entity);
-              if let Some(children) = dep_graph.get(&entity) {
-                for child in children {
-                  stack.push(*child);
-                }
-              }
+              to_remove.extend(dep_graph.get_all_dependents(&entity));
             }
 
             // Remove everything
             for entity in to_remove {
 
-              // Remove the thing from
-              let maybe_sym_pt = sym_points.get(entity);
-              let maybe_pt_sty = point_styles.get(entity);
-              let maybe_sym_ln = sym_lines.get(entity);
-              let maybe_ln_sty = line_styles.get(entity);
-
               // Push the event
-              if let Some(sym_pt) = maybe_sym_pt {
-                if let Some(pt_sty) = maybe_pt_sty {
+              if let Some(sym_pt) = sym_points.get(entity) {
+                if let Some(pt_sty) = point_styles.get(entity) {
                   sketch_events.single_write(SketchEvent::Remove(entity, Geometry::Point(*sym_pt, *pt_sty)));
+                } else {
+                  panic!("[remove_selected_handler] Cannot find point style for point entity {:?}", entity);
                 }
-              }
-              if let Some(sym_ln) = maybe_sym_ln {
-                if let Some(ln_sty) = maybe_ln_sty {
+              } else if let Some(sym_ln) = sym_lines.get(entity) {
+                if let Some(ln_sty) = line_styles.get(entity) {
                   sketch_events.single_write(SketchEvent::Remove(entity, Geometry::Line(*sym_ln, *ln_sty)));
+                } else {
+                  panic!("[remove_selected_handler] Cannot find line style for line entity {:?}", entity);
                 }
               }
             }

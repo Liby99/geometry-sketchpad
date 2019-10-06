@@ -5,7 +5,7 @@ authors = ["Liby Lee <liby99@icloud.com>"]
 edition = "2018"
 
 [dependencies]
-piston_window = "0.98.0"
-specs = "0.15.0"
-shrev = "1.1.1"
-itertools = "0.8.0"
+piston_window = "0.98"
+specs = "0.15"
+shrev = "1.1"
+itertools = "0.8"

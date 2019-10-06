@@ -19,6 +19,26 @@ pub enum SymbolicPoint {
   LineLineIntersect(Entity, Entity), // Should be two entities of lines
 }
 
+impl SymbolicPoint {
+  pub fn is_on_same_line_with(&self, other: &SymbolicPoint) -> bool {
+    match self {
+      Self::Free(_) => false,
+      Self::OnLine(line_ent, _) => match other {
+        Self::Free(_) => false,
+        Self::OnLine(l1_ent, _) => line_ent == l1_ent,
+        Self::LineLineIntersect(l1_ent, l2_ent) => line_ent == l1_ent || line_ent == l2_ent,
+      },
+      Self::LineLineIntersect(l1_ent, l2_ent) => match other {
+        Self::Free(_) => false,
+        Self::OnLine(line_ent, _) => l1_ent == line_ent || l2_ent == line_ent,
+        Self::LineLineIntersect(l3_ent, l4_ent) => {
+          l1_ent == l3_ent || l1_ent == l4_ent || l2_ent == l3_ent || l2_ent == l4_ent
+        },
+      },
+    }
+  }
+}
+
 impl Component for SymbolicPoint {
   type Storage = VecStorage<Self>;
 }
