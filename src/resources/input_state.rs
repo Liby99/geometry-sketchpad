@@ -59,6 +59,7 @@ impl ActiveState {
     }
   }
 
+  #[allow(dead_code)]
   pub fn is_activated(&self) -> bool {
     self.pressed
   }
