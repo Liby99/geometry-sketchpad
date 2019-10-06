@@ -3,6 +3,7 @@ pub enum ToolState {
   Point,
   Line,
   Circle,
+  ViewportDrag,
 }
 
 impl Default for ToolState {

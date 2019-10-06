@@ -94,7 +94,18 @@ impl<'a> System<'a> for WindowSystem {
               Input::Button(ButtonArgs { state, button, scancode }) => {
                 let is_pressed = state == ButtonState::Press;
                 match button {
-                  Button::Mouse(MouseButton::Left) => input_state.mouse_left_button.set(is_pressed),
+                  Button::Mouse(MouseButton::Left) => {
+                    input_state.mouse_left_button.set(is_pressed);
+                    if state == ButtonState::Press {
+                      if input_state.mouse_pressed_start_point == None {
+                        input_state.mouse_pressed_start_point = Some(input_state.mouse_abs_pos);
+                        viewport.virtual_previous_center = Some(viewport.virtual_center);
+                      }
+                    } else if state == ButtonState::Release {
+                      input_state.mouse_pressed_start_point = None;
+                      viewport.virtual_previous_center = None;
+                    }
+                  },
                   Button::Mouse(MouseButton::Right) => input_state.mouse_right_button.set(is_pressed),
                   Button::Keyboard(piston_key) => {
                     let key = Key::from((piston_key, scancode));

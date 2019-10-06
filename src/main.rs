@@ -30,6 +30,7 @@ fn main() {
     // Interactions
     .with(ExitSystem, "exit_system", &[])
     .with(ViewportSystem, "viewport_system", &[])
+    .with(DragViewportSystem, "drag_viewport_system", &[])
     .with(ChangeToolSystem, "change_tool_system", &[])
 
     // Data structures

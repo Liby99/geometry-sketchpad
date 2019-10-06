@@ -9,6 +9,7 @@ pub enum ViewportEvent {
 
 pub struct Viewport {
   pub virtual_center: Vector2,
+  pub virtual_previous_center: Option<Vector2>,
   pub virtual_size: Vector2,
   pub actual_size: Vector2,
   half_virtual_size: Vector2,
@@ -25,6 +26,7 @@ impl Viewport {
   pub fn new(virtual_center: Vector2, virtual_size: Vector2, actual_size: Vector2) -> Self {
     Self {
       virtual_center,
+      virtual_previous_center: None,
       virtual_size: vec2![virtual_size.x, virtual_size.x / actual_size.x * actual_size.y], // Normalize scale
       actual_size,
       half_virtual_size: virtual_size / 2.0,

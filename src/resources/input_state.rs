@@ -6,6 +6,7 @@ pub struct InputState {
   pub mouse_right_button: ActiveState,
   pub mouse_abs_pos: Vector2,
   pub mouse_rel_movement: Vector2,
+  pub mouse_pressed_start_point: Option<Vector2>,
   pub rel_scroll: Vector2,
   pub in_focus: ActiveState,
   pub keyboard: Keyboard,
@@ -18,6 +19,7 @@ impl Default for InputState {
       mouse_right_button: ActiveState::default(),
       mouse_abs_pos: vec2![0., 0.],
       mouse_rel_movement: vec2![0., 0.],
+      mouse_pressed_start_point: None,
       in_focus: ActiveState::default(),
       rel_scroll: vec2![0., 0.],
       keyboard: Keyboard::default(),
@@ -58,6 +60,8 @@ impl ActiveState {
       self.just_changed = true;
     }
   }
+
+  pub fn is_pressed(&self) -> bool { self.pressed }
 
   pub fn just_activated(&self) -> bool {
     self.pressed && self.just_changed

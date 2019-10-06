@@ -21,6 +21,8 @@ impl<'a> System<'a> for ChangeToolSystem {
       *tool_state = ToolState::Line;
     } else if input_state.keyboard.just_activated(Key::C) {
       *tool_state = ToolState::Circle;
+    } else if input_state.keyboard.just_activated(Key::V) {
+      *tool_state = ToolState::ViewportDrag;
     }
   }
 }
