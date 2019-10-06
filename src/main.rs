@@ -45,6 +45,7 @@ fn main() {
     .with(cache_managers::SpatialHashCache::default(), "spatial_hash_cache", &["viewport_state_manager"])
 
     // Geometry action handlers
+    .with(geometry_actions::MouseSelectSystem::default(), "mouse_select_system", &["mouse_event_emitter", "tool_state_manager"])
     .with(geometry_actions::SeldeAllHandler::default(), "selde_all_handler", &["selde_all_via_keyboard"])
     .with(geometry_actions::RemoveSelectedHandler::default(), "remove_selected_handler", &["remove_selected_via_delete", "dependency_graph_cache"])
 
@@ -52,7 +53,6 @@ fn main() {
     .with(geometry_systems::SeldeHandler::default(), "selde_handler", &["selde_all_handler"])
     .with(geometry_systems::RemoveHandler::default(), "geometry_remove_handler", &["remove_selected_handler"])
 
-    .with(SelectSystem, "select_system", &["spatial_hash_cache"])
     .with(SnapPointSystem, "snap_point_system", &["spatial_hash_cache", "tool_state_manager"])
     .with(SnapPointRenderer::default(), "snap_point_renderer", &["snap_point_system"])
     .with(CreatePointSystem, "create_point_system", &["snap_point_system"])

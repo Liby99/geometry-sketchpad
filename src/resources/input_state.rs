@@ -112,6 +112,10 @@ impl Keyboard {
     }
   }
 
+  pub fn is_shift_activated(&self) -> bool {
+    self.is_activated(Key::LShift) || self.is_activated(Key::RShift)
+  }
+
   pub fn reset_relative_data(&mut self) {
     for (_, state) in self.keys.iter_mut() {
       state.reset_relative_data();

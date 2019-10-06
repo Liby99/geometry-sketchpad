@@ -6,7 +6,6 @@ pub mod geometry_actions;
 pub mod geometry_systems;
 
 mod window_system;
-mod select_system;
 mod snap_point_system;
 mod snap_point_renderer;
 mod create_point_system;
@@ -15,7 +14,6 @@ mod create_line_abort_system;
 mod create_line_renderer;
 
 pub use window_system::WindowSystem;
-pub use select_system::SelectSystem;
 pub use snap_point_system::SnapPointSystem;
 pub use snap_point_renderer::SnapPointRenderer;
 pub use create_point_system::CreatePointSystem;
