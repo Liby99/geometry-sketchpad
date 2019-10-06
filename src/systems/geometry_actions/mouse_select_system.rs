@@ -1,9 +1,9 @@
 use std::mem::drop;
 use specs::prelude::*;
 use crate::{
-  util::Vector2,
+  util::{Vector2, Color},
   resources::{Viewport, ViewportTransform, SpatialHashTable, InputState, Tool},
-  components::{Point, Line, Selected},
+  components::{Point, Line, LineStyle, Selected, Rectangle, RectangleStyle},
   systems::events::{
     MouseEvent, MouseEventChannel, MouseEventReader,
     ToolChangeEvent, ToolChangeEventChannel, ToolChangeEventReader,
@@ -13,11 +13,19 @@ use crate::{
 };
 
 static SELECT_DIST_THRES : f64 = 5.0; // Pixel
+static SELECT_RECT_STYLE : RectangleStyle = RectangleStyle {
+  border: LineStyle {
+    color: Color { r: 0.0, g: 0.0, b: 0.0, a: 0.3 },
+    width: 1.,
+  },
+  fill: Color { r: 0.0, g: 0.0, b: 0.0, a: 0.05 },
+};
 
 pub struct MouseSelectSystem {
   tool_change_reader: Option<ToolChangeEventReader>,
   mouse_event_reader: Option<MouseEventReader>,
-  // drag_start_position: Option<Vector2>,
+  drag_rectangle_entity: Option<Entity>,
+  drag_start_position: Option<Vector2>,
 }
 
 impl Default for MouseSelectSystem {
@@ -25,13 +33,15 @@ impl Default for MouseSelectSystem {
     Self {
       tool_change_reader: None,
       mouse_event_reader: None,
-      // drag_start_position: None,
+      drag_rectangle_entity: None,
+      drag_start_position: None,
     }
   }
 }
 
 impl<'a> System<'a> for MouseSelectSystem {
   type SystemData = (
+    Entities<'a>,
     Read<'a, InputState>,
     Read<'a, ToolChangeEventChannel>,
     Write<'a, MouseEventChannel>,
@@ -42,14 +52,18 @@ impl<'a> System<'a> for MouseSelectSystem {
     ReadStorage<'a, Point>,
     ReadStorage<'a, Line>,
     ReadStorage<'a, Selected>,
+    WriteStorage<'a, Rectangle>,
+    WriteStorage<'a, RectangleStyle>,
   );
 
   fn setup(&mut self, world: &mut World) {
     Self::SystemData::setup(world);
     self.tool_change_reader = Some(world.fetch_mut::<ToolChangeEventChannel>().register_reader());
+    self.mouse_event_reader = Some(world.fetch_mut::<MouseEventChannel>().register_reader());
   }
 
   fn run(&mut self, (
+    entities,
     input_state,
     tool_change_event_channel,
     mut mouse_event_channel,
@@ -60,6 +74,8 @@ impl<'a> System<'a> for MouseSelectSystem {
     points,
     lines,
     selected,
+    mut rects,
+    mut rect_styles,
   ): Self::SystemData) {
 
     // First use tool change to setup mouse event reader.
@@ -109,14 +125,52 @@ impl<'a> System<'a> for MouseSelectSystem {
               }
             }
           },
-          MouseEvent::DragBegin(_) => {
+          MouseEvent::DragBegin(start_position) => {
 
+            // We need the dragging begin from an empty space
+            if hitting_object(*start_position, &*viewport, &*spatial_table, &points, &lines).is_none() {
+
+              // If ther's no shift, clear the selection
+              if !input_state.keyboard.is_shift_activated() {
+                geometry_action_channel.single_write(GeometryAction::DeselectAll);
+              }
+
+              // Setup the drag start position
+              self.drag_start_position = Some(*start_position);
+            }
           },
           MouseEvent::DragMove(_) => {
 
+            // Make sure we have the rectangle entity
+            let rect_ent = if let Some(ent) = self.drag_rectangle_entity { ent } else {
+              let ent = entities.create();
+              self.drag_rectangle_entity = Some(ent);
+              if let Err(err) = rect_styles.insert(ent, SELECT_RECT_STYLE) { panic!(err) }
+              ent
+            };
+
+            // Get the
+            let start_position = self.drag_start_position.unwrap_or(vec2![0., 0.]);
+            let curr_position = input_state.mouse_abs_pos;
+            let diff = curr_position - start_position;
+
+            // Update the rectangle
+            if let Err(err) = rects.insert(rect_ent, Rectangle {
+              x: start_position.x,
+              y: start_position.y,
+              width: diff.x,
+              height: diff.y
+            }) { panic!(err) }
+
+            // TODO: select the things in the middle
           },
           MouseEvent::DragEnd(_) => {
 
+            // Remove the rectangle information when dragging ends
+            if let Some(ent) = self.drag_rectangle_entity {
+              self.drag_start_position = None;
+              rects.remove(ent);
+            }
           },
           _ => (),
         }

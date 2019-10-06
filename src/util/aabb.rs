@@ -1,3 +1,4 @@
+#[derive(Debug, Copy, Clone)]
 pub struct AABB {
   pub x: f64,
   pub y: f64,

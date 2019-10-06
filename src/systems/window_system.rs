@@ -3,7 +3,7 @@ use specs::prelude::*;
 use crate::{
   util::{Vector2, Intersect, Color, Key},
   resources::{DeltaTime, Viewport, ViewportTransform, InputState},
-  components::{Selected, Point, PointStyle, Line, LineStyle},
+  components::{Selected, Point, PointStyle, Line, LineStyle, Rectangle, RectangleStyle},
   systems::{
     events::{ExitEvent, ExitEventChannel, ViewportEvent, ViewportEventChannel},
   },
@@ -54,6 +54,14 @@ fn draw_point(point: &Point, style: &PointStyle, selected: bool, vp: &Viewport, 
   );
 }
 
+fn draw_rectangle(rect: &Rectangle, style: &RectangleStyle, context: Context, graphics: &mut G2d) {
+  line_from_to(style.border.color.into(), style.border.width, [rect.x, rect.y], [rect.x, rect.y + rect.height], context.transform, graphics);
+  line_from_to(style.border.color.into(), style.border.width, [rect.x, rect.y], [rect.x + rect.width, rect.y], context.transform, graphics);
+  line_from_to(style.border.color.into(), style.border.width, [rect.x + rect.width, rect.y], [rect.x + rect.width, rect.y + rect.height], context.transform, graphics);
+  line_from_to(style.border.color.into(), style.border.width, [rect.x, rect.y + rect.height], [rect.x + rect.width, rect.y + rect.height], context.transform, graphics);
+  rectangle(style.fill.into(), [rect.x, rect.y, rect.width, rect.height], context.transform, graphics);
+}
+
 pub struct WindowSystem {
   pub window: PistonWindow,
 }
@@ -69,6 +77,8 @@ impl<'a> System<'a> for WindowSystem {
     ReadStorage<'a, PointStyle>,
     ReadStorage<'a, Line>,
     ReadStorage<'a, LineStyle>,
+    ReadStorage<'a, Rectangle>,
+    ReadStorage<'a, RectangleStyle>,
     ReadStorage<'a, Selected>,
   );
 
@@ -82,6 +92,8 @@ impl<'a> System<'a> for WindowSystem {
     point_styles,
     lines,
     line_styles,
+    rects,
+    rect_styles,
     selected,
   ): Self::SystemData) {
 
@@ -147,6 +159,11 @@ impl<'a> System<'a> for WindowSystem {
                 // Then draw selected points (as points are on top of lines)
                 for (point, style, _) in (&points, &point_styles, &selected).join() {
                   draw_point(point, style, true, &*viewport, context, graphics);
+                }
+
+                // Draw rectangles
+                for (rect, style) in (&rects, &rect_styles).join() {
+                  draw_rectangle(rect, style, context, graphics);
                 }
               });
 
