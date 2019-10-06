@@ -38,7 +38,9 @@ impl<'a> System<'a> for MouseEventEmitter {
 
       // Pressed mouse left button just now
       self.state = State::Pressed(input_state.mouse_abs_pos, SystemTime::now());
-      mouse_event_channel.single_write(MouseEvent::MouseDown(input_state.mouse_abs_pos));
+
+      // Disable this because window_system can handle this much better
+      // mouse_event_channel.single_write(MouseEvent::MouseDown(input_state.mouse_abs_pos));
     } else if input_state.mouse_left_button.just_deactivated() {
 
       match self.state {

@@ -4,7 +4,7 @@ use crate::{
   utilities::{Vector2, Intersect, Color, Key},
   resources::{
     DeltaTime, Viewport, ViewportTransform, InputState,
-    events::{ExitEvent, ExitEventChannel, ViewportEvent, ViewportEventChannel},
+    events::{ExitEvent, ExitEventChannel, ViewportEvent, ViewportEventChannel, MouseEvent, MouseEventChannel},
   },
   components::{Selected, Point, PointStyle, Line, LineStyle, Rectangle, RectangleStyle},
 };
@@ -73,6 +73,7 @@ impl<'a> System<'a> for WindowSystem {
     Write<'a, ExitEventChannel>,
     Write<'a, InputState>,
     Write<'a, ViewportEventChannel>,
+    Write<'a, MouseEventChannel>,
     ReadStorage<'a, Point>,
     ReadStorage<'a, PointStyle>,
     ReadStorage<'a, Line>,
@@ -88,6 +89,7 @@ impl<'a> System<'a> for WindowSystem {
     mut exit_event_channel,
     mut input_state,
     mut viewport_events,
+    mut mouse_event_channel,
     points,
     point_styles,
     lines,
@@ -110,8 +112,17 @@ impl<'a> System<'a> for WindowSystem {
               Input::Button(ButtonArgs { state, button, scancode }) => {
                 let is_pressed = state == ButtonState::Press;
                 match button {
-                  Button::Mouse(MouseButton::Left) => input_state.mouse_left_button.set(is_pressed),
-                  Button::Mouse(MouseButton::Right) => input_state.mouse_right_button.set(is_pressed),
+                  Button::Mouse(MouseButton::Left) => {
+                    input_state.mouse_left_button.set(is_pressed);
+                    if is_pressed {
+                      mouse_event_channel.single_write(MouseEvent::MouseDown(input_state.mouse_abs_pos));
+                    } else {
+                      mouse_event_channel.single_write(MouseEvent::MouseUp(input_state.mouse_abs_pos));
+                    }
+                  },
+                  Button::Mouse(MouseButton::Right) => {
+                    input_state.mouse_right_button.set(is_pressed);
+                  },
                   Button::Keyboard(piston_key) => {
                     let key = Key::from((piston_key, scancode));
                     input_state.keyboard.set(key, is_pressed)

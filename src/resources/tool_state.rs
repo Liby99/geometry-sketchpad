@@ -7,6 +7,15 @@ pub enum Tool {
   ViewportDrag,
 }
 
+impl Tool {
+  pub fn depend_on_active_point(&self) -> bool {
+    match self {
+      Tool::Point | Tool::Line | Tool::Circle => true,
+      _ => false,
+    }
+  }
+}
+
 pub struct ToolState(pub Tool);
 
 impl Default for ToolState {
@@ -17,10 +26,7 @@ impl Default for ToolState {
 
 impl ToolState {
   pub fn depend_on_active_point(&self) -> bool {
-    match self.0 {
-      Tool::Point | Tool::Line | Tool::Circle => true,
-      _ => false,
-    }
+    self.0.depend_on_active_point()
   }
 
   pub fn set(&mut self, tool: Tool) {
