@@ -2,6 +2,7 @@ use specs::prelude::*;
 use crate::{
   resources::{
     Tool,
+    InputState,
     Viewport, ViewportTransform,
     SpatialHashTable,
     events::{
@@ -34,6 +35,7 @@ impl Default for MovePointViaDrag {
 
 impl<'a> System<'a> for MovePointViaDrag {
   type SystemData = (
+    Read<'a, InputState>,
     Read<'a, ToolChangeEventChannel>,
     Write<'a, MouseEventChannel>,
     Read<'a, Viewport>,
@@ -51,6 +53,7 @@ impl<'a> System<'a> for MovePointViaDrag {
   }
 
   fn run(&mut self, (
+    input_state,
     tool_change_event_channel,
     mut mouse_event_channel,
     viewport,
@@ -84,9 +87,14 @@ impl<'a> System<'a> for MovePointViaDrag {
       for event in mouse_event_channel.read(reader_id) {
         match event {
           MouseEvent::DragBegin(start_position) => {
-            if let Some(entity) = hitting_object(*start_position, &viewport, &spatial_table, &points, &lines, SELECT_DIST_THRES) {
-              if let Some(sym_point) = sym_points.get(entity) {
-                self.dragging_point = Some((entity, *sym_point));
+            if !input_state.keyboard.is_shift_activated() {
+              if let Some(entity) = hitting_object(*start_position, &viewport, &spatial_table, &points, &lines, SELECT_DIST_THRES) {
+                if let Some(sym_point) = sym_points.get(entity) {
+                  self.dragging_point = Some((entity, *sym_point));
+
+                  // Note that we let the dragging point to be selected directly
+                  sketch_event_channel.single_write(SketchEvent::Select(entity));
+                }
               }
             }
           },
@@ -102,7 +110,9 @@ impl<'a> System<'a> for MovePointViaDrag {
                     if let Some(line) = lines.get(line_entity) {
                       let virtual_mouse_position = curr_position.to_virtual(&viewport);
                       let projected_position = virtual_mouse_position.project(*line);
-                      let new_t = (projected_position - line.origin).magnitude();
+                      let diff = projected_position - line.origin;
+                      let sign = diff.dot(line.direction).signum();
+                      let new_t = sign * diff.magnitude();
                       sketch_event_channel.single_write(SketchEvent::MovePoint(ent, MovePoint::OnLine(line_entity, old_t, new_t)))
                     }
                   },
