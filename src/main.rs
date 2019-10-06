@@ -33,6 +33,7 @@ fn main() {
     .with(interactions::MoveViewportViaScroll, "move_viewport_via_scroll", &[])
     .with(interactions::SeldeAllViaKeyboard, "selde_all_via_keyboard", &[])
     .with(interactions::RemoveSelectedViaDelete, "remove_selected_via_delete", &[])
+    .with(interactions::AbortCreateLineViaKeyboard, "abort_create_line_via_keyboard", &[])
     .with(interactions::MouseEventEmitter::default(), "mouse_event_emitter", &[])
 
     // We put tooling handler here first
@@ -54,15 +55,14 @@ fn main() {
     .with(geometry_actions::SeldeAllHandler::default(), "selde_all_handler", &["selde_all_via_keyboard", "selde_via_mouse"])
     .with(geometry_actions::RemoveSelectedHandler::default(), "remove_selected_handler", &["remove_selected_via_delete", "dependency_graph_cache"])
 
+    // Geometry helpers
+    .with(interactions::SnapPointSystem, "snap_point_system", &["spatial_hash_cache", "tool_state_manager", "viewport_state_manager"])
+
     // Create geometry systems
     .with(geometry_systems::SeldeHandler::default(), "selde_handler", &["selde_all_handler"])
     .with(geometry_systems::RemoveHandler::default(), "geometry_remove_handler", &["remove_selected_handler"])
-
-    // TODO: TEMPORARY
-    .with(SnapPointSystem, "snap_point_system", &["spatial_hash_cache", "tool_state_manager"])
-    .with(CreatePointSystem, "create_point_system", &["snap_point_system"])
-    .with(CreateLineAbortSystem, "create_line_abort_system", &[])
-    .with(CreateLineSystem::default(), "create_line_system", &["create_point_system"])
+    .with(geometry_systems::CreatePointSystem, "create_point_system", &["snap_point_system"])
+    .with(geometry_systems::CreateLineSystem::default(), "create_line_system", &["create_point_system"])
 
     // Renderers
     .with(geometry_renderers::SnapPointRenderer::default(), "snap_point_renderer", &["snap_point_system"])

@@ -7,9 +7,9 @@ use crate::{
   }
 };
 
-pub struct CreateLineAbortSystem;
+pub struct AbortCreateLineViaKeyboard;
 
-/// # Create Line Abort System
+/// # AbortCreateLineViaKeyboard
 ///
 /// This system intended to provide mechanism to abort a line creation process
 /// When a user already place the first point of the line, if the user
@@ -18,7 +18,7 @@ pub struct CreateLineAbortSystem;
 ///
 /// TODO: If a new point is created during this line creation process, we should
 /// remove that new point as well when aborting (for better ergonomics)
-impl<'a> System<'a> for CreateLineAbortSystem {
+impl<'a> System<'a> for AbortCreateLineViaKeyboard {
   type SystemData = (
     Read<'a, InputState>,
     Write<'a, CreateLineData>,
