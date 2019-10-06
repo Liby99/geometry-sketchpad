@@ -1,7 +1,10 @@
 use specs::prelude::*;
 use crate::{
   utilities::Key,
-  resources::{InputState, CreateLineData}
+  resources::{
+    InputState,
+    geometry::CreateLineData
+  }
 };
 
 pub struct CreateLineAbortSystem;

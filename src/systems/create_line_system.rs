@@ -3,7 +3,10 @@ use specs::prelude::*;
 use shrev::{EventChannel, ReaderId};
 use crate::{
   utilities::Color,
-  resources::{ToolState, Tool, LastActivePoint, CreateLineData},
+  resources::{
+    ToolState, Tool,
+    geometry::{LastActivePoint, CreateLineData},
+  },
   components::{SymbolicLine, LineStyle, Selected},
   systems::events::{SketchEvent, Geometry, SketchEventChannel},
 };

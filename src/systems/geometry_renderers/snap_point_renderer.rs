@@ -1,7 +1,7 @@
 use specs::prelude::*;
 use crate::{
   utilities::Color,
-  resources::{MaybeSnapPoint, SnapPoint, SnapPointType},
+  resources::geometry::{MaybeSnapPoint, SnapPoint, SnapPointType},
   components::{Point, PointStyle}
 };
 

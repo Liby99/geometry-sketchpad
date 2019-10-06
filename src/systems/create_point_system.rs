@@ -2,7 +2,11 @@ use specs::prelude::*;
 use shrev::EventChannel;
 use crate::{
   utilities::Color,
-  resources::{ToolState, InputState, MaybeSnapPoint, SnapPoint, SnapPointType, LastActivePoint},
+  resources::{
+    ToolState,
+    InputState,
+    geometry::{MaybeSnapPoint, SnapPoint, SnapPointType, LastActivePoint},
+  },
   components::{SymbolicPoint, Point, PointStyle, Selected},
   systems::events::{SketchEvent, Geometry, SketchEventChannel},
 };

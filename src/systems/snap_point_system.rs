@@ -3,13 +3,11 @@ use specs::prelude::*;
 use crate::{
   resources::{
     InputState,
-    MaybeSnapPoint,
-    SnapPoint,
-    SnapPointType,
     SpatialHashTable,
     ToolState,
     Viewport,
-    ViewportTransform
+    ViewportTransform,
+    geometry::{MaybeSnapPoint, SnapPoint, SnapPointType},
   },
   components::{Point, Line},
   utilities::{Vector2, Intersect},

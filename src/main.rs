@@ -60,11 +60,14 @@ fn main() {
 
     // TODO: TEMPORARY
     .with(SnapPointSystem, "snap_point_system", &["spatial_hash_cache", "tool_state_manager"])
-    .with(SnapPointRenderer::default(), "snap_point_renderer", &["snap_point_system"])
     .with(CreatePointSystem, "create_point_system", &["snap_point_system"])
     .with(CreateLineAbortSystem, "create_line_abort_system", &[])
     .with(CreateLineSystem::default(), "create_line_system", &["create_point_system"])
-    .with(CreateLineRenderer::default(), "create_line_renderer", &["create_line_system"])
+
+    // Renderers
+    .with(geometry_renderers::SnapPointRenderer::default(), "snap_point_renderer", &["snap_point_system"])
+    .with(geometry_renderers::CreateLineRenderer::default(), "create_line_renderer", &["create_line_system"])
+    .with(geometry_renderers::SelectRectangleRenderer::default(), "select_rectangle_renderer", &["selde_via_mouse"])
 
     // Solver & final rendering
     .with(geometry_systems::SolverSystem::default(), "solver_system", &["create_point_system", "create_line_system"])
