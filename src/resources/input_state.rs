@@ -1,9 +1,14 @@
+use std::time::SystemTime;
 use std::collections::HashMap;
 use crate::utilities::{Vector2, Key};
 
 pub struct InputState {
   pub mouse_left_button: ActiveState,
   pub mouse_right_button: ActiveState,
+
+  pub is_mouse_left_button_dragging: bool,
+  pub mouse_left_button_last_pressed: Option<SystemTime>,
+
   pub mouse_abs_pos: Vector2,
   pub mouse_rel_movement: Vector2,
   pub rel_scroll: Vector2,
@@ -16,6 +21,8 @@ impl Default for InputState {
     Self {
       mouse_left_button: ActiveState::default(),
       mouse_right_button: ActiveState::default(),
+      is_mouse_left_button_dragging: false,
+      mouse_left_button_last_pressed: None,
       mouse_abs_pos: vec2![0., 0.],
       mouse_rel_movement: vec2![0., 0.],
       in_focus: ActiveState::default(),
@@ -59,7 +66,6 @@ impl ActiveState {
     }
   }
 
-  #[allow(dead_code)]
   pub fn is_activated(&self) -> bool {
     self.pressed
   }

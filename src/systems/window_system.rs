@@ -1,3 +1,4 @@
+use std::time::SystemTime;
 use piston_window::{Event as PistonEvent, *};
 use specs::prelude::*;
 use crate::{
@@ -115,9 +116,20 @@ impl<'a> System<'a> for WindowSystem {
                   Button::Mouse(MouseButton::Left) => {
                     input_state.mouse_left_button.set(is_pressed);
                     if is_pressed {
+                      input_state.mouse_left_button_last_pressed = Some(SystemTime::now());
                       mouse_event_channel.single_write(MouseEvent::MouseDown(input_state.mouse_abs_pos));
                     } else {
                       mouse_event_channel.single_write(MouseEvent::MouseUp(input_state.mouse_abs_pos));
+                      if input_state.is_mouse_left_button_dragging {
+                        input_state.is_mouse_left_button_dragging = false;
+                        mouse_event_channel.single_write(MouseEvent::DragEnd(input_state.mouse_abs_pos));
+                      } else {
+                        if let Some(last_pressed) = input_state.mouse_left_button_last_pressed {
+                          if last_pressed.elapsed().unwrap().as_secs_f32() < 0.1 {
+                            mouse_event_channel.single_write(MouseEvent::Click(input_state.mouse_abs_pos));
+                          }
+                        }
+                      }
                     }
                   },
                   Button::Mouse(MouseButton::Right) => {
@@ -134,7 +146,17 @@ impl<'a> System<'a> for WindowSystem {
                 match motion {
                   Motion::MouseScroll(rel_scroll) => input_state.rel_scroll += rel_scroll.into(),
                   Motion::MouseCursor(abs_pos) => input_state.mouse_abs_pos = abs_pos.into(),
-                  Motion::MouseRelative(rel_mov) => input_state.mouse_rel_movement += rel_mov.into(),
+                  Motion::MouseRelative(rel_mov) => {
+                    input_state.mouse_rel_movement += rel_mov.into();
+                    if input_state.is_mouse_left_button_dragging {
+                      mouse_event_channel.single_write(MouseEvent::DragMove(rel_mov.into(), input_state.mouse_abs_pos));
+                    } else {
+                      if input_state.mouse_left_button.is_activated() {
+                        input_state.is_mouse_left_button_dragging = true;
+                        mouse_event_channel.single_write(MouseEvent::DragBegin(input_state.mouse_abs_pos));
+                      }
+                    }
+                  },
                   _ => (),
                 }
               },
