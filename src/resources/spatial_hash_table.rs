@@ -2,7 +2,7 @@ use std::collections::HashSet;
 use std::hash::Hash;
 use itertools::Itertools;
 use super::{Viewport, ViewportTransform};
-use crate::util::{Vector2, Intersect};
+use crate::util::{Vector2, AABB, Intersect};
 use crate::components::{Point, Line};
 
 static TILE_SIZE : f64 = 40.0;
@@ -117,8 +117,27 @@ impl<T: Clone + Eq + Hash> SpatialHashTable<T> {
     (y_tile * self.x_tiles) + x_tile
   }
 
+  /// aabb: AABB in actual space
+  pub fn get_neighbor_entities_of_aabb(&self, aabb: AABB) -> HashSet<T> {
+    let (i_min, j_min) = self.get_unlimited_cell(vec2![aabb.x, aabb.y]);
+    let (i_max, j_max) = self.get_unlimited_cell(vec2![aabb.x + aabb.width, aabb.y + aabb.height]);
+
+    let mut result = HashSet::new();
+    for j in j_min..(j_max + 1) {
+      for i in i_min..(i_max + 1) {
+        if 0 <= i && i < self.x_tiles as i64 && 0 <= j && j < self.y_tiles as i64 {
+          let tile = self.get_cell_by_x_y(i as usize, j as usize);
+          for entity in &self.table[tile] {
+            result.insert(entity.clone());
+          }
+        }
+      }
+    }
+    result
+  }
+
   /// p: point in virtual space
-  pub fn get_neighbor_entities(&self, p: Point, vp: &Viewport) -> Option<Vec<T>> {
+  pub fn get_neighbor_entities_of_point(&self, p: Point, vp: &Viewport) -> Option<Vec<T>> {
     if let Some(center_tile) = self.get_cell(p.to_actual(vp)) {
       let mut tiles = vec![center_tile];
 

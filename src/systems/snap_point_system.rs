@@ -54,7 +54,7 @@ impl<'a> System<'a> for SnapPointSystem {
       });
 
       // Then get the potential neighbors
-      let maybe_neighbors = table.get_neighbor_entities(virtual_mouse_pos, &*vp);
+      let maybe_neighbors = table.get_neighbor_entities_of_point(virtual_mouse_pos, &*vp);
       if let Some(neighbor_entities) = maybe_neighbors {
 
         let mut closest_lines : Vec<(Entity, Line)> = vec![];

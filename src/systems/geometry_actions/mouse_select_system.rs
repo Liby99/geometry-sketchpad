@@ -1,7 +1,8 @@
 use std::mem::drop;
+use std::collections::HashSet;
 use specs::prelude::*;
 use crate::{
-  util::{Vector2, Color},
+  util::{Vector2, AABB, Color, Intersect},
   resources::{Viewport, ViewportTransform, SpatialHashTable, InputState, Tool},
   components::{Point, Line, LineStyle, Selected, Rectangle, RectangleStyle},
   systems::events::{
@@ -26,6 +27,7 @@ pub struct MouseSelectSystem {
   mouse_event_reader: Option<MouseEventReader>,
   drag_rectangle_entity: Option<Entity>,
   drag_start_position: Option<Vector2>,
+  drag_selected_new_entities: HashSet<Entity>,
 }
 
 impl Default for MouseSelectSystem {
@@ -35,6 +37,7 @@ impl Default for MouseSelectSystem {
       mouse_event_reader: None,
       drag_rectangle_entity: None,
       drag_start_position: None,
+      drag_selected_new_entities: HashSet::new(),
     }
   }
 }
@@ -104,9 +107,7 @@ impl<'a> System<'a> for MouseSelectSystem {
           MouseEvent::MouseDown(mouse_pos) => {
 
             // If there's no shift
-            let mut already_deselected_all = false;
             if !input_state.keyboard.is_shift_activated() {
-              already_deselected_all = true;
               geometry_action_channel.single_write(GeometryAction::DeselectAll);
             }
 
@@ -116,12 +117,6 @@ impl<'a> System<'a> for MouseSelectSystem {
                 sketch_event_channel.single_write(SketchEvent::Deselect(entity));
               } else {
                 sketch_event_channel.single_write(SketchEvent::Select(entity));
-              }
-            } else {
-
-              // If hit nothing, still deselect everything
-              if !already_deselected_all {
-                geometry_action_channel.single_write(GeometryAction::DeselectAll);
               }
             }
           },
@@ -141,6 +136,9 @@ impl<'a> System<'a> for MouseSelectSystem {
           },
           MouseEvent::DragMove(_) => {
 
+            // Make sure we start from scratch (TODO: Make this incremental?)
+            // geometry_action_channel.single_write(GeometryAction::DeselectAll);
+
             // Make sure we have the rectangle entity
             let rect_ent = if let Some(ent) = self.drag_rectangle_entity { ent } else {
               let ent = entities.create();
@@ -155,20 +153,39 @@ impl<'a> System<'a> for MouseSelectSystem {
             let diff = curr_position - start_position;
 
             // Update the rectangle
-            if let Err(err) = rects.insert(rect_ent, Rectangle {
-              x: start_position.x,
-              y: start_position.y,
-              width: diff.x,
-              height: diff.y
-            }) { panic!(err) }
+            let rect = AABB {
+              x: start_position.x.min(curr_position.x),
+              y: start_position.y.min(curr_position.y),
+              width: diff.x.abs(),
+              height: diff.y.abs(),
+            };
+            if let Err(err) = rects.insert(rect_ent, rect) { panic!(err) }
 
-            // TODO: select the things in the middle
+            // Select all the elements intersecting with AABB
+            let mut new_entities = get_entities_in_aabb(rect, &*viewport, &*spatial_table, &points, &lines);
+            let mut to_remove = vec![];
+            for entity in &self.drag_selected_new_entities {
+              if !new_entities.contains(entity) {
+                to_remove.push(entity.clone());
+                sketch_event_channel.single_write(SketchEvent::Deselect(*entity));
+              } else {
+                new_entities.remove(entity);
+              }
+            }
+            for entity in to_remove {
+              self.drag_selected_new_entities.remove(&entity);
+            }
+            for entity in new_entities {
+              self.drag_selected_new_entities.insert(entity);
+              sketch_event_channel.single_write(SketchEvent::Select(entity));
+            }
           },
           MouseEvent::DragEnd(_) => {
 
             // Remove the rectangle information when dragging ends
             if let Some(ent) = self.drag_rectangle_entity {
               self.drag_start_position = None;
+              self.drag_selected_new_entities = HashSet::new();
               rects.remove(ent);
             }
           },
@@ -191,7 +208,7 @@ fn hitting_object<'a>(
   let virtual_mouse_pos = mouse_pos.to_virtual(viewport);
 
   // Use spatial hash table to get potential neighbors
-  let maybe_neighbors = spatial_table.get_neighbor_entities(virtual_mouse_pos, viewport);
+  let maybe_neighbors = spatial_table.get_neighbor_entities_of_point(virtual_mouse_pos, viewport);
   let mut maybe_selected_point : Option<(Entity, f64)> = None;
   let mut maybe_selected_line : Option<(Entity, f64)> = None;
   if let Some(neighbor_entities) = maybe_neighbors {
@@ -213,4 +230,31 @@ fn hitting_object<'a>(
 
   // Return point in priority to line
   maybe_selected_point.or(maybe_selected_line).map(|(ent, _)| ent)
+}
+
+fn get_entities_in_aabb<'a>(
+  aabb: AABB,
+  viewport: &Viewport,
+  spatial_table: &SpatialHashTable<Entity>,
+  points: &ReadStorage<'a, Point>,
+  lines: &ReadStorage<'a, Line>,
+) -> HashSet<Entity> {
+  let mut result = HashSet::new();
+
+  // Loop through all potential neighbors
+  for entity in spatial_table.get_neighbor_entities_of_aabb(aabb) {
+    if let Some(point) = points.get(entity) {
+      let actual = point.to_actual(viewport);
+      if aabb.contains(actual) {
+        result.insert(entity);
+      }
+    } else if let Some(line) = lines.get(entity) {
+      let actual = line.to_actual(viewport);
+      if actual.intersect(aabb).is_some() {
+        result.insert(entity);
+      }
+    }
+  }
+
+  result
 }

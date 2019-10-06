@@ -46,7 +46,7 @@ fn main() {
 
     // Geometry action handlers
     .with(geometry_actions::MouseSelectSystem::default(), "mouse_select_system", &["mouse_event_emitter", "tool_state_manager"])
-    .with(geometry_actions::SeldeAllHandler::default(), "selde_all_handler", &["selde_all_via_keyboard"])
+    .with(geometry_actions::SeldeAllHandler::default(), "selde_all_handler", &["selde_all_via_keyboard", "mouse_select_system"])
     .with(geometry_actions::RemoveSelectedHandler::default(), "remove_selected_handler", &["remove_selected_via_delete", "dependency_graph_cache"])
 
     // Create geometry systems
