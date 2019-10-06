@@ -100,18 +100,28 @@ impl<'a> System<'a> for SeldeViaMouse {
         match event {
           MouseEvent::MouseDown(mouse_pos) => {
 
-            // If there's no shift
-            if !input_state.keyboard.is_shift_activated() {
-              geometry_action_channel.single_write(GeometryAction::DeselectAll);
-            }
-
             // Check if hitting something
             if let Some(entity) = hitting_object(*mouse_pos, &*viewport, &*spatial_table, &points, &lines, SELECT_DIST_THRES) {
-              if let Some(_) = selected.get(entity) {
-                sketch_event_channel.single_write(SketchEvent::Deselect(entity));
+
+              // Check if shift is held
+              if input_state.keyboard.is_shift_activated() {
+
+                // If has shift, select or deselect based on previous state
+                if let Some(_) = selected.get(entity) {
+                  sketch_event_channel.single_write(SketchEvent::Deselect(entity));
+                } else {
+                  sketch_event_channel.single_write(SketchEvent::Select(entity));
+                }
               } else {
+
+                // If no shift, always select
+                geometry_action_channel.single_write(GeometryAction::DeselectAllExcept(entity));
                 sketch_event_channel.single_write(SketchEvent::Select(entity));
               }
+            } else {
+
+              // Deselect all if not hitting anything
+              geometry_action_channel.single_write(GeometryAction::DeselectAll);
             }
           },
           MouseEvent::DragBegin(start_position) => {

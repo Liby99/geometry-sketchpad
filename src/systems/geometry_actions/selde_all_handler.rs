@@ -65,6 +65,18 @@ impl<'a> System<'a> for SeldeAllHandler {
               sketch_event_channel.single_write(SketchEvent::Deselect(entity));
             }
           },
+          GeometryAction::DeselectAllExcept(except_this) => {
+            for (entity, _, _, _) in (&entities, &sym_points, &point_styles, &selected).join() {
+              if entity != *except_this {
+                sketch_event_channel.single_write(SketchEvent::Deselect(entity));
+              }
+            }
+            for (entity, _, _, _) in (&entities, &sym_lines, &line_styles, &selected).join() {
+              if entity != *except_this {
+                sketch_event_channel.single_write(SketchEvent::Deselect(entity));
+              }
+            }
+          },
           _ => (),
         }
       }

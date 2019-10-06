@@ -76,7 +76,8 @@ impl<'a> System<'a> for CreateLineSystem {
         if let Some(first_point_entity) = create_line_data.maybe_first_point {
 
           // Need to check first point is not second point
-          if !on_same_line(first_point_entity, curr_point_entity, &dependency_graph, &sym_points, &sym_lines) {
+          if first_point_entity != curr_point_entity &&
+            !on_same_line(first_point_entity, curr_point_entity, &dependency_graph, &sym_points, &sym_lines) {
 
             let sym_line = SymbolicLine::TwoPoints(first_point_entity, curr_point_entity);
             let line_style = LineStyle { color: Color::blue(), width: 2. };
