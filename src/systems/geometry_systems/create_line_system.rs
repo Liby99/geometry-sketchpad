@@ -89,7 +89,7 @@ impl<'a> System<'a> for CreateLineSystem {
             if let Err(err) = selected.insert(entity, Selected) { panic!(err) }
 
             // Push event to created lines
-            sketch_events.single_write(SketchEvent::Insert(entity, Geometry::Line(sym_line, line_style)));
+            sketch_events.single_write(SketchEvent::Insert(entity, Geometry::Line(sym_line)));
 
             // Reset the maybe first point
             create_line_data.maybe_first_point = None;

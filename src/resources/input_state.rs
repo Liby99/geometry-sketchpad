@@ -115,7 +115,7 @@ impl Keyboard {
     }
   }
 
-  #[allow(dead_code)] // TODO
+  #[allow(dead_code)]
   pub fn just_deactivated(&self, key: Key) -> bool {
     match self.keys.get(&key) {
       Some(state) => state.just_deactivated(),
@@ -125,6 +125,10 @@ impl Keyboard {
 
   pub fn is_shift_activated(&self) -> bool {
     self.is_activated(Key::LShift) || self.is_activated(Key::RShift)
+  }
+
+  pub fn is_command_activated(&self) -> bool {
+    self.is_activated(Key::LCommand) || self.is_activated(Key::RCommand)
   }
 
   pub fn reset_relative_data(&mut self) {

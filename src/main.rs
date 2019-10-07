@@ -34,15 +34,14 @@ fn main() {
     .with(interactions::SeldeAllViaKeyboard, "selde_all_via_keyboard", &[])
     .with(interactions::RemoveSelectedViaDelete, "remove_selected_via_delete", &[])
     .with(interactions::AbortCreateLineViaKeyboard, "abort_create_line_via_keyboard", &[])
-    // .with(interactions::MouseEventEmitter::default(), "mouse_event_emitter", &[])
 
     // We put tooling handler here first
     .with(state_managers::ToolStateManager::default(), "tool_state_manager", &["change_tool_via_keyboard"])
 
     // Interations based on tool
-    .with(interactions::MoveViewportViaDrag::default(), "move_viewport_via_drag", &[/*"mouse_event_emitter", */"tool_state_manager"])
-    .with(interactions::SeldeViaMouse::default(), "selde_via_mouse", &[/*"mouse_event_emitter", */"tool_state_manager"])
-    .with(interactions::MovePointViaDrag::default(), "move_point_via_drag", &[/*"mouse_event_emitter", */"tool_state_manager"])
+    .with(interactions::MoveViewportViaDrag::default(), "move_viewport_via_drag", &["tool_state_manager"])
+    .with(interactions::SeldeViaMouse::default(), "selde_via_mouse", &["tool_state_manager"])
+    .with(interactions::MovePointViaDrag::default(), "move_point_via_drag", &["tool_state_manager"])
 
     // Other state Managers
     .with(state_managers::ExitStateManager::default(), "exit_state_manager", &["exit_via_keyboard"])
@@ -65,6 +64,7 @@ fn main() {
     .with(geometry_systems::MovePointHandler::default(), "move_point_handler", &["move_point_via_drag"])
     .with(geometry_systems::CreatePointSystem::default(), "create_point_system", &["snap_point_system"])
     .with(geometry_systems::CreateLineSystem::default(), "create_line_system", &["create_point_system"])
+    .with(interactions::CreateParallelLineViaKeyboard, "create_parallel_line_via_keyboard", &["selde_handler"])
 
     // Renderers
     .with(geometry_renderers::SnapPointRenderer::default(), "snap_point_renderer", &["snap_point_system"])

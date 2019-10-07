@@ -105,7 +105,7 @@ impl<'a> System<'a> for CreatePointSystem {
                 if let Err(err) = selected.insert(entity, Selected) { panic!(err) };
 
                 // Then emit an event
-                sketch_events.single_write(SketchEvent::Insert(entity, Geometry::Point(sym_point, point_style)));
+                sketch_events.single_write(SketchEvent::Insert(entity, Geometry::Point(sym_point)));
 
                 // Mark this created entity as the last active point
                 last_active_point_event.single_write(LastActivePoint::new(entity));

@@ -197,10 +197,10 @@ impl<'a> System<'a> for SolverSystem {
         for event in sketch_events.read(sketch_events_reader_id) {
           match event {
             SketchEvent::Insert(entity, geom) => match geom {
-              Geometry::Point(_, _) => stack.push(ToCompute::Point(*entity)),
-              Geometry::Line(_, _) => stack.push(ToCompute::Line(*entity)),
+              Geometry::Point(_) => stack.push(ToCompute::Point(*entity)),
+              Geometry::Line(_) => stack.push(ToCompute::Line(*entity)),
             },
-            SketchEvent::Remove(_, _) => (), // Do nothing since they are already removed
+            SketchEvent::Remove(_, _, _) => (), // Do nothing since they are already removed
             SketchEvent::Select(_) | SketchEvent::Deselect(_) => (), // Do nothing to select/deselect event
             SketchEvent::MovePoint(ent, _) => {
               let dependents = dependency_graph.get_all_dependents(ent);

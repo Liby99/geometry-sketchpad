@@ -5,7 +5,7 @@ use crate::{
     DependencyGraph,
     events::{
       GeometryAction, GeometryActionReader, GeometryActionChannel,
-      SketchEvent, SketchEventChannel, Geometry
+      SketchEvent, SketchEventChannel, Geometry, GeometryStyle,
     },
   },
   components::{SymbolicLine, SymbolicPoint, PointStyle, LineStyle, Selected},
@@ -69,13 +69,13 @@ impl<'a> System<'a> for RemoveSelectedHandler {
               // Push the event
               if let Some(sym_pt) = sym_points.get(entity) {
                 if let Some(pt_sty) = point_styles.get(entity) {
-                  sketch_events.single_write(SketchEvent::Remove(entity, Geometry::Point(*sym_pt, *pt_sty)));
+                  sketch_events.single_write(SketchEvent::Remove(entity, Geometry::Point(*sym_pt), GeometryStyle::Point(*pt_sty)));
                 } else {
                   panic!("[remove_selected_handler] Cannot find point style for point entity {:?}", entity);
                 }
               } else if let Some(sym_ln) = sym_lines.get(entity) {
                 if let Some(ln_sty) = line_styles.get(entity) {
-                  sketch_events.single_write(SketchEvent::Remove(entity, Geometry::Line(*sym_ln, *ln_sty)));
+                  sketch_events.single_write(SketchEvent::Remove(entity, Geometry::Line(*sym_ln), GeometryStyle::Line(*ln_sty)));
                 } else {
                   panic!("[remove_selected_handler] Cannot find line style for line entity {:?}", entity);
                 }

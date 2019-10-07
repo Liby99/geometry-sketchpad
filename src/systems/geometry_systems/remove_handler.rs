@@ -1,7 +1,7 @@
 use specs::prelude::*;
 use crate::{
   components::{SymbolicPoint, Point, PointStyle, SymbolicLine, Line, LineStyle, Selected},
-  resources::events::{SketchEvent, SketchEventChannel, SketchEventReader},
+  resources::events::{SketchEvent, SketchEventChannel, SketchEventReader, Geometry},
 };
 
 pub struct RemoveHandler {
@@ -44,14 +44,20 @@ impl<'a> System<'a> for RemoveHandler {
     if let Some(reader_id) = &mut self.sketch_event_reader {
       for event in sketch_event_channel.read(reader_id) {
         match event {
-          SketchEvent::Remove(entity, _) => {
-            sym_points.remove(*entity);
-            points.remove(*entity);
-            point_styles.remove(*entity);
-            sym_lines.remove(*entity);
-            lines.remove(*entity);
-            line_styles.remove(*entity);
+          SketchEvent::Remove(entity, geom, _) => {
             selected.remove(*entity);
+            match geom {
+              Geometry::Point(_) => {
+                sym_points.remove(*entity);
+                points.remove(*entity);
+                point_styles.remove(*entity);
+              },
+              Geometry::Line(_) => {
+                sym_lines.remove(*entity);
+                lines.remove(*entity);
+                line_styles.remove(*entity);
+              }
+            }
           },
           _ => (),
         }

@@ -9,13 +9,18 @@ pub enum SketchEvent {
   Select(Entity),
   Deselect(Entity),
   Insert(Entity, Geometry),
-  Remove(Entity, Geometry),
+  Remove(Entity, Geometry, GeometryStyle),
   MovePoint(Entity, MovePoint),
 }
 
 pub enum Geometry {
-  Point(SymbolicPoint, PointStyle),
-  Line(SymbolicLine, LineStyle),
+  Point(SymbolicPoint),
+  Line(SymbolicLine),
+}
+
+pub enum GeometryStyle {
+  Point(PointStyle),
+  Line(LineStyle),
 }
 
 pub enum MovePoint {
