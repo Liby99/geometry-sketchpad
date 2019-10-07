@@ -8,19 +8,33 @@ use crate::{
 pub enum SketchEvent {
   Select(Entity),
   Deselect(Entity),
-  Insert(Entity, Geometry, GeometryStyle),
-  Remove(Entity, Geometry, GeometryStyle),
+  Insert(Entity, SketchGeometry, bool), // the last bool represents "is_by_history"
+  Remove(Entity, SketchGeometry, bool), // the last bool represents "is_by_history"
   MovePoint(Entity, MovePoint),
 }
 
-pub enum Geometry {
-  Point(SymbolicPoint),
-  Line(SymbolicLine),
+impl SketchEvent {
+  pub fn insert(ent: Entity, sketch_geom: SketchGeometry) -> Self {
+    Self::Insert(ent, sketch_geom, false)
+  }
+
+  pub fn insert_by_history(ent: Entity, sketch_geom: SketchGeometry) -> Self {
+    Self::Insert(ent, sketch_geom, true)
+  }
+
+  pub fn remove(ent: Entity, sketch_geom: SketchGeometry) -> Self {
+    Self::Remove(ent, sketch_geom, false)
+  }
+
+  pub fn remove_by_history(ent: Entity, sketch_geom: SketchGeometry) -> Self {
+    Self::Remove(ent, sketch_geom, true)
+  }
 }
 
-pub enum GeometryStyle {
-  Point(PointStyle),
-  Line(LineStyle),
+#[derive(Debug, Clone, Copy)]
+pub enum SketchGeometry {
+  Point(SymbolicPoint, PointStyle),
+  Line(SymbolicLine, LineStyle),
 }
 
 pub enum MovePoint {

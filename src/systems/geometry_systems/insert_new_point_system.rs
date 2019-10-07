@@ -1,33 +1,35 @@
 use specs::prelude::*;
 use crate::{
   resources::{
-    styles::DefaultLineStyle,
+    styles::DefaultPointStyle,
+    geometry::{LastActivePoint, LastActivePointChannel},
     events::{
       GeometryAction, GeometryActionChannel, GeometryActionReader,
-      SketchEvent, SketchEventChannel, Geometry, GeometryStyle,
+      SketchEvent, SketchEventChannel, SketchGeometry
     },
   },
-  components::{LineStyle, SymbolicLine, Selected},
+  components::{PointStyle, SymbolicPoint, Selected},
 };
 
-pub struct InsertLineSystem {
+pub struct InsertNewPointSystem {
   geometry_action_reader: Option<GeometryActionReader>,
 }
 
-impl Default for InsertLineSystem {
+impl Default for InsertNewPointSystem {
   fn default() -> Self {
     Self { geometry_action_reader: None }
   }
 }
 
-impl<'a> System<'a> for InsertLineSystem {
+impl<'a> System<'a> for InsertNewPointSystem {
   type SystemData = (
     Entities<'a>,
-    Read<'a, DefaultLineStyle>,
+    Read<'a, DefaultPointStyle>,
     Read<'a, GeometryActionChannel>,
     Write<'a, SketchEventChannel>,
-    WriteStorage<'a, SymbolicLine>,
-    WriteStorage<'a, LineStyle>,
+    Write<'a, LastActivePointChannel>,
+    WriteStorage<'a, SymbolicPoint>,
+    WriteStorage<'a, PointStyle>,
     WriteStorage<'a, Selected>,
   );
 
@@ -38,27 +40,31 @@ impl<'a> System<'a> for InsertLineSystem {
 
   fn run(&mut self, (
     entities,
-    default_line_style,
+    default_point_style,
     geometry_action_channel,
     mut sketch_event_channel,
-    mut sym_lines,
-    mut line_styles,
+    mut last_active_point_channel,
+    mut sym_points,
+    mut point_styles,
     mut selected,
   ): Self::SystemData) {
     if let Some(reader_id) = &mut self.geometry_action_reader {
       for event in geometry_action_channel.read(reader_id) {
         match event {
-          GeometryAction::InsertLine(sym_line) => {
-            let style = default_line_style.get();
+          GeometryAction::InsertPoint(sym_point) => {
+            let style = default_point_style.get();
 
             // First create the entity
             let entity = entities.create();
-            if let Err(err) = sym_lines.insert(entity, *sym_line) { panic!(err) }
-            if let Err(err) = line_styles.insert(entity, style) { panic!(err) }
+            if let Err(err) = sym_points.insert(entity, *sym_point) { panic!(err) }
+            if let Err(err) = point_styles.insert(entity, style) { panic!(err) }
             if let Err(err) = selected.insert(entity, Selected) { panic!(err) }
 
             // Write the event
-            sketch_event_channel.single_write(SketchEvent::Insert(entity, Geometry::Line(*sym_line), GeometryStyle::Line(style)));
+            sketch_event_channel.single_write(SketchEvent::insert(entity, SketchGeometry::Point(*sym_point, style)));
+
+            // Mark this created entity as the last active point
+            last_active_point_channel.single_write(LastActivePoint::new(entity));
           },
           _ => (),
         }

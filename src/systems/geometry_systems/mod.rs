@@ -10,8 +10,11 @@ pub use selde_handler::*;
 mod move_point_handler;
 pub use move_point_handler::*;
 
-mod insert_point_system;
-pub use insert_point_system::*;
+mod insert_new_point_system;
+pub use insert_new_point_system::*;
 
-mod insert_line_system;
-pub use insert_line_system::*;
+mod insert_new_line_system;
+pub use insert_new_line_system::*;
+
+mod insert_history_geometry;
+pub use insert_history_geometry::*;

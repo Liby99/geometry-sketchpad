@@ -15,3 +15,6 @@ pub use tool_change_event::*;
 
 mod viewport_event;
 pub use viewport_event::*;
+
+mod history_action;
+pub use history_action::*;

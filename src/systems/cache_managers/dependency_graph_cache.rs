@@ -2,7 +2,7 @@ use specs::prelude::*;
 use crate::{
   resources::{
     DependencyGraph,
-    events::{Geometry, SketchEvent, SketchEventChannel, SketchEventReader},
+    events::{SketchGeometry, SketchEvent, SketchEventChannel, SketchEventReader},
   },
   components::{SymbolicLine, SymbolicPoint},
 };
@@ -81,8 +81,8 @@ impl<'a> System<'a> for DependencyGraphCache {
         for event in sketch_events.read(reader_id) {
           match event {
             SketchEvent::Insert(entity, geom, _) => match geom {
-              Geometry::Point(sym_point) => add_point(&mut dependency_graph, entity, sym_point),
-              Geometry::Line(sym_line) => add_line(&mut dependency_graph, entity, sym_line),
+              SketchGeometry::Point(sym_point, _) => add_point(&mut dependency_graph, entity, sym_point),
+              SketchGeometry::Line(sym_line, _) => add_line(&mut dependency_graph, entity, sym_line),
             },
             SketchEvent::Remove(entity, _, _) => dependency_graph.remove(entity),
             SketchEvent::Select(_) | SketchEvent::Deselect(_) | SketchEvent::MovePoint(_, _) => (),

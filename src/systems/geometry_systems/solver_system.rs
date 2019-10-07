@@ -4,7 +4,7 @@ use crate::{
   components::{SymbolicPoint, Point, SymbolicLine, Line},
   resources::{
     DependencyGraph,
-    events::{SketchEvent, SketchEventChannel, SketchEventReader, Geometry},
+    events::{SketchEvent, SketchEventChannel, SketchEventReader, SketchGeometry},
   }
 };
 
@@ -217,8 +217,8 @@ impl<'a> System<'a> for SolverSystem {
         for event in sketch_events.read(sketch_events_reader_id) {
           match event {
             SketchEvent::Insert(entity, geom, _) => match geom {
-              Geometry::Point(_) => stack.push(ToCompute::Point(*entity)),
-              Geometry::Line(_) => stack.push(ToCompute::Line(*entity)),
+              SketchGeometry::Point(_, _) => stack.push(ToCompute::Point(*entity)),
+              SketchGeometry::Line(_, _) => stack.push(ToCompute::Line(*entity)),
             },
             SketchEvent::Remove(_, _, _) => (), // Do nothing since they are already removed
             SketchEvent::Select(_) | SketchEvent::Deselect(_) => (), // Do nothing to select/deselect event

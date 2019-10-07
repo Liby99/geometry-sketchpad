@@ -34,6 +34,8 @@ fn main() {
     .with(interactions::select::SeldeAllViaKeyboard, "selde_all_via_keyboard", &[])
     .with(interactions::remove::RemoveSelectedViaDelete, "remove_selected_via_delete", &[])
     .with(interactions::create::line::AbortCreateLineViaKeyboard, "abort_create_line_via_keyboard", &[])
+    .with(interactions::history::UndoViaKeyboard, "undo_via_keyboard", &[])
+    .with(interactions::history::RedoViaKeyboard, "redo_via_keyboard", &[])
 
     // We put tooling handler here first
     .with(state_managers::ToolStateManager::default(), "tool_state_manager", &["change_tool_via_keyboard"])
@@ -63,7 +65,6 @@ fn main() {
 
     // Create geometry systems
     .with(geometry_systems::SeldeHandler::default(), "selde_handler", &["selde_all_handler"])
-    .with(geometry_systems::RemoveHandler::default(), "geometry_remove_handler", &["remove_selected_handler"])
     .with(geometry_systems::MovePointHandler::default(), "move_point_handler", &["move_point_via_drag"])
 
     // Create point
@@ -75,9 +76,19 @@ fn main() {
     .with(geometry_actions::DrawPerpOnSelected::default(), "draw_perp_on_selected", &["create_perp_line_via_keyboard", "selde_handler"])
     .with(geometry_actions::DrawMidpointOnSelected::default(), "draw_midpoint_on_selected", &["create_midpoint_via_keyboard", "selde_handler"])
 
+    // History manipulating world states
+    .with(cache_managers::SketchHistoryActionHandler::default(), "sketch_history_action_handler", &["undo_via_keyboard", "redo_via_keyboard", "spatial_hash_cache"]) // It needs to run after spatial hash cache
+
     // Insert systems
-    .with(geometry_systems::InsertPointSystem::default(), "insert_point_system", &["create_point_via_mouse"])
-    .with(geometry_systems::InsertLineSystem::default(), "insert_line_system", &["create_parallel_line_via_keyboard", "create_two_point_line_via_mouse"])
+    .with(geometry_systems::InsertNewPointSystem::default(), "insert_point_system", &["create_point_via_mouse"])
+    .with(geometry_systems::InsertNewLineSystem::default(), "insert_line_system", &["create_parallel_line_via_keyboard", "create_two_point_line_via_mouse"])
+    .with(geometry_systems::InsertHistoryGeometry::default(), "insert_history_geometry", &["sketch_history_action_handler"])
+
+    // Remove systems
+    .with(geometry_systems::RemoveHandler::default(), "remove_handler", &["remove_selected_handler", "sketch_history_action_handler"])
+
+    // History caching
+    .with(cache_managers::SketchHistoryCache::default(), "sketch_history_cache", &["insert_point_system", "insert_line_system", "remove_handler"])
 
     // Renderers
     .with(geometry_renderers::SnapPointRenderer::default(), "snap_point_renderer", &["snap_point_system"])
@@ -85,7 +96,7 @@ fn main() {
     .with(geometry_renderers::SelectRectangleRenderer::default(), "select_rectangle_renderer", &["selde_via_mouse"])
 
     // Solver & final rendering
-    .with(geometry_systems::SolverSystem::default(), "solver_system", &["create_point_via_mouse", "insert_line_system"])
+    .with(geometry_systems::SolverSystem::default(), "solver_system", &["insert_point_system", "insert_line_system", "insert_history_geometry", "remove_handler"])
     .with_thread_local(window_system)
     .build();
 

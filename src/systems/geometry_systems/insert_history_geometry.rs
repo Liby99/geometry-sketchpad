@@ -1,29 +1,26 @@
 use specs::prelude::*;
 use crate::{
-  components::{SymbolicPoint, Point, PointStyle, SymbolicLine, Line, LineStyle, Selected},
   resources::events::{SketchEvent, SketchEventChannel, SketchEventReader, SketchGeometry},
+  components::{SymbolicLine, LineStyle, SymbolicPoint, PointStyle},
 };
 
-pub struct RemoveHandler {
+pub struct InsertHistoryGeometry {
   sketch_event_reader: Option<SketchEventReader>,
 }
 
-impl Default for RemoveHandler {
+impl Default for InsertHistoryGeometry {
   fn default() -> Self {
     Self { sketch_event_reader: None }
   }
 }
 
-impl<'a> System<'a> for RemoveHandler {
+impl<'a> System<'a> for InsertHistoryGeometry {
   type SystemData = (
     Read<'a, SketchEventChannel>,
     WriteStorage<'a, SymbolicPoint>,
-    WriteStorage<'a, Point>,
     WriteStorage<'a, PointStyle>,
     WriteStorage<'a, SymbolicLine>,
-    WriteStorage<'a, Line>,
     WriteStorage<'a, LineStyle>,
-    WriteStorage<'a, Selected>,
   );
 
   fn setup(&mut self, world: &mut World) {
@@ -34,28 +31,22 @@ impl<'a> System<'a> for RemoveHandler {
   fn run(&mut self, (
     sketch_event_channel,
     mut sym_points,
-    mut points,
     mut point_styles,
     mut sym_lines,
-    mut lines,
     mut line_styles,
-    mut selected,
   ): Self::SystemData) {
     if let Some(reader_id) = &mut self.sketch_event_reader {
       for event in sketch_event_channel.read(reader_id) {
         match event {
-          SketchEvent::Remove(entity, geom, _) => {
-            selected.remove(*entity);
-            match geom {
-              SketchGeometry::Point(_, _) => {
-                sym_points.remove(*entity);
-                points.remove(*entity);
-                point_styles.remove(*entity);
+          SketchEvent::Insert(entity, geometry, true) => {
+            match geometry {
+              SketchGeometry::Point(sym_point, point_style) => {
+                if let Err(err) = sym_points.insert(*entity, *sym_point) { panic!(err) }
+                if let Err(err) = point_styles.insert(*entity, *point_style) { panic!(err) }
               },
-              SketchGeometry::Line(_, _) => {
-                sym_lines.remove(*entity);
-                lines.remove(*entity);
-                line_styles.remove(*entity);
+              SketchGeometry::Line(sym_line, line_style) => {
+                if let Err(err) = sym_lines.insert(*entity, *sym_line) { panic!(err) }
+                if let Err(err) = line_styles.insert(*entity, *line_style) { panic!(err) }
               }
             }
           },

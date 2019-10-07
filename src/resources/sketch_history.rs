@@ -1,11 +1,9 @@
 use std::collections::HashMap;
 use specs::prelude::*;
-use crate::{
-  components::{SymbolicLine, SymbolicPoint, PointStyle, LineStyle},
-};
+use crate::events::SketchGeometry;
 
 pub struct SketchHistory {
-  history: Vec<UserSketchEvent>,
+  history: Vec<SketchHistoryEvent>,
   cursor: usize,
   head: usize,
 }
@@ -20,22 +18,14 @@ impl Default for SketchHistory {
   }
 }
 
-pub enum UserSketchEvent {
-  RemoveOne(Entity, SketchGeometry),
+pub enum SketchHistoryEvent {
   RemoveMany(HashMap<Entity, SketchGeometry>),
-  InsertOne(Entity, SketchGeometry),
   InsertMany(HashMap<Entity, SketchGeometry>),
-  Update(Entity, SketchGeometry, SketchGeometry), // Entity, old, new
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum SketchGeometry {
-  Point(SymbolicPoint, PointStyle),
-  Line(SymbolicLine, LineStyle),
+  // Update(Entity, SketchGeometry, SketchGeometry), // Entity, old, new
 }
 
 impl SketchHistory {
-  pub fn undo(&mut self) -> Option<&UserSketchEvent> {
+  pub fn undo(&mut self) -> Option<&SketchHistoryEvent> {
     if self.cursor > 0 {
       self.cursor -= 1;
       Some(&self.history[self.cursor])
@@ -44,7 +34,7 @@ impl SketchHistory {
     }
   }
 
-  pub fn redo(&mut self) -> Option<&UserSketchEvent> {
+  pub fn redo(&mut self) -> Option<&SketchHistoryEvent> {
     if self.cursor < self.head {
       self.cursor += 1;
       Some(&self.history[self.cursor - 1])
@@ -53,8 +43,8 @@ impl SketchHistory {
     }
   }
 
-  pub fn push(&mut self, event: UserSketchEvent) {
-    if self.cursor < self.head {
+  pub fn push(&mut self, event: SketchHistoryEvent) {
+    if self.cursor < self.history.len() {
       self.history[self.cursor] = event;
     } else {
       self.history.push(event);
