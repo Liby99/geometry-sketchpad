@@ -1,6 +1,3 @@
-#![feature(type_alias_enum_variants)]
-#![feature(duration_float)]
-
 extern crate piston_window;
 extern crate specs;
 extern crate shrev;

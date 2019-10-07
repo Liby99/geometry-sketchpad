@@ -15,19 +15,19 @@ pub enum SketchEvent {
 
 impl SketchEvent {
   pub fn insert(ent: Entity, sketch_geom: SketchGeometry) -> Self {
-    Self::Insert(ent, sketch_geom, false)
+    SketchEvent::Insert(ent, sketch_geom, false)
   }
 
   pub fn insert_by_history(ent: Entity, sketch_geom: SketchGeometry) -> Self {
-    Self::Insert(ent, sketch_geom, true)
+    SketchEvent::Insert(ent, sketch_geom, true)
   }
 
   pub fn remove(ent: Entity, sketch_geom: SketchGeometry) -> Self {
-    Self::Remove(ent, sketch_geom, false)
+    SketchEvent::Remove(ent, sketch_geom, false)
   }
 
   pub fn remove_by_history(ent: Entity, sketch_geom: SketchGeometry) -> Self {
-    Self::Remove(ent, sketch_geom, true)
+    SketchEvent::Remove(ent, sketch_geom, true)
   }
 }
 

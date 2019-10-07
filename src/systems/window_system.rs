@@ -10,6 +10,8 @@ use crate::{
   components::{Selected, Point, PointStyle, Line, LineStyle, Rectangle, RectangleStyle},
 };
 
+static CLICK_TIME_THRESHOLD : u128 = 100; // 0.1 second
+
 fn draw_line(line: &Line, style: &LineStyle, selected: bool, vp: &Viewport, context: Context, graphics: &mut G2d) {
   let aabb = vp.virtual_aabb();
   let itsct = line.intersect(aabb);
@@ -125,7 +127,7 @@ impl<'a> System<'a> for WindowSystem {
                         mouse_event_channel.single_write(MouseEvent::DragEnd(input_state.mouse_abs_pos));
                       } else {
                         if let Some(last_pressed) = input_state.mouse_left_button_last_pressed {
-                          if last_pressed.elapsed().unwrap().as_secs_f32() < 0.1 {
+                          if last_pressed.elapsed().unwrap().as_millis() < CLICK_TIME_THRESHOLD {
                             mouse_event_channel.single_write(MouseEvent::Click(input_state.mouse_abs_pos));
                           }
                         }

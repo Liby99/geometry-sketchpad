@@ -22,16 +22,16 @@ pub enum SymbolicPoint {
 impl SymbolicPoint {
   pub fn is_on_same_line_with(&self, other: &SymbolicPoint) -> bool {
     match self {
-      Self::Free(_) | Self::MidPoint(_, _) => false,
-      Self::OnLine(line_ent, _) => match other {
-        Self::Free(_) | Self::MidPoint(_, _) => false,
-        Self::OnLine(l1_ent, _) => line_ent == l1_ent,
-        Self::LineLineIntersect(l1_ent, l2_ent) => line_ent == l1_ent || line_ent == l2_ent,
+      SymbolicPoint::Free(_) | SymbolicPoint::MidPoint(_, _) => false,
+      SymbolicPoint::OnLine(line_ent, _) => match other {
+        SymbolicPoint::Free(_) | SymbolicPoint::MidPoint(_, _) => false,
+        SymbolicPoint::OnLine(l1_ent, _) => line_ent == l1_ent,
+        SymbolicPoint::LineLineIntersect(l1_ent, l2_ent) => line_ent == l1_ent || line_ent == l2_ent,
       },
-      Self::LineLineIntersect(l1_ent, l2_ent) => match other {
-        Self::Free(_) | Self::MidPoint(_, _) => false,
-        Self::OnLine(line_ent, _) => l1_ent == line_ent || l2_ent == line_ent,
-        Self::LineLineIntersect(l3_ent, l4_ent) => {
+      SymbolicPoint::LineLineIntersect(l1_ent, l2_ent) => match other {
+        SymbolicPoint::Free(_) | SymbolicPoint::MidPoint(_, _) => false,
+        SymbolicPoint::OnLine(line_ent, _) => l1_ent == line_ent || l2_ent == line_ent,
+        SymbolicPoint::LineLineIntersect(l3_ent, l4_ent) => {
           l1_ent == l3_ent || l1_ent == l4_ent || l2_ent == l3_ent || l2_ent == l4_ent
         },
       },
