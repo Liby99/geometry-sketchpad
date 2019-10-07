@@ -24,6 +24,10 @@ impl Default for DependencyGraphCache {
 fn add_point(dependency_graph: &mut DependencyGraph, ent: &Entity, sym_point: &SymbolicPoint) {
   match sym_point {
     SymbolicPoint::Free(_) => (),
+    SymbolicPoint::MidPoint(p1_ent, p2_ent) => {
+      dependency_graph.add(p1_ent, ent);
+      dependency_graph.add(p2_ent, ent);
+    },
     SymbolicPoint::OnLine(line_ent, _) => {
       dependency_graph.add(line_ent, ent);
     },
@@ -76,7 +80,7 @@ impl<'a> System<'a> for DependencyGraphCache {
       if let Some(reader_id) = &mut self.sketch_events_reader_id {
         for event in sketch_events.read(reader_id) {
           match event {
-            SketchEvent::Insert(entity, geom) => match geom {
+            SketchEvent::Insert(entity, geom, _) => match geom {
               Geometry::Point(sym_point) => add_point(&mut dependency_graph, entity, sym_point),
               Geometry::Line(sym_line) => add_line(&mut dependency_graph, entity, sym_line),
             },

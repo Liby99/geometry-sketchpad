@@ -13,7 +13,7 @@ use crate::{
   },
   components::{SymbolicPoint, Point, Line},
 };
-use super::helpers::hitting_object;
+use super::super::helpers::hitting_object;
 
 static SELECT_DIST_THRES : f64 = 5.0; // Pixel
 

@@ -5,7 +5,7 @@ use crate::{
   resources::{
     ToolState, Tool, DependencyGraph,
     geometry::{LastActivePointReader, LastActivePointChannel, CreateLineData},
-    events::{InsertEvent, InsertEventChannel},
+    events::{GeometryAction, GeometryActionChannel},
   },
   components::{SymbolicPoint, SymbolicLine},
 };
@@ -26,7 +26,7 @@ impl<'a> System<'a> for CreateTwoPointLineViaMouse {
     Read<'a, DependencyGraph>,
     Write<'a, CreateLineData>,
     Write<'a, LastActivePointChannel>,
-    Write<'a, InsertEventChannel>,
+    Write<'a, GeometryActionChannel>,
     ReadStorage<'a, SymbolicPoint>,
     ReadStorage<'a, SymbolicLine>,
   );
@@ -36,7 +36,7 @@ impl<'a> System<'a> for CreateTwoPointLineViaMouse {
     dependency_graph,
     mut create_line_data,
     mut last_active_point_channel,
-    mut insert_event_channel,
+    mut geometry_action_channel,
     sym_points,
     sym_lines,
   ): Self::SystemData) {
@@ -72,7 +72,7 @@ impl<'a> System<'a> for CreateTwoPointLineViaMouse {
             let sym_line = SymbolicLine::TwoPoints(first_point_entity, curr_point_entity);
 
             // Push event to created lines
-            insert_event_channel.single_write(InsertEvent::Line(sym_line));
+            geometry_action_channel.single_write(GeometryAction::InsertLine(sym_line));
 
             // Reset the maybe first point
             create_line_data.maybe_first_point = None;
@@ -135,7 +135,7 @@ fn on_same_line<'a>(
 
 fn check_parent_line_contained_by(sp: &SymbolicPoint, set: &HashSet<Entity>) -> bool {
   match sp {
-    SymbolicPoint::Free(_) => false,
+    SymbolicPoint::Free(_) | SymbolicPoint::MidPoint(_, _) => false,
     SymbolicPoint::OnLine(line_ent, _) => set.contains(&line_ent),
     SymbolicPoint::LineLineIntersect(l1_ent, l2_ent) => set.contains(&l1_ent) || set.contains(&l2_ent),
   }

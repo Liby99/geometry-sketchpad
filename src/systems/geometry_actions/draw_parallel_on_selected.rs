@@ -2,10 +2,7 @@ use specs::prelude::*;
 use crate::{
   resources::{
     DependencyGraph,
-    events::{
-      GeometryAction, GeometryActionChannel, GeometryActionReader,
-      InsertEventChannel, InsertEvent,
-    },
+    events::{GeometryAction, GeometryActionChannel, GeometryActionReader},
   },
   components::{SymbolicLine, SymbolicPoint, Selected},
 };
@@ -24,8 +21,7 @@ impl<'a> System<'a> for DrawParallelOnSelected {
   type SystemData = (
     Entities<'a>,
     Read<'a, DependencyGraph>,
-    Read<'a, GeometryActionChannel>,
-    Write<'a, InsertEventChannel>,
+    Write<'a, GeometryActionChannel>,
     ReadStorage<'a, SymbolicPoint>,
     ReadStorage<'a, SymbolicLine>,
     ReadStorage<'a, Selected>,
@@ -39,12 +35,13 @@ impl<'a> System<'a> for DrawParallelOnSelected {
   fn run(&mut self, (
     entities,
     dependency_graph,
-    geometry_action_channel,
-    mut insert_event_channel,
+    mut geometry_action_channel,
     sym_points,
     sym_lines,
     selected,
   ): Self::SystemData) {
+    let mut to_insert = vec![];
+
     if let Some(reader_id) = &mut self.geometry_action_reader {
       for event in geometry_action_channel.read(reader_id) {
         match event {
@@ -64,21 +61,27 @@ impl<'a> System<'a> for DrawParallelOnSelected {
               for (p_ent, sym_point, _) in (&entities, &sym_points, &selected).join() {
                 if !is_on_line(&p_ent, &sym_point, &line_ent, &dependency_graph) {
                   let sym_line = SymbolicLine::Parallel(line_ent, p_ent);
-                  insert_event_channel.single_write(InsertEvent::Line(sym_line));
+                  to_insert.push(sym_line);
                 }
               }
             }
+
+            break;
           },
           _ => (),
         }
       }
+    }
+
+    for sym_line in to_insert {
+      geometry_action_channel.single_write(GeometryAction::InsertLine(sym_line));
     }
   }
 }
 
 fn is_on_line(p_ent: &Entity, sym_point: &SymbolicPoint, line_ent: &Entity, dependency_graph: &DependencyGraph) -> bool {
   match sym_point {
-    SymbolicPoint::Free(_) => (),
+    SymbolicPoint::Free(_) | SymbolicPoint::MidPoint(_, _) => (),
     SymbolicPoint::OnLine(l, _) => {
       if *l == *line_ent {
         return true;

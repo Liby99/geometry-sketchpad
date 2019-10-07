@@ -1,9 +1,6 @@
 use specs::prelude::*;
 use crate::{
-  resources::events::{
-    GeometryAction, GeometryActionChannel, GeometryActionReader,
-    InsertEventChannel, InsertEvent,
-  },
+  resources::events::{GeometryAction, GeometryActionChannel, GeometryActionReader},
   components::{SymbolicLine, SymbolicPoint, Selected},
 };
 
@@ -20,8 +17,7 @@ impl Default for DrawPerpOnSelected {
 impl<'a> System<'a> for DrawPerpOnSelected {
   type SystemData = (
     Entities<'a>,
-    Read<'a, GeometryActionChannel>,
-    Write<'a, InsertEventChannel>,
+    Write<'a, GeometryActionChannel>,
     ReadStorage<'a, SymbolicPoint>,
     ReadStorage<'a, SymbolicLine>,
     ReadStorage<'a, Selected>,
@@ -34,12 +30,14 @@ impl<'a> System<'a> for DrawPerpOnSelected {
 
   fn run(&mut self, (
     entities,
-    geometry_action_channel,
-    mut insert_event_channel,
+    mut geometry_action_channel,
     sym_points,
     sym_lines,
     selected,
   ): Self::SystemData) {
+    let mut to_insert = vec![];
+
+    // Find the symbolic lines to insert
     if let Some(reader_id) = &mut self.geometry_action_reader {
       for event in geometry_action_channel.read(reader_id) {
         match event {
@@ -58,13 +56,20 @@ impl<'a> System<'a> for DrawPerpOnSelected {
             if let Some(line_ent) = maybe_line_ent {
               for (p_ent, _, _) in (&entities, &sym_points, &selected).join() {
                 let sym_line = SymbolicLine::Perpendicular(line_ent, p_ent);
-                insert_event_channel.single_write(InsertEvent::Line(sym_line));
+                to_insert.push(sym_line);
               }
             }
+
+            break;
           },
           _ => (),
         }
       }
+    }
+
+    // Submit the events
+    for sym_line in to_insert {
+      geometry_action_channel.single_write(GeometryAction::InsertLine(sym_line));
     }
   }
 }

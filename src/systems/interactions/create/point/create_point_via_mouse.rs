@@ -7,7 +7,7 @@ use crate::{
     events::{
       ToolChangeEvent, ToolChangeEventChannel, ToolChangeEventReader,
       MouseEvent, MouseEventChannel, MouseEventReader,
-      InsertEvent, InsertEventChannel,
+      GeometryAction, GeometryActionChannel,
     },
   },
   components::SymbolicPoint,
@@ -32,7 +32,7 @@ impl<'a> System<'a> for CreatePointViaMouse {
     Read<'a, ToolChangeEventChannel>,
     Read<'a, MaybeSnapPoint>,
     Write<'a, MouseEventChannel>,
-    Write<'a, InsertEventChannel>,
+    Write<'a, GeometryActionChannel>,
     Write<'a, EventChannel<LastActivePoint>>,
   );
 
@@ -45,7 +45,7 @@ impl<'a> System<'a> for CreatePointViaMouse {
     tool_change_event_channel,
     maybe_snap_point,
     mut mouse_event_channel,
-    mut insert_event_channel,
+    mut geometry_action_channel,
     mut last_active_point_event,
   ): Self::SystemData) {
 
@@ -83,7 +83,7 @@ impl<'a> System<'a> for CreatePointViaMouse {
 
               // Check if we need to create a point
               if let Some(sym_point) = symbolic_point {
-                insert_event_channel.single_write(InsertEvent::Point(sym_point));
+                geometry_action_channel.single_write(GeometryAction::InsertPoint(sym_point));
               }
             }
           },

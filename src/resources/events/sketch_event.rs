@@ -8,7 +8,7 @@ use crate::{
 pub enum SketchEvent {
   Select(Entity),
   Deselect(Entity),
-  Insert(Entity, Geometry),
+  Insert(Entity, Geometry, GeometryStyle),
   Remove(Entity, Geometry, GeometryStyle),
   MovePoint(Entity, MovePoint),
 }

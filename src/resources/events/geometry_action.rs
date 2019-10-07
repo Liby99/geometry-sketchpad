@@ -1,5 +1,6 @@
 use specs::prelude::Entity;
 use shrev::{EventChannel, ReaderId};
+use crate::components::{SymbolicPoint, SymbolicLine};
 
 pub enum GeometryAction {
   SelectAll,
@@ -8,6 +9,9 @@ pub enum GeometryAction {
   RemoveSelected,
   DrawParallelOnSelected,
   DrawPerpendicularOnSelected,
+  DrawMidpointOnSelected,
+  InsertPoint(SymbolicPoint),
+  InsertLine(SymbolicLine),
 }
 
 pub type GeometryActionChannel = EventChannel<GeometryAction>;

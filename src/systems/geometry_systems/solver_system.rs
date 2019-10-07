@@ -49,6 +49,15 @@ fn solve_point<'a>(
         // If it is a free point, then the solved point is right there
         SymbolicPoint::Free(pos) => SolveResult::SolvedPoint(*pos),
 
+        //
+        SymbolicPoint::MidPoint(p1_ent, p2_ent) => match points.get(*p1_ent) {
+          Some(point_1) => match points.get(*p2_ent) {
+            Some(point_2) => SolveResult::SolvedPoint((*point_2 + *point_1) / 2.0),
+            None => SolveResult::Request(ToCompute::Point(*p2_ent)),
+          },
+          None => SolveResult::Request(ToCompute::Point(*p1_ent)),
+        },
+
         // If it is a point on a line, then the point is at distance t from origin
         // along the direction. If the computed line is not found we request the
         // algorithm to compute the line first
@@ -207,7 +216,7 @@ impl<'a> System<'a> for SolverSystem {
       if let Some(sketch_events_reader_id) = &mut self.sketch_events_reader_id {
         for event in sketch_events.read(sketch_events_reader_id) {
           match event {
-            SketchEvent::Insert(entity, geom) => match geom {
+            SketchEvent::Insert(entity, geom, _) => match geom {
               Geometry::Point(_) => stack.push(ToCompute::Point(*entity)),
               Geometry::Line(_) => stack.push(ToCompute::Line(*entity)),
             },
