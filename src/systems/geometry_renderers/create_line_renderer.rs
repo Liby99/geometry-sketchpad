@@ -64,8 +64,6 @@ impl<'a> System<'a> for CreateLineRenderer {
             if let Err(err) = styles.insert(ent, LineStyle { color: Color::new(0.3, 0.3, 1.0, 0.5), width: 2. }) { panic!(err) }
           }
         }
-      } else {
-        panic!("[create_line_renderer] First point position does not exist");
       }
     }
 

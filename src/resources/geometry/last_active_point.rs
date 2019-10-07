@@ -1,4 +1,5 @@
 use specs::prelude::*;
+use shrev::{EventChannel, ReaderId};
 
 pub struct LastActivePoint(Entity);
 
@@ -11,3 +12,7 @@ impl LastActivePoint {
     self.0
   }
 }
+
+pub type LastActivePointChannel = EventChannel<LastActivePoint>;
+
+pub type LastActivePointReader = ReaderId<LastActivePoint>;

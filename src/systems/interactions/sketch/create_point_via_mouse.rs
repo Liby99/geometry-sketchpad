@@ -2,24 +2,23 @@ use std::mem::drop;
 use specs::prelude::*;
 use shrev::EventChannel;
 use crate::{
-  utilities::Color,
   resources::{
     geometry::{MaybeSnapPoint, SnapPoint, SnapPointType, LastActivePoint},
     events::{
       ToolChangeEvent, ToolChangeEventChannel, ToolChangeEventReader,
       MouseEvent, MouseEventChannel, MouseEventReader,
-      SketchEvent, Geometry, SketchEventChannel
+      InsertEvent, InsertEventChannel,
     },
   },
-  components::{SymbolicPoint, Point, PointStyle, Selected},
+  components::SymbolicPoint,
 };
 
-pub struct CreatePointSystem {
+pub struct CreatePointViaMouse {
   tool_change_event_reader: Option<ToolChangeEventReader>,
   mouse_event_reader: Option<MouseEventReader>,
 }
 
-impl Default for CreatePointSystem {
+impl Default for CreatePointViaMouse {
   fn default() -> Self {
     Self {
       tool_change_event_reader: None,
@@ -28,18 +27,13 @@ impl Default for CreatePointSystem {
   }
 }
 
-impl<'a> System<'a> for CreatePointSystem {
+impl<'a> System<'a> for CreatePointViaMouse {
   type SystemData = (
-    Entities<'a>,
     Read<'a, ToolChangeEventChannel>,
     Read<'a, MaybeSnapPoint>,
     Write<'a, MouseEventChannel>,
-    Write<'a, SketchEventChannel>,
+    Write<'a, InsertEventChannel>,
     Write<'a, EventChannel<LastActivePoint>>,
-    WriteStorage<'a, SymbolicPoint>,
-    WriteStorage<'a, Point>,
-    WriteStorage<'a, PointStyle>,
-    WriteStorage<'a, Selected>,
   );
 
   fn setup(&mut self, world: &mut World) {
@@ -48,16 +42,11 @@ impl<'a> System<'a> for CreatePointSystem {
   }
 
   fn run(&mut self, (
-    entities,
     tool_change_event_channel,
     maybe_snap_point,
     mut mouse_event_channel,
-    mut sketch_events,
+    mut insert_event_channel,
     mut last_active_point_event,
-    mut sym_points,
-    mut points,
-    mut styles,
-    mut selected,
   ): Self::SystemData) {
 
     if let Some(reader_id) = &mut self.tool_change_event_reader {
@@ -94,21 +83,7 @@ impl<'a> System<'a> for CreatePointSystem {
 
               // Check if we need to create a point
               if let Some(sym_point) = symbolic_point {
-
-                let point_style = PointStyle { color: Color::red(), radius: 5. };
-
-                // First create the entity
-                let entity = entities.create();
-                if let Err(err) = sym_points.insert(entity, sym_point) { panic!(err) };
-                if let Err(err) = points.insert(entity, position) { panic!(err) };
-                if let Err(err) = styles.insert(entity, point_style) { panic!(err) };
-                if let Err(err) = selected.insert(entity, Selected) { panic!(err) };
-
-                // Then emit an event
-                sketch_events.single_write(SketchEvent::Insert(entity, Geometry::Point(sym_point)));
-
-                // Mark this created entity as the last active point
-                last_active_point_event.single_write(LastActivePoint::new(entity));
+                insert_event_channel.single_write(InsertEvent::Point(sym_point));
               }
             }
           },

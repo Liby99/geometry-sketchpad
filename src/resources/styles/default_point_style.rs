@@ -13,11 +13,12 @@ impl Default for DefaultPointStyle {
 }
 
 impl DefaultPointStyle {
-  fn get(&self) -> PointStyle {
+  pub fn get(&self) -> PointStyle {
     self.0
   }
 
-  fn set(&mut self, point_style: PointStyle) {
+  #[allow(dead_code)]
+  pub fn set(&mut self, point_style: PointStyle) {
     self.0 = point_style;
   }
 }

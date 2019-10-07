@@ -17,6 +17,7 @@ impl DefaultLineStyle {
     self.0
   }
 
+  #[allow(dead_code)]
   pub fn set(&mut self, line_style: LineStyle) {
     self.0 = line_style;
   }

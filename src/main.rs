@@ -31,17 +31,17 @@ fn main() {
     .with(interactions::ExitViaKeyboard, "exit_via_keyboard", &[])
     .with(interactions::ChangeToolViaKeyboard, "change_tool_via_keyboard", &[])
     .with(interactions::MoveViewportViaScroll, "move_viewport_via_scroll", &[])
-    .with(interactions::SeldeAllViaKeyboard, "selde_all_via_keyboard", &[])
-    .with(interactions::RemoveSelectedViaDelete, "remove_selected_via_delete", &[])
-    .with(interactions::AbortCreateLineViaKeyboard, "abort_create_line_via_keyboard", &[])
+    .with(interactions::sketch::SeldeAllViaKeyboard, "selde_all_via_keyboard", &[])
+    .with(interactions::sketch::RemoveSelectedViaDelete, "remove_selected_via_delete", &[])
+    .with(interactions::sketch::AbortCreateLineViaKeyboard, "abort_create_line_via_keyboard", &[])
 
     // We put tooling handler here first
     .with(state_managers::ToolStateManager::default(), "tool_state_manager", &["change_tool_via_keyboard"])
 
     // Interations based on tool
     .with(interactions::MoveViewportViaDrag::default(), "move_viewport_via_drag", &["tool_state_manager"])
-    .with(interactions::SeldeViaMouse::default(), "selde_via_mouse", &["tool_state_manager"])
-    .with(interactions::MovePointViaDrag::default(), "move_point_via_drag", &["tool_state_manager"])
+    .with(interactions::sketch::SeldeViaMouse::default(), "selde_via_mouse", &["tool_state_manager"])
+    .with(interactions::sketch::MovePointViaDrag::default(), "move_point_via_drag", &["tool_state_manager"])
 
     // Other state Managers
     .with(state_managers::ExitStateManager::default(), "exit_state_manager", &["exit_via_keyboard"])
@@ -56,7 +56,7 @@ fn main() {
     .with(geometry_actions::RemoveSelectedHandler::default(), "remove_selected_handler", &["remove_selected_via_delete", "dependency_graph_cache"])
 
     // Geometry helpers
-    .with(interactions::SnapPointSystem, "snap_point_system", &["spatial_hash_cache", "tool_state_manager", "viewport_state_manager"])
+    .with(interactions::sketch::SnapPointSystem, "snap_point_system", &["spatial_hash_cache", "tool_state_manager", "viewport_state_manager"])
 
     // Create geometry systems
     .with(geometry_systems::SeldeHandler::default(), "selde_handler", &["selde_all_handler"])
@@ -64,13 +64,14 @@ fn main() {
     .with(geometry_systems::MovePointHandler::default(), "move_point_handler", &["move_point_via_drag"])
 
     // Create point
-    .with(geometry_systems::CreatePointSystem::default(), "create_point_system", &["snap_point_system"])
+    .with(interactions::sketch::CreatePointViaMouse::default(), "create_point_via_mouse", &["snap_point_system"])
 
     // Create geometry interactions
-    .with(interactions::CreateTwoPointLineViaMouse::default(), "create_two_point_line_via_mouse", &["create_point_system"])
-    .with(interactions::CreateParallelLineViaKeyboard, "create_parallel_line_via_keyboard", &["selde_handler"])
+    .with(interactions::sketch::CreateTwoPointLineViaMouse::default(), "create_two_point_line_via_mouse", &["create_point_via_mouse"])
+    .with(interactions::sketch::CreateParallelLineViaKeyboard, "create_parallel_line_via_keyboard", &["selde_handler"])
 
     // Insert systems
+    .with(geometry_systems::InsertPointSystem::default(), "insert_point_system", &["create_point_via_mouse"])
     .with(geometry_systems::InsertLineSystem::default(), "insert_line_system", &["create_parallel_line_via_keyboard", "create_two_point_line_via_mouse"])
 
     // Renderers
@@ -79,7 +80,7 @@ fn main() {
     .with(geometry_renderers::SelectRectangleRenderer::default(), "select_rectangle_renderer", &["selde_via_mouse"])
 
     // Solver & final rendering
-    .with(geometry_systems::SolverSystem::default(), "solver_system", &["create_point_system", "insert_line_system"])
+    .with(geometry_systems::SolverSystem::default(), "solver_system", &["create_point_via_mouse", "insert_line_system"])
     .with_thread_local(window_system)
     .build();
 

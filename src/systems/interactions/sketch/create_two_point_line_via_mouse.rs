@@ -1,23 +1,22 @@
 use std::mem::drop;
 use std::collections::HashSet;
 use specs::prelude::*;
-use shrev::{EventChannel, ReaderId};
 use crate::{
   resources::{
     ToolState, Tool, DependencyGraph,
-    geometry::{LastActivePoint, CreateLineData},
+    geometry::{LastActivePointReader, LastActivePointChannel, CreateLineData},
     events::{InsertEvent, InsertEventChannel},
   },
   components::{SymbolicPoint, SymbolicLine},
 };
 
 pub struct CreateTwoPointLineViaMouse {
-  last_active_point_event_reader_id: Option<ReaderId<LastActivePoint>>,
+  last_active_point_reader: Option<LastActivePointReader>,
 }
 
 impl Default for CreateTwoPointLineViaMouse {
   fn default() -> Self {
-    Self { last_active_point_event_reader_id: None }
+    Self { last_active_point_reader: None }
   }
 }
 
@@ -26,7 +25,7 @@ impl<'a> System<'a> for CreateTwoPointLineViaMouse {
     Read<'a, ToolState>,
     Read<'a, DependencyGraph>,
     Write<'a, CreateLineData>,
-    Write<'a, EventChannel<LastActivePoint>>,
+    Write<'a, LastActivePointChannel>,
     Write<'a, InsertEventChannel>,
     ReadStorage<'a, SymbolicPoint>,
     ReadStorage<'a, SymbolicLine>,
@@ -36,26 +35,26 @@ impl<'a> System<'a> for CreateTwoPointLineViaMouse {
     tool_state,
     dependency_graph,
     mut create_line_data,
-    mut last_active_point_event,
+    mut last_active_point_channel,
     mut insert_event_channel,
     sym_points,
     sym_lines,
   ): Self::SystemData) {
 
     // First deal with tooling states
-    if let Some(reader_id) = &mut self.last_active_point_event_reader_id {
+    if let Some(reader_id) = &mut self.last_active_point_reader {
       match tool_state.get() {
         Tool::Line => (),
         _ => {
           drop(reader_id);
-          self.last_active_point_event_reader_id = None;
+          self.last_active_point_reader = None;
           create_line_data.maybe_first_point = None;
         }
       }
     } else {
       match tool_state.get() {
         Tool::Line => {
-          self.last_active_point_event_reader_id = Some(last_active_point_event.register_reader());
+          self.last_active_point_reader = Some(last_active_point_channel.register_reader());
         },
         _ => ()
       }
@@ -63,8 +62,8 @@ impl<'a> System<'a> for CreateTwoPointLineViaMouse {
 
     // Note that if the reader id is None, then we are not using create line tool
     // If this goes into the branch, it is guarenteed that we are using line tool, and we will be listening to the event from then on
-    if let Some(reader_id) = &mut self.last_active_point_event_reader_id {
-      for event in last_active_point_event.read(reader_id) {
+    if let Some(reader_id) = &mut self.last_active_point_reader {
+      for event in last_active_point_channel.read(reader_id) {
         let curr_point_entity = event.get();
         if let Some(first_point_entity) = create_line_data.maybe_first_point {
 
