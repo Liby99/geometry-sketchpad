@@ -7,6 +7,7 @@ pub enum GeometryAction {
   DeselectAllExcept(Entity),
   RemoveSelected,
   DrawParallelOnSelected,
+  DrawPerpendicularOnSelected,
 }
 
 pub type GeometryActionChannel = EventChannel<GeometryAction>;

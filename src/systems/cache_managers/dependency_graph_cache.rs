@@ -44,6 +44,10 @@ fn add_line(dependency_graph: &mut DependencyGraph, ent: &Entity, sym_line: &Sym
       dependency_graph.add(line_ent, ent);
       dependency_graph.add(point_ent, ent);
     },
+    SymbolicLine::Perpendicular(line_ent, point_ent) => {
+      dependency_graph.add(line_ent, ent);
+      dependency_graph.add(point_ent, ent);
+    },
   }
 }
 

@@ -6,3 +6,6 @@ pub use selde_all_handler::*;
 
 mod draw_parallel_on_selected;
 pub use draw_parallel_on_selected::*;
+
+mod draw_perp_on_selected;
+pub use draw_perp_on_selected::*;

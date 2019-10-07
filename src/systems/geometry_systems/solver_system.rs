@@ -1,6 +1,6 @@
 use specs::prelude::*;
 use crate::{
-  utilities::Intersect,
+  utilities::{Vector2, Intersect},
   components::{SymbolicPoint, Point, SymbolicLine, Line},
   resources::{
     DependencyGraph,
@@ -110,7 +110,18 @@ fn solve_line<'a>(
             None => SolveResult::Request(ToCompute::Line(*line_ent))
           },
           None => SolveResult::Request(ToCompute::Point(*point_ent))
-        }
+        },
+
+        SymbolicLine::Perpendicular(line_ent, point_ent) => match points.get(*point_ent) {
+          Some(pos) => match lines.get(*line_ent) {
+            Some(Line { direction: Vector2 { x, y }, .. }) => {
+              let perp_dir = vec2![-y, *x];
+              SolveResult::SolvedLine(Line { origin: *pos, direction: perp_dir })
+            },
+            None => SolveResult::Request(ToCompute::Line(*line_ent))
+          },
+          None => SolveResult::Request(ToCompute::Point(*point_ent))
+        },
       },
       None => panic!("[solver_system] Could not find to compute line"),
     },
