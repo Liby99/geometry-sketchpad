@@ -13,8 +13,5 @@ pub use move_point_handler::*;
 mod create_point_system;
 pub use create_point_system::*;
 
-mod create_line_system;
-pub use create_line_system::*;
-
 mod insert_line_system;
 pub use insert_line_system::*;

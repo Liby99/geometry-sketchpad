@@ -60,22 +60,26 @@ fn main() {
 
     // Create geometry systems
     .with(geometry_systems::SeldeHandler::default(), "selde_handler", &["selde_all_handler"])
-    .with(interactions::CreateParallelLineViaKeyboard, "create_parallel_line_via_keyboard", &["selde_handler"])
     .with(geometry_systems::RemoveHandler::default(), "geometry_remove_handler", &["remove_selected_handler"])
     .with(geometry_systems::MovePointHandler::default(), "move_point_handler", &["move_point_via_drag"])
+
+    // Create point
     .with(geometry_systems::CreatePointSystem::default(), "create_point_system", &["snap_point_system"])
-    .with(geometry_systems::CreateLineSystem::default(), "create_line_system", &["create_point_system"])
+
+    // Create geometry interactions
+    .with(interactions::CreateTwoPointLineViaMouse::default(), "create_two_point_line_via_mouse", &["create_point_system"])
+    .with(interactions::CreateParallelLineViaKeyboard, "create_parallel_line_via_keyboard", &["selde_handler"])
 
     // Insert systems
-    .with(geometry_systems::InsertLineSystem::default(), "insert_line_system", &["create_parallel_line_via_keyboard"])
+    .with(geometry_systems::InsertLineSystem::default(), "insert_line_system", &["create_parallel_line_via_keyboard", "create_two_point_line_via_mouse"])
 
     // Renderers
     .with(geometry_renderers::SnapPointRenderer::default(), "snap_point_renderer", &["snap_point_system"])
-    .with(geometry_renderers::CreateLineRenderer::default(), "create_line_renderer", &["create_line_system"])
+    .with(geometry_renderers::CreateLineRenderer::default(), "create_line_renderer", &["create_two_point_line_via_mouse"])
     .with(geometry_renderers::SelectRectangleRenderer::default(), "select_rectangle_renderer", &["selde_via_mouse"])
 
     // Solver & final rendering
-    .with(geometry_systems::SolverSystem::default(), "solver_system", &["create_point_system", "create_line_system"])
+    .with(geometry_systems::SolverSystem::default(), "solver_system", &["create_point_system", "insert_line_system"])
     .with_thread_local(window_system)
     .build();
 

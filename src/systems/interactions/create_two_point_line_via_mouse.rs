@@ -3,50 +3,43 @@ use std::collections::HashSet;
 use specs::prelude::*;
 use shrev::{EventChannel, ReaderId};
 use crate::{
-  utilities::Color,
   resources::{
     ToolState, Tool, DependencyGraph,
     geometry::{LastActivePoint, CreateLineData},
-    events::{SketchEvent, Geometry, SketchEventChannel},
+    events::{InsertEvent, InsertEventChannel},
   },
-  components::{SymbolicPoint, SymbolicLine, LineStyle, Selected},
+  components::{SymbolicPoint, SymbolicLine},
 };
 
-pub struct CreateLineSystem {
+pub struct CreateTwoPointLineViaMouse {
   last_active_point_event_reader_id: Option<ReaderId<LastActivePoint>>,
 }
 
-impl Default for CreateLineSystem {
+impl Default for CreateTwoPointLineViaMouse {
   fn default() -> Self {
     Self { last_active_point_event_reader_id: None }
   }
 }
 
-impl<'a> System<'a> for CreateLineSystem {
+impl<'a> System<'a> for CreateTwoPointLineViaMouse {
   type SystemData = (
-    Entities<'a>,
     Read<'a, ToolState>,
     Read<'a, DependencyGraph>,
     Write<'a, CreateLineData>,
     Write<'a, EventChannel<LastActivePoint>>,
-    Write<'a, SketchEventChannel>,
+    Write<'a, InsertEventChannel>,
     ReadStorage<'a, SymbolicPoint>,
-    WriteStorage<'a, SymbolicLine>,
-    WriteStorage<'a, LineStyle>,
-    WriteStorage<'a, Selected>,
+    ReadStorage<'a, SymbolicLine>,
   );
 
   fn run(&mut self, (
-    entities,
     tool_state,
     dependency_graph,
     mut create_line_data,
     mut last_active_point_event,
-    mut sketch_events,
+    mut insert_event_channel,
     sym_points,
-    mut sym_lines,
-    mut styles,
-    mut selected,
+    sym_lines,
   ): Self::SystemData) {
 
     // First deal with tooling states
@@ -76,20 +69,11 @@ impl<'a> System<'a> for CreateLineSystem {
         if let Some(first_point_entity) = create_line_data.maybe_first_point {
 
           // Need to check first point is not second point
-          if first_point_entity != curr_point_entity &&
-            !on_same_line(first_point_entity, curr_point_entity, &dependency_graph, &sym_points, &sym_lines) {
-
+          if first_point_entity != curr_point_entity && !on_same_line(first_point_entity, curr_point_entity, &dependency_graph, &sym_points, &sym_lines) {
             let sym_line = SymbolicLine::TwoPoints(first_point_entity, curr_point_entity);
-            let line_style = LineStyle { color: Color::blue(), width: 2. };
-
-            // Create a new point from `first_point_entity` to `curr_entity`
-            let entity = entities.create();
-            if let Err(err) = sym_lines.insert(entity, sym_line) { panic!(err) }
-            if let Err(err) = styles.insert(entity, line_style) { panic!(err) }
-            if let Err(err) = selected.insert(entity, Selected) { panic!(err) }
 
             // Push event to created lines
-            sketch_events.single_write(SketchEvent::Insert(entity, Geometry::Line(sym_line)));
+            insert_event_channel.single_write(InsertEvent::Line(sym_line));
 
             // Reset the maybe first point
             create_line_data.maybe_first_point = None;
@@ -112,7 +96,7 @@ fn on_same_line<'a>(
   p2: Entity,
   dependency_graph: &DependencyGraph,
   sym_points: &ReadStorage<'a, SymbolicPoint>,
-  sym_lines: &WriteStorage<'a, SymbolicLine>,
+  sym_lines: &ReadStorage<'a, SymbolicLine>,
 ) -> bool {
   if let Some(sp1) = sym_points.get(p1) {
     if let Some(sp2) = sym_points.get(p2) {
