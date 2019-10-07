@@ -15,3 +15,6 @@ pub use sketch_event::*;
 
 mod mouse_event;
 pub use mouse_event::*;
+
+mod insert_event;
+pub use insert_event::*;

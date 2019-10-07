@@ -60,11 +60,14 @@ fn main() {
 
     // Create geometry systems
     .with(geometry_systems::SeldeHandler::default(), "selde_handler", &["selde_all_handler"])
+    .with(interactions::CreateParallelLineViaKeyboard, "create_parallel_line_via_keyboard", &["selde_handler"])
     .with(geometry_systems::RemoveHandler::default(), "geometry_remove_handler", &["remove_selected_handler"])
     .with(geometry_systems::MovePointHandler::default(), "move_point_handler", &["move_point_via_drag"])
     .with(geometry_systems::CreatePointSystem::default(), "create_point_system", &["snap_point_system"])
     .with(geometry_systems::CreateLineSystem::default(), "create_line_system", &["create_point_system"])
-    .with(interactions::CreateParallelLineViaKeyboard, "create_parallel_line_via_keyboard", &["selde_handler"])
+
+    // Insert systems
+    .with(geometry_systems::InsertLineSystem::default(), "insert_line_system", &["create_parallel_line_via_keyboard"])
 
     // Renderers
     .with(geometry_renderers::SnapPointRenderer::default(), "snap_point_renderer", &["snap_point_system"])

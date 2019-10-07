@@ -1,5 +1,6 @@
 pub mod events;
 pub mod geometry;
+pub mod styles;
 
 mod delta_time;
 mod viewport;
