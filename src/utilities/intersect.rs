@@ -85,20 +85,22 @@ pub enum CircleLineIntersect {
   None,
 }
 
+pub static CIRCLE_LINE_ITSCT_THRESHOLD : f64 = 1e-5;
+
 impl Intersect<Line> for Circle {
   type Output = CircleLineIntersect;
 
   fn intersect(self, line: Line) -> Self::Output {
     let proj = self.center.project(line);
     let dist = (proj - self.center).magnitude();
-    if dist < self.radius {
+    if dist < self.radius - CIRCLE_LINE_ITSCT_THRESHOLD {
       let da = (self.radius * self.radius - dist * dist).sqrt();
       let t_proj = (proj - line.origin).dot(line.direction);
       CircleLineIntersect::TwoPoints(
         line.origin + line.direction * (t_proj - da),
         line.origin + line.direction * (t_proj + da),
       )
-    } else if dist == self.radius {
+    } else if (dist - self.radius).abs() < CIRCLE_LINE_ITSCT_THRESHOLD {
       CircleLineIntersect::OnePoint(proj)
     } else {
       CircleLineIntersect::None
