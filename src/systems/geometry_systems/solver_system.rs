@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use specs::prelude::*;
 use crate::{
   utilities::{Vector2, Intersect, CircleLineIntersect},
@@ -12,6 +13,16 @@ enum ToCompute {
   Point(Entity),
   Line(Entity),
   Circle(Entity),
+}
+
+impl ToCompute {
+  fn get_entity(&self) -> &Entity {
+    match self {
+      ToCompute::Point(e) => e,
+      ToCompute::Line(e) => e,
+      ToCompute::Circle(e) => e,
+    }
+  }
 }
 
 enum SolveResult {
@@ -242,6 +253,7 @@ impl<'a> System<'a> for SolverSystem {
     mut circles,
   ): Self::SystemData) {
     let mut stack = vec![];
+    let mut cannot_compute = HashSet::new();
 
     // Note: There are two crucial parts:
     //  1. Determine which entities to compute
@@ -326,13 +338,17 @@ impl<'a> System<'a> for SolverSystem {
       };
       match result {
         SolveResult::AlreadyComputed => (),
-        SolveResult::Undefined => (),
+        SolveResult::Undefined => {
+          cannot_compute.insert(ent);
+        },
         SolveResult::SolvedLine(l) => insert_line(&mut lines, ent, l),
         SolveResult::SolvedPoint(p) => insert_point(&mut points, ent, p),
         SolveResult::SolvedCircle(c) => insert_circle(&mut circles, ent, c),
         SolveResult::Request(req) => {
-          stack.push(to_comp);
-          stack.push(req);
+          if !cannot_compute.contains(req.get_entity()) {
+            stack.push(to_comp);
+            stack.push(req);
+          }
         },
       }
     }
