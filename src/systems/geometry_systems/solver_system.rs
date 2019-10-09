@@ -1,7 +1,7 @@
 use specs::prelude::*;
 use crate::{
-  utilities::{Vector2, Intersect},
-  components::{SymbolicPoint, Point, SymbolicLine, Line, SymbolicCircle, Circle},
+  utilities::{Vector2, Intersect, Project},
+  components::{SymbolicPoint, Point, SymbolicLine, Line, SymbolicCircle, Circle, CircleLineIntersectionType},
   resources::{
     DependencyGraph,
     events::{SketchEvent, SketchEventChannel, SketchEventReader, SketchGeometry},
@@ -88,6 +88,30 @@ fn solve_point<'a>(
           Some(circ) => {
             let pos = circ.center + vec2![theta.cos() * circ.radius, theta.sin() * circ.radius];
             SolveResult::SolvedPoint(pos)
+          },
+          None => SolveResult::Request(ToCompute::Circle(*circ_ent)),
+        },
+
+        //
+        SymbolicPoint::CircleLineIntersect(circ_ent, line_ent, ty) => match circles.get(*circ_ent) {
+          Some(c) => match lines.get(*line_ent) {
+            Some(l) => {
+              let proj_cent = c.center.project(*l);
+              let dist = (proj_cent - c.center).magnitude();
+              if dist < c.radius {
+                let t_proj_cent = (proj_cent - l.origin).dot(l.direction);
+                let da = (c.radius * c.radius - dist * dist).sqrt();
+                match ty {
+                  CircleLineIntersectionType::First => SolveResult::SolvedPoint(l.origin + l.direction * (t_proj_cent - da)),
+                  CircleLineIntersectionType::Second => SolveResult::SolvedPoint(l.origin + l.direction * (t_proj_cent + da)),
+                }
+              } else if dist == c.radius {
+                SolveResult::SolvedPoint(proj_cent)
+              } else {
+                SolveResult::Undefined
+              }
+            },
+            None => SolveResult::Request(ToCompute::Line(*line_ent)),
           },
           None => SolveResult::Request(ToCompute::Circle(*circ_ent)),
         }

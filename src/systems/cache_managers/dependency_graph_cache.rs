@@ -38,6 +38,10 @@ fn add_point(dependency_graph: &mut DependencyGraph, ent: &Entity, sym_point: &S
     SymbolicPoint::OnCircle(circ_ent, _) => {
       dependency_graph.add(circ_ent, ent);
     },
+    SymbolicPoint::CircleLineIntersect(circ_ent, line_ent, _) => {
+      dependency_graph.add(circ_ent, ent);
+      dependency_graph.add(line_ent, ent);
+    },
   }
 }
 

@@ -70,7 +70,8 @@ impl<'a> System<'a> for CreatePointViaMouse {
               let symbolic_point = match symbo {
                 SnapPointType::NotSnapped => Some(SymbolicPoint::Free(position)),
                 SnapPointType::SnapOnLine(line_ent, t) => Some(SymbolicPoint::OnLine(line_ent, t)),
-                SnapPointType::SnapOnIntersection(l1_ent, l2_ent) => Some(SymbolicPoint::LineLineIntersect(l1_ent, l2_ent)),
+                SnapPointType::SnapOnLineLineIntersection(l1_ent, l2_ent) => Some(SymbolicPoint::LineLineIntersect(l1_ent, l2_ent)),
+                SnapPointType::SnapOnCircleLineIntersection(c_ent, l_ent, ty) => Some(SymbolicPoint::CircleLineIntersect(c_ent, l_ent, ty)),
                 SnapPointType::SnapOnCircle(circ_ent, theta) => Some(SymbolicPoint::OnCircle(circ_ent, theta)),
                 SnapPointType::SnapOnPoint(entity) => {
 

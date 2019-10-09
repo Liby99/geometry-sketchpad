@@ -1,14 +1,14 @@
-use super::{Vector2, Line, Circle, AABB};
+use super::{Vector2, Line, Circle, AABB, Project};
 
 pub trait Intersect<T> {
   type Output;
-  fn intersect(self, other: T) -> Option<Self::Output>;
+  fn intersect(self, other: T) -> Self::Output;
 }
 
 impl Intersect<Line> for Line {
-  type Output = Vector2;
+  type Output = Option<Vector2>;
 
-  fn intersect(self, other: Self) -> Option<Self::Output> {
+  fn intersect(self, other: Self) -> Self::Output {
     let det = self.direction.x * other.direction.y - self.direction.y * other.direction.x;
     if det == 0. {
       None
@@ -27,9 +27,9 @@ impl Intersect<Line> for Line {
 }
 
 impl Intersect<AABB> for Line {
-  type Output = (Vector2, Vector2);
+  type Output = Option<(Vector2, Vector2)>;
 
-  fn intersect(self, AABB { x: x_min, y: y_min, width, height }: AABB) -> Option<Self::Output> {
+  fn intersect(self, AABB { x: x_min, y: y_min, width, height }: AABB) -> Self::Output {
     let x_max = x_min + width;
     let y_max = y_min + height;
     let Line { origin: Vector2 { x: ox, y: oy }, direction: Vector2 { x: dx, y: dy } } = self;
@@ -70,11 +70,46 @@ impl Intersect<AABB> for Line {
 }
 
 impl Intersect<AABB> for Circle {
-  type Output = ();
+  type Output = Option<()>;
 
-  fn intersect(self, aabb: AABB) -> Option<()> {
+  fn intersect(self, aabb: AABB) -> Self::Output {
     let closest_dist = (aabb.get_closest_point_to(self.center) - self.center).magnitude();
     let furthest_dist = (aabb.get_furthest_point_to(self.center) - self.center).magnitude();
     if closest_dist <= self.radius && self.radius <= furthest_dist { Some(()) } else { None }
+  }
+}
+
+pub enum CircleLineIntersect {
+  TwoPoints(Vector2, Vector2),
+  OnePoint(Vector2),
+  None,
+}
+
+impl Intersect<Line> for Circle {
+  type Output = CircleLineIntersect;
+
+  fn intersect(self, line: Line) -> Self::Output {
+    let proj = self.center.project(line);
+    let dist = (proj - self.center).magnitude();
+    if dist < self.radius {
+      let da = (self.radius * self.radius - dist * dist).sqrt();
+      let t_proj = (proj - line.origin).dot(line.direction);
+      CircleLineIntersect::TwoPoints(
+        line.origin + line.direction * (t_proj - da),
+        line.origin + line.direction * (t_proj + da),
+      )
+    } else if dist == self.radius {
+      CircleLineIntersect::OnePoint(proj)
+    } else {
+      CircleLineIntersect::None
+    }
+  }
+}
+
+impl Intersect<Circle> for Line {
+  type Output = CircleLineIntersect;
+
+  fn intersect(self, circle: Circle) -> Self::Output {
+    circle.intersect(self)
   }
 }

@@ -1,4 +1,5 @@
 use specs::prelude::*;
+use crate::components::CircleLineIntersectionType;
 use crate::utilities::Vector2;
 
 pub struct MaybeSnapPoint(Option<SnapPoint>);
@@ -33,7 +34,8 @@ pub struct SnapPoint {
 pub enum SnapPointType {
   SnapOnPoint(Entity),
   SnapOnLine(Entity, f64), // f64 is t
-  SnapOnIntersection(Entity, Entity),
   SnapOnCircle(Entity, f64), // f64 is theta
+  SnapOnLineLineIntersection(Entity, Entity), // Line Line
+  SnapOnCircleLineIntersection(Entity, Entity, CircleLineIntersectionType),
   NotSnapped,
 }
