@@ -8,7 +8,7 @@ use crate::{
       SketchEvent, SketchEventChannel, SketchGeometry,
     },
   },
-  components::{SymbolicLine, SymbolicPoint, PointStyle, LineStyle, Selected},
+  components::{SymbolicLine, SymbolicPoint, SymbolicCircle, PointStyle, LineStyle, CircleStyle, Selected},
 };
 
 pub struct RemoveSelectedHandler {
@@ -31,6 +31,8 @@ impl<'a> System<'a> for RemoveSelectedHandler {
     ReadStorage<'a, PointStyle>,
     ReadStorage<'a, SymbolicLine>,
     ReadStorage<'a, LineStyle>,
+    ReadStorage<'a, SymbolicCircle>,
+    ReadStorage<'a, CircleStyle>,
     ReadStorage<'a, Selected>,
   );
 
@@ -48,6 +50,8 @@ impl<'a> System<'a> for RemoveSelectedHandler {
     point_styles,
     sym_lines,
     line_styles,
+    sym_circles,
+    circle_styles,
     selected,
   ): Self::SystemData) {
     if let Some(reader_id) = &mut self.geometry_action_reader {
@@ -78,6 +82,12 @@ impl<'a> System<'a> for RemoveSelectedHandler {
                   sketch_events.single_write(SketchEvent::remove(entity, SketchGeometry::Line(*sym_ln, *ln_sty)));
                 } else {
                   panic!("[remove_selected_handler] Cannot find line style for line entity {:?}", entity);
+                }
+              } else if let Some(sym_cr) = sym_circles.get(entity) {
+                if let Some(cr_sty) = circle_styles.get(entity) {
+                  sketch_events.single_write(SketchEvent::remove(entity, SketchGeometry::Circle(*sym_cr, *cr_sty)));
+                } else {
+                  panic!("[remove_selected_handler] Cannot find line style for circle entity {:?}", entity);
                 }
               }
             }
