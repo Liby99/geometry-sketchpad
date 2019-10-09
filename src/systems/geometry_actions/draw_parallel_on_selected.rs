@@ -97,7 +97,8 @@ fn is_on_line(p_ent: &Entity, sym_point: &SymbolicPoint, line_ent: &Entity, depe
       if *l == *line_ent {
         return true;
       }
-    }
+    },
+    SymbolicPoint::CircleCircleIntersect(_, _, _) => (),
   }
   if let Some(dependents) = dependency_graph.get_direct_dependents(p_ent) {
     return dependents.contains(line_ent);

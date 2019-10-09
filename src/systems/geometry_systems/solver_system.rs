@@ -1,8 +1,8 @@
 use std::collections::HashSet;
 use specs::prelude::*;
 use crate::{
-  utilities::{Vector2, Intersect, CircleLineIntersect},
-  components::{SymbolicPoint, Point, SymbolicLine, Line, SymbolicCircle, Circle, CircleLineIntersectionType},
+  utilities::{Vector2, Intersect, CircleIntersect},
+  components::{SymbolicPoint, Point, SymbolicLine, Line, SymbolicCircle, Circle, CircleIntersectionType},
   resources::{
     DependencyGraph,
     events::{SketchEvent, SketchEventChannel, SketchEventReader, SketchGeometry},
@@ -106,19 +106,32 @@ fn solve_point<'a>(
         //
         SymbolicPoint::CircleLineIntersect(circ_ent, line_ent, ty) => match circles.get(*circ_ent) {
           Some(c) => match lines.get(*line_ent) {
-            Some(l) => {
-              match c.intersect(*l) {
-                CircleLineIntersect::None => SolveResult::Undefined,
-                CircleLineIntersect::OnePoint(p) => SolveResult::SolvedPoint(p),
-                CircleLineIntersect::TwoPoints(p1, p2) => match ty {
-                  CircleLineIntersectionType::First => SolveResult::SolvedPoint(p1),
-                  CircleLineIntersectionType::Second => SolveResult::SolvedPoint(p2),
-                }
-              }
+            Some(l) => match c.intersect(*l) {
+              CircleIntersect::None => SolveResult::Undefined,
+              CircleIntersect::OnePoint(p) => SolveResult::SolvedPoint(p),
+              CircleIntersect::TwoPoints(p1, p2) => match ty {
+                CircleIntersectionType::First => SolveResult::SolvedPoint(p1),
+                CircleIntersectionType::Second => SolveResult::SolvedPoint(p2),
+              },
             },
             None => SolveResult::Request(ToCompute::Line(*line_ent)),
           },
           None => SolveResult::Request(ToCompute::Circle(*circ_ent)),
+        },
+
+        SymbolicPoint::CircleCircleIntersect(c1_ent, c2_ent, ty) => match circles.get(*c1_ent) {
+          Some(c1) => match circles.get(*c2_ent) {
+            Some(c2) => match c1.intersect(*c2) {
+              CircleIntersect::None => SolveResult::Undefined,
+              CircleIntersect::OnePoint(p) => SolveResult::SolvedPoint(p),
+              CircleIntersect::TwoPoints(p1, p2) => match ty {
+                CircleIntersectionType::First => SolveResult::SolvedPoint(p1),
+                CircleIntersectionType::Second => SolveResult::SolvedPoint(p2),
+              },
+            },
+            None => SolveResult::Request(ToCompute::Circle(*c2_ent)),
+          },
+          None => SolveResult::Request(ToCompute::Circle(*c1_ent)),
         }
       },
       None => panic!("[solver_system] Could not find to compute point"),

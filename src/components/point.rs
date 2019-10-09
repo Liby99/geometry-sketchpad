@@ -18,12 +18,12 @@ pub enum SymbolicPoint {
   OnLine(Entity, f64), // Point on a line, distance t from origin
   LineLineIntersect(Entity, Entity), // Should be two entities of lines
   OnCircle(Entity, f64), // Point on a circle, theta
-  CircleLineIntersect(Entity, Entity, CircleLineIntersectionType), // circle, line, Identifier, in terms of line, going in line direction
-  // CircleCircleIntersect(Entity, Entity, u8), // circle 1, circle 2, Identifier of the intersection
+  CircleLineIntersect(Entity, Entity, CircleIntersectionType), // circle, line, Identifier, in terms of line, going in line direction
+  CircleCircleIntersect(Entity, Entity, CircleIntersectionType), // circle 1, circle 2, Identifier of the intersection
 }
 
 #[derive(Debug, Copy, Clone)]
-pub enum CircleLineIntersectionType {
+pub enum CircleIntersectionType {
   First,
   Second,
 }

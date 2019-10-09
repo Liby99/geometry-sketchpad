@@ -79,39 +79,63 @@ impl Intersect<AABB> for Circle {
   }
 }
 
-pub enum CircleLineIntersect {
+pub enum CircleIntersect {
   TwoPoints(Vector2, Vector2),
   OnePoint(Vector2),
   None,
 }
 
-pub static CIRCLE_LINE_ITSCT_THRESHOLD : f64 = 1e-5;
+pub static CIRCLE_ITSCT_THRESHOLD : f64 = 1e-5;
 
 impl Intersect<Line> for Circle {
-  type Output = CircleLineIntersect;
+  type Output = CircleIntersect;
 
   fn intersect(self, line: Line) -> Self::Output {
     let proj = self.center.project(line);
     let dist = (proj - self.center).magnitude();
-    if dist < self.radius - CIRCLE_LINE_ITSCT_THRESHOLD {
+    if dist < self.radius - CIRCLE_ITSCT_THRESHOLD {
       let da = (self.radius * self.radius - dist * dist).sqrt();
       let t_proj = (proj - line.origin).dot(line.direction);
-      CircleLineIntersect::TwoPoints(
+      CircleIntersect::TwoPoints(
         line.origin + line.direction * (t_proj - da),
         line.origin + line.direction * (t_proj + da),
       )
-    } else if (dist - self.radius).abs() < CIRCLE_LINE_ITSCT_THRESHOLD {
-      CircleLineIntersect::OnePoint(proj)
+    } else if (dist - self.radius).abs() < CIRCLE_ITSCT_THRESHOLD {
+      CircleIntersect::OnePoint(proj)
     } else {
-      CircleLineIntersect::None
+      CircleIntersect::None
     }
   }
 }
 
 impl Intersect<Circle> for Line {
-  type Output = CircleLineIntersect;
+  type Output = CircleIntersect;
 
   fn intersect(self, circle: Circle) -> Self::Output {
     circle.intersect(self)
+  }
+}
+
+impl Intersect<Circle> for Circle {
+  type Output = CircleIntersect;
+
+  fn intersect(self, other: Circle) -> Self::Output {
+    let center_diff = other.center - self.center;
+    let d = center_diff.magnitude();
+    if d < self.radius + other.radius - CIRCLE_ITSCT_THRESHOLD {
+      let center_theta = center_diff.y.atan2(center_diff.x);
+      let d1 = (d * d - other.radius * other.radius + self.radius * self.radius) / (2.0 * d);
+      let theta = (d1 / self.radius).acos();
+      let theta_1 = center_theta - theta;
+      let theta_2 = center_theta + theta;
+      CircleIntersect::TwoPoints(
+        self.center + vec2![self.radius * theta_1.cos(), self.radius * theta_1.sin()],
+        self.center + vec2![self.radius * theta_2.cos(), self.radius * theta_2.sin()],
+      )
+    } else if d < self.radius + other.radius + CIRCLE_ITSCT_THRESHOLD {
+      CircleIntersect::OnePoint(self.center + center_diff * self.radius / (self.radius + other.radius))
+    } else {
+      CircleIntersect::None
+    }
   }
 }

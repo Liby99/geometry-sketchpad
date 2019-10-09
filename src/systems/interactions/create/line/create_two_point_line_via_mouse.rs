@@ -142,6 +142,7 @@ fn easy_check_is_on_same_line(sp1: &SymbolicPoint, sp2: &SymbolicPoint) -> bool 
       SymbolicPoint::LineLineIntersect(l1_ent, l2_ent) => line_ent == l1_ent || line_ent == l2_ent,
       SymbolicPoint::OnCircle(_, _) => false,
       SymbolicPoint::CircleLineIntersect(_, l_ent, _) => line_ent == l_ent,
+      SymbolicPoint::CircleCircleIntersect(_, _, _) => false,
     },
     SymbolicPoint::LineLineIntersect(l1_ent, l2_ent) => match sp2 {
       SymbolicPoint::Free(_) | SymbolicPoint::MidPoint(_, _) => false,
@@ -151,6 +152,7 @@ fn easy_check_is_on_same_line(sp1: &SymbolicPoint, sp2: &SymbolicPoint) -> bool 
       },
       SymbolicPoint::OnCircle(_, _) => false,
       SymbolicPoint::CircleLineIntersect(_, l_ent, _) => l1_ent == l_ent || l2_ent == l_ent,
+      SymbolicPoint::CircleCircleIntersect(_, _, _) => false,
     },
     SymbolicPoint::OnCircle(_, _) => false,
     SymbolicPoint::CircleLineIntersect(_, line_ent, _) => match sp2 {
@@ -159,7 +161,9 @@ fn easy_check_is_on_same_line(sp1: &SymbolicPoint, sp2: &SymbolicPoint) -> bool 
       SymbolicPoint::LineLineIntersect(l1_ent, l2_ent) => line_ent == l1_ent || line_ent == l2_ent,
       SymbolicPoint::OnCircle(_, _) => false,
       SymbolicPoint::CircleLineIntersect(_, l_ent, _) => line_ent == l_ent,
+      SymbolicPoint::CircleCircleIntersect(_, _, _) => false,
     },
+    SymbolicPoint::CircleCircleIntersect(_, _, _) => false,
   }
 }
 
@@ -170,5 +174,6 @@ fn check_parent_line_contained_by(sp: &SymbolicPoint, set: &HashSet<Entity>) -> 
     SymbolicPoint::LineLineIntersect(l1_ent, l2_ent) => set.contains(&l1_ent) || set.contains(&l2_ent),
     SymbolicPoint::OnCircle(_, _) => false,
     SymbolicPoint::CircleLineIntersect(_, l, _) => set.contains(&l),
+    SymbolicPoint::CircleCircleIntersect(_, _, _) => false,
   }
 }

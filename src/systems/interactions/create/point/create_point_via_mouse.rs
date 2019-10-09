@@ -71,8 +71,9 @@ impl<'a> System<'a> for CreatePointViaMouse {
                 SnapPointType::NotSnapped => Some(SymbolicPoint::Free(position)),
                 SnapPointType::SnapOnLine(line_ent, t) => Some(SymbolicPoint::OnLine(line_ent, t)),
                 SnapPointType::SnapOnLineLineIntersection(l1_ent, l2_ent) => Some(SymbolicPoint::LineLineIntersect(l1_ent, l2_ent)),
-                SnapPointType::SnapOnCircleLineIntersection(c_ent, l_ent, ty) => Some(SymbolicPoint::CircleLineIntersect(c_ent, l_ent, ty)),
                 SnapPointType::SnapOnCircle(circ_ent, theta) => Some(SymbolicPoint::OnCircle(circ_ent, theta)),
+                SnapPointType::SnapOnCircleLineIntersection(c_ent, l_ent, ty) => Some(SymbolicPoint::CircleLineIntersect(c_ent, l_ent, ty)),
+                SnapPointType::SnapOnCircleCircleIntersection(c1_ent, c2_ent, ty) => Some(SymbolicPoint::CircleCircleIntersect(c1_ent, c2_ent, ty)),
                 SnapPointType::SnapOnPoint(entity) => {
 
                   // If clicked on the snapped point, mark this point as last active

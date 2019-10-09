@@ -9,8 +9,8 @@ use crate::{
     ViewportTransform,
     geometry::{MaybeSnapPoint, SnapPoint, SnapPointType},
   },
-  components::{Point, Line, Circle, CircleLineIntersectionType},
-  utilities::{Vector2, Intersect, Project, CircleLineIntersect},
+  components::{Point, Line, Circle, CircleIntersectionType},
+  utilities::{Vector2, Intersect, Project, CircleIntersect},
 };
 
 // In actual space
@@ -167,14 +167,14 @@ impl<'a> System<'a> for SnapPointSystem {
           if !has_line_line_itsct {
             let mut has_circle_line_itsct = false;
 
-            for ((line_ent, line), (circle_ent, circle)) in closest_lines.into_iter().cartesian_product(closest_circles) {
-              match line.intersect(circle) {
-                CircleLineIntersect::TwoPoints(p1, p2) => {
+            for ((line_ent, line), (circle_ent, circle)) in closest_lines.iter().cartesian_product(&closest_circles) {
+              match line.intersect(*circle) {
+                CircleIntersect::TwoPoints(p1, p2) => {
                   let (dist_1, dist_2) = ((p1 - virtual_mouse_pos).magnitude(), (p2 - virtual_mouse_pos).magnitude());
                   let (ty, p) = if dist_1 < dist_2 {
-                    (CircleLineIntersectionType::First, p1)
+                    (CircleIntersectionType::First, p1)
                   } else {
-                    (CircleLineIntersectionType::Second, p2)
+                    (CircleIntersectionType::Second, p2)
                   };
                   let actual = p.to_actual(&*vp);
                   let norm_dist = (mouse_pos - actual).magnitude() / SNAP_TO_INTERSECTION_THRES;
@@ -183,13 +183,13 @@ impl<'a> System<'a> for SnapPointSystem {
                       maybe_smallest_dist = Some(norm_dist);
                       maybe_snap_point.set(SnapPoint {
                         position: p,
-                        symbo: SnapPointType::SnapOnCircleLineIntersection(circle_ent, line_ent, ty),
+                        symbo: SnapPointType::SnapOnCircleLineIntersection(*circle_ent, *line_ent, ty),
                       });
                       has_circle_line_itsct = true;
                     }
                   }
                 },
-                CircleLineIntersect::OnePoint(p) => {
+                CircleIntersect::OnePoint(p) => {
                   let actual = p.to_actual(&*vp);
                   let norm_dist = (mouse_pos - actual).magnitude() / SNAP_TO_INTERSECTION_THRES;
                   if norm_dist < 1.0 {
@@ -198,18 +198,57 @@ impl<'a> System<'a> for SnapPointSystem {
 
                       maybe_snap_point.set(SnapPoint {
                         position: p,
-                        symbo: SnapPointType::SnapOnCircleLineIntersection(circle_ent, line_ent, CircleLineIntersectionType::First),
+                        symbo: SnapPointType::SnapOnCircleLineIntersection(*circle_ent, *line_ent, CircleIntersectionType::First),
                       });
                       has_circle_line_itsct = true;
                     }
                   }
                 },
-                CircleLineIntersect::None => ()
+                CircleIntersect::None => ()
               }
             }
 
             if !has_circle_line_itsct {
-              // TODO
+              for comb in closest_circles.iter().combinations(2) {
+                if let &[(c1_ent, c1), (c2_ent, c2)] = &*comb {
+                  match c1.intersect(*c2) {
+                    CircleIntersect::TwoPoints(p1, p2) => {
+                      let (dist_1, dist_2) = ((p1 - virtual_mouse_pos).magnitude(), (p2 - virtual_mouse_pos).magnitude());
+                      let (ty, p) = if dist_1 < dist_2 {
+                        (CircleIntersectionType::First, p1)
+                      } else {
+                        (CircleIntersectionType::Second, p2)
+                      };
+                      let actual = p.to_actual(&*vp);
+                      let norm_dist = (mouse_pos - actual).magnitude() / SNAP_TO_INTERSECTION_THRES;
+                      if norm_dist < 1.0 {
+                        if maybe_smallest_dist.is_none() || norm_dist < maybe_smallest_dist.unwrap() {
+                          maybe_smallest_dist = Some(norm_dist);
+                          maybe_snap_point.set(SnapPoint {
+                            position: p,
+                            symbo: SnapPointType::SnapOnCircleCircleIntersection(*c1_ent, *c2_ent, ty),
+                          });
+                        }
+                      }
+                    },
+                    CircleIntersect::OnePoint(p) => {
+                      let actual = p.to_actual(&*vp);
+                      let norm_dist = (mouse_pos - actual).magnitude() / SNAP_TO_INTERSECTION_THRES;
+                      if norm_dist < 1.0 {
+                        if maybe_smallest_dist.is_none() || norm_dist < maybe_smallest_dist.unwrap() {
+                          maybe_smallest_dist = Some(norm_dist);
+
+                          maybe_snap_point.set(SnapPoint {
+                            position: p,
+                            symbo: SnapPointType::SnapOnCircleCircleIntersection(*c1_ent, *c2_ent, CircleIntersectionType::First),
+                          });
+                        }
+                      }
+                    },
+                    CircleIntersect::None => ()
+                  }
+                }
+              }
             }
           }
         }
