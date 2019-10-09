@@ -9,13 +9,15 @@ use crate::{
     ViewportTransform,
     geometry::{MaybeSnapPoint, SnapPoint, SnapPointType},
   },
-  components::{Point, Line},
-  utilities::{Vector2, Intersect},
+  components::{Point, Line, Circle},
+  utilities::{Vector2, Intersect, Project},
 };
 
-static SNAP_TO_POINT_THRES : f64 = 12.0; // In actual space
-static SNAP_TO_LINE_THRES : f64 = 6.0; // In actual space
-static SNAP_TO_INTERSECTION_THRES : f64 = 15.0; // In actual space
+// In actual space
+static SNAP_TO_POINT_THRES : f64 = 12.0;
+static SNAP_TO_LINE_THRES : f64 = 8.0;
+static SNAP_TO_CIRCLE_THRES : f64 = 8.0;
+static SNAP_TO_INTERSECTION_THRES : f64 = 15.0;
 
 pub struct SnapPointSystem;
 
@@ -28,6 +30,7 @@ impl<'a> System<'a> for SnapPointSystem {
     Write<'a, MaybeSnapPoint>,
     ReadStorage<'a, Point>,
     ReadStorage<'a, Line>,
+    ReadStorage<'a, Circle>,
   );
 
   fn run(&mut self, (
@@ -38,6 +41,7 @@ impl<'a> System<'a> for SnapPointSystem {
     mut maybe_snap_point,
     points,
     lines,
+    circles,
   ): Self::SystemData) {
     if tool_state.depend_on_active_point() {
 
@@ -56,10 +60,13 @@ impl<'a> System<'a> for SnapPointSystem {
       if let Some(neighbor_entities) = maybe_neighbors {
 
         let mut closest_lines : Vec<(Entity, Line)> = vec![];
-        let mut maybe_smallest_dist_to_line : Option<f64> = None;
-        let mut maybe_snap_point_on_line = None;
+        let mut closest_circles : Vec<(Entity, Circle)> = vec![];
         let mut maybe_smallest_dist_to_point : Option<f64> = None;
         let mut maybe_snap_point_on_point = None;
+        let mut maybe_smallest_dist_to_line : Option<f64> = None;
+        let mut maybe_snap_point_on_line = None;
+        let mut maybe_smallest_dist_to_circle : Option<f64> = None;
+        let mut maybe_snap_point_on_circle = None;
         let mut is_snapping_to_point = false;
 
         // Loop through all the neighbor entities
@@ -100,11 +107,31 @@ impl<'a> System<'a> for SnapPointSystem {
                 });
               }
             }
+          } else if let Some(c) = circles.get(entity) {
+            let actual_circle = c.to_actual(&*vp);
+            let actual_proj_point = actual_circle.center + (mouse_pos - actual_circle.center).normalized() * actual_circle.radius;
+            let dist = (actual_proj_point - mouse_pos).magnitude();
+            if dist <= SNAP_TO_CIRCLE_THRES {
+              closest_circles.push((entity, *c));
+            }
+            let norm_dist = dist / SNAP_TO_CIRCLE_THRES;
+            if norm_dist < 1.0 && !is_snapping_to_point {
+              let virtual_proj_point = actual_proj_point.to_virtual(&*vp);
+              let p_to_cen = virtual_proj_point - c.center;
+              let theta = p_to_cen.y.atan2(p_to_cen.x);
+              if maybe_smallest_dist_to_circle.is_none() || norm_dist < maybe_smallest_dist_to_circle.unwrap() {
+                maybe_smallest_dist_to_circle = Some(norm_dist);
+                maybe_snap_point_on_circle = Some(SnapPoint {
+                  position: virtual_proj_point,
+                  symbo: SnapPointType::SnapOnCircle(entity, theta),
+                });
+              }
+            }
           }
         }
 
         // Weight snap on point higher than snap on line
-        if let Some(snap_point) = maybe_snap_point_on_point.or(maybe_snap_point_on_line) {
+        if let Some(snap_point) = maybe_snap_point_on_point.or(maybe_snap_point_on_line).or(maybe_snap_point_on_circle) {
           maybe_snap_point.set(snap_point)
         }
 

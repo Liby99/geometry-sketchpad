@@ -1,5 +1,6 @@
 use specs::prelude::*;
 use crate::{
+  utilities::Project,
   resources::{
     Tool,
     InputState,
@@ -115,7 +116,16 @@ impl<'a> System<'a> for MovePointViaDrag {
                       let diff = projected_position - line.origin;
                       let sign = diff.dot(line.direction).signum();
                       let new_t = sign * diff.magnitude();
-                      sketch_event_channel.single_write(SketchEvent::MovePoint(ent, MovePoint::OnLine(line_entity, old_t, new_t)))
+                      sketch_event_channel.single_write(SketchEvent::MovePoint(ent, MovePoint::OnLine(line_entity, old_t, new_t)));
+                    }
+                  },
+                  SymbolicPoint::OnCircle(circ_entity, old_theta) => {
+                    if let Some(circle) = circles.get(circ_entity) {
+                      let virtual_mouse_position = curr_position.to_virtual(&viewport);
+                      let projected_position = virtual_mouse_position.project(*circle);
+                      let p_to_cen = projected_position - circle.center;
+                      let new_theta = p_to_cen.y.atan2(p_to_cen.x);
+                      sketch_event_channel.single_write(SketchEvent::MovePoint(ent, MovePoint::OnCircle(circ_entity, old_theta, new_theta)));
                     }
                   },
                   _ => (),

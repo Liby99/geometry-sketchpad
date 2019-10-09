@@ -39,6 +39,7 @@ fn solve_point<'a>(
   sym_points: &ReadStorage<'a, SymbolicPoint>,
   points: &mut WriteStorage<'a, Point>,
   lines: &mut WriteStorage<'a, Line>,
+  circles: &mut WriteStorage<'a, Circle>,
   ent: Entity,
 ) -> SolveResult {
 
@@ -81,6 +82,15 @@ fn solve_point<'a>(
           },
           None => SolveResult::Request(ToCompute::Line(*l1_ent)),
         },
+
+        // We demand circle to be drawn first
+        SymbolicPoint::OnCircle(circ_ent, theta) => match circles.get(*circ_ent) {
+          Some(circ) => {
+            let pos = circ.center + vec2![theta.cos() * circ.radius, theta.sin() * circ.radius];
+            SolveResult::SolvedPoint(pos)
+          },
+          None => SolveResult::Request(ToCompute::Circle(*circ_ent)),
+        }
       },
       None => panic!("[solver_system] Could not find to compute point"),
     },
@@ -292,7 +302,7 @@ impl<'a> System<'a> for SolverSystem {
     while !stack.is_empty() {
       let to_comp = stack.pop().unwrap();
       let (ent, result) = match to_comp {
-        ToCompute::Point(ent) => (ent, solve_point(&sym_points, &mut points, &mut lines, ent)),
+        ToCompute::Point(ent) => (ent, solve_point(&sym_points, &mut points, &mut lines, &mut circles, ent)),
         ToCompute::Line(ent) => (ent, solve_line(&sym_lines, &mut points, &mut lines, ent)),
         ToCompute::Circle(ent) => (ent, solve_circle(&sym_circles, &mut points, &mut circles, ent)),
       };

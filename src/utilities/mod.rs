@@ -2,6 +2,7 @@
 mod line;
 mod aabb;
 mod intersect;
+mod project;
 mod color;
 mod key;
 mod circle;
@@ -13,3 +14,4 @@ pub use aabb::AABB;
 pub use intersect::Intersect;
 pub use color::Color;
 pub use key::*;
+pub use project::*;

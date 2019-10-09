@@ -1,6 +1,6 @@
 use specs::prelude::*;
 use crate::{
-  utilities::Vector2,
+  utilities::{Vector2, Project},
   resources::{Viewport, ViewportTransform, SpatialHashTable},
   components::{Point, Line, Circle},
 };
@@ -50,5 +50,5 @@ pub fn hitting_object<'a>(
   }
 
   // Return point in priority to line
-  maybe_selected_point.or(maybe_selected_line).map(|(ent, _)| ent)
+  maybe_selected_point.or(maybe_selected_line).or(maybe_selected_circle).map(|(ent, _)| ent)
 }

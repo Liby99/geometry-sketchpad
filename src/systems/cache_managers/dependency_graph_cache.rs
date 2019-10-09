@@ -35,6 +35,9 @@ fn add_point(dependency_graph: &mut DependencyGraph, ent: &Entity, sym_point: &S
       dependency_graph.add(l1_ent, ent);
       dependency_graph.add(l2_ent, ent);
     },
+    SymbolicPoint::OnCircle(circ_ent, _) => {
+      dependency_graph.add(circ_ent, ent);
+    },
   }
 }
 

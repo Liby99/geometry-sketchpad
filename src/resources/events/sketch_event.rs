@@ -41,6 +41,7 @@ pub enum SketchGeometry {
 pub enum MovePoint {
   Free(Vector2, Vector2), // old_position, new_position
   OnLine(Entity, f64, f64), // line_entity, old_t, new_t
+  OnCircle(Entity, f64, f64), // circle_entity, old_theta, new_theta
 }
 
 pub type SketchEventChannel = EventChannel<SketchEvent>;

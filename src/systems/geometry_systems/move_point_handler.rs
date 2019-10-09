@@ -37,6 +37,9 @@ impl<'a> System<'a> for MovePointHandler {
               MovePoint::OnLine(line_entity, _, new_t) => {
                 if let Err(err) = sym_points.insert(*entity, SymbolicPoint::OnLine(*line_entity, *new_t)) { panic!(err) }
               },
+              MovePoint::OnCircle(circ_entity, _, new_theta) => {
+                if let Err(err) = sym_points.insert(*entity, SymbolicPoint::OnCircle(*circ_entity, *new_theta)) { panic!(err) }
+              },
             }
           },
           _ => (),
