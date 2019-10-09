@@ -46,11 +46,11 @@ impl<'a> System<'a> for CreateCircleRenderer {
       ent
     };
 
+    // Do caching
+    let mut need_render = false;
+
     // Check if it is circle tool
     if tool_state.get() == Tool::Circle {
-
-      // Do caching
-      let mut need_render = false;
 
       // Then check if we have the first point
       if let Some(first_point_entity) = create_line_data.maybe_first_point {
@@ -69,11 +69,11 @@ impl<'a> System<'a> for CreateCircleRenderer {
           }
         }
       }
+    }
 
-      if !need_render {
-        circles.remove(ent);
-        styles.remove(ent);
-      }
+    if !need_render {
+      circles.remove(ent);
+      styles.remove(ent);
     }
   }
 }

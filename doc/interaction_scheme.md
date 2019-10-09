@@ -12,6 +12,7 @@
 | `V` | Change to viewport drag mode | Drag to move the viewport around |
 | `P` | Change to draw point mode | Click on empty space to draw a free point, click on a place close to a line or intersection to draw the point on line or on the intersection |
 | `L` | Change to draw line mode | Based on draw point mode, click once to set the first point of line, click the second time to set the second point, and a line will be drawn. When you want to abort the line creation after placing the first point, press `Escape` |
+| `C` | Change to draw circle mode | Based on draw point mode, click once to set the center of circle, click the second time to set a point on the circle. |
 
 ## Hot Keys
 
