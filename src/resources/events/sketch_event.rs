@@ -2,7 +2,7 @@ use specs::prelude::*;
 use shrev::{EventChannel, ReaderId};
 use crate::{
   utilities::Vector2,
-  components::{SymbolicLine, SymbolicPoint, LineStyle, PointStyle},
+  components::{SymbolicLine, SymbolicPoint, SymbolicCircle, LineStyle, PointStyle, CircleStyle},
 };
 
 pub enum SketchEvent {
@@ -35,6 +35,7 @@ impl SketchEvent {
 pub enum SketchGeometry {
   Point(SymbolicPoint, PointStyle),
   Line(SymbolicLine, LineStyle),
+  Circle(SymbolicCircle, CircleStyle),
 }
 
 pub enum MovePoint {

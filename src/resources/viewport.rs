@@ -1,4 +1,4 @@
-use crate::utilities::{Vector2, Line, AABB};
+use crate::utilities::{Vector2, Line, Circle, AABB};
 
 pub static WINDOW_SIZE : [f64; 2] = [960., 720.];
 
@@ -105,6 +105,18 @@ pub trait ViewportTransform {
   fn to_virtual(&self, vp: &Viewport) -> Self::Output;
 }
 
+impl ViewportTransform for f64 {
+  type Output = Self;
+
+  fn to_actual(&self, vp: &Viewport) -> Self::Output {
+    self / vp.scale()
+  }
+
+  fn to_virtual(&self, vp: &Viewport) -> Self::Output {
+    self * vp.scale()
+  }
+}
+
 impl ViewportTransform for Vector2 {
   type Output = Self;
 
@@ -134,6 +146,24 @@ impl ViewportTransform for Line {
   fn to_virtual(&self, vp: &Viewport) -> Self::Output {
     let Line { origin, direction: Vector2 { x: dx, y: dy} } = self;
     Line { origin: origin.to_virtual(vp), direction: vec2![*dx, -dy] }
+  }
+}
+
+impl ViewportTransform for Circle {
+  type Output = Self;
+
+  fn to_actual(&self, vp: &Viewport) -> Self::Output {
+    Self::Output {
+      center: self.center.to_actual(vp),
+      radius: self.radius.to_actual(vp),
+    }
+  }
+
+  fn to_virtual(&self, vp: &Viewport) -> Self::Output {
+    Self::Output {
+      center: self.center.to_virtual(vp),
+      radius: self.radius.to_virtual(vp),
+    }
   }
 }
 

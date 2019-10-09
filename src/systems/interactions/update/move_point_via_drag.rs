@@ -11,7 +11,7 @@ use crate::{
       MouseEvent, MouseEventChannel, MouseEventReader,
     },
   },
-  components::{SymbolicPoint, Point, Line},
+  components::{SymbolicPoint, Point, Line, Circle},
 };
 use super::super::helpers::hitting_object;
 
@@ -44,6 +44,7 @@ impl<'a> System<'a> for MovePointViaDrag {
     ReadStorage<'a, SymbolicPoint>,
     ReadStorage<'a, Point>,
     ReadStorage<'a, Line>,
+    ReadStorage<'a, Circle>,
   );
 
   fn setup(&mut self, world: &mut World) {
@@ -62,6 +63,7 @@ impl<'a> System<'a> for MovePointViaDrag {
     sym_points,
     points,
     lines,
+    circles,
   ): Self::SystemData) {
 
     // First use tool change to setup mouse event reader.
@@ -88,7 +90,7 @@ impl<'a> System<'a> for MovePointViaDrag {
         match event {
           MouseEvent::DragBegin(start_position) => {
             if !input_state.keyboard.is_shift_activated() {
-              if let Some(entity) = hitting_object(*start_position, &viewport, &spatial_table, &points, &lines, SELECT_DIST_THRES) {
+              if let Some(entity) = hitting_object(*start_position, &viewport, &spatial_table, &points, &lines, &circles, SELECT_DIST_THRES) {
                 if let Some(sym_point) = sym_points.get(entity) {
                   self.dragging_point = Some((entity, *sym_point));
 

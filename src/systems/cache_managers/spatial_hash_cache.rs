@@ -9,7 +9,7 @@ use crate::{
       SketchGeometry, SketchEvent, SketchEventChannel, SketchEventReader
     },
   },
-  components::{SymbolicLine, Line, SymbolicPoint, Point},
+  components::{SymbolicPoint, Point, SymbolicLine, Line, SymbolicCircle, Circle},
 };
 
 pub struct SpatialHashCache {
@@ -47,10 +47,12 @@ impl<'a> System<'a> for SpatialHashCache {
     Read<'a, SketchEventChannel>,
     Read<'a, DependencyGraph>,
     Write<'a, SpatialHashTable<Entity>>,
-    ReadStorage<'a, SymbolicLine>,
-    ReadStorage<'a, Line>,
     ReadStorage<'a, SymbolicPoint>,
     ReadStorage<'a, Point>,
+    ReadStorage<'a, SymbolicLine>,
+    ReadStorage<'a, Line>,
+    ReadStorage<'a, SymbolicCircle>,
+    ReadStorage<'a, Circle>,
   );
 
   fn setup(&mut self, world: &mut World) {
@@ -68,10 +70,12 @@ impl<'a> System<'a> for SpatialHashCache {
     sketch_events,
     dependency_graph,
     mut table,
+    sym_points,
+    points,
     sym_lines,
     lines,
-    sym_points,
-    points
+    sym_circles,
+    circles,
   ): Self::SystemData) {
 
     // First check if needs full refresh
@@ -84,6 +88,9 @@ impl<'a> System<'a> for SpatialHashCache {
       }
       for (ent, _, line) in (&*entities, &sym_lines, &lines).join() {
         table.insert_line(ent, *line, &*vp);
+      }
+      for (ent, _, circle) in (&*entities, &sym_circles, &circles).join() {
+        table.insert_circle(ent, *circle, &*vp);
       }
     } else {
 
@@ -99,7 +106,11 @@ impl<'a> System<'a> for SpatialHashCache {
               SketchGeometry::Line(_, _) => match lines.get(*entity) {
                 Some(line) => table.insert_line(*entity, *line, &*vp),
                 None => panic!("[spatial_hash_cache] Cannot find given line"),
-              }
+              },
+              SketchGeometry::Circle(_, _) => match circles.get(*entity) {
+                Some(circle) => table.insert_circle(*entity, *circle, &*vp),
+                None => panic!("[spatial_hash_cache] Cannot find given circle"),
+              },
             },
             SketchEvent::Remove(entity, _, _) => table.remove_from_all(*entity),
             SketchEvent::Select(_) | SketchEvent::Deselect(_) => (),
@@ -111,6 +122,8 @@ impl<'a> System<'a> for SpatialHashCache {
                   table.insert_point(dependent, *point, &*vp);
                 } else if let Some(line) = lines.get(dependent) {
                   table.insert_line(dependent, *line, &*vp);
+                } else if let Some(circle) = circles.get(dependent) {
+                  table.insert_circle(dependent, *circle, &*vp);
                 }
               }
             },

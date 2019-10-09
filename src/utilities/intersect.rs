@@ -1,4 +1,4 @@
-use super::{Vector2, Line, AABB};
+use super::{Vector2, Line, Circle, AABB};
 
 pub trait Intersect<T> {
   type Output;
@@ -55,7 +55,7 @@ impl Intersect<AABB> for Line {
         x_min <= top.x && top.x <= x_max,
         y_min <= right.y && right.y <= y_max,
         x_min <= bottom.x && bottom.x <= x_max,
-        y_min <= left.y && left.y <= y_max
+        y_min <= left.y && left.y <= y_max,
       ) {
         (true, true, false, false) => Some((top, right)),
         (true, false, true, false) => Some((top, bottom)),
@@ -66,5 +66,15 @@ impl Intersect<AABB> for Line {
         _ => None
       }
     }
+  }
+}
+
+impl Intersect<AABB> for Circle {
+  type Output = ();
+
+  fn intersect(self, aabb: AABB) -> Option<()> {
+    let closest_dist = (aabb.get_closest_point_to(self.center) - self.center).magnitude();
+    let furthest_dist = (aabb.get_furthest_point_to(self.center) - self.center).magnitude();
+    if closest_dist <= self.radius && self.radius <= furthest_dist { Some(()) } else { None }
   }
 }

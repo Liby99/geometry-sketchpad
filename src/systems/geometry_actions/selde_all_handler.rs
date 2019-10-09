@@ -28,6 +28,8 @@ impl<'a> System<'a> for SeldeAllHandler {
     ReadStorage<'a, Point>,
     ReadStorage<'a, SymbolicLine>,
     ReadStorage<'a, Line>,
+    ReadStorage<'a, SymbolicCircle>,
+    ReadStorage<'a, Circle>,
     ReadStorage<'a, Selected>,
   );
 
@@ -44,6 +46,8 @@ impl<'a> System<'a> for SeldeAllHandler {
     point_styles,
     sym_lines,
     line_styles,
+    sym_circles,
+    circle_styles,
     selected,
   ): Self::SystemData) {
     if let Some(reader_id) = &mut self.geometry_action_reader {
@@ -56,12 +60,18 @@ impl<'a> System<'a> for SeldeAllHandler {
             for (entity, _, _, _) in (&entities, &sym_lines, &line_styles, !&selected).join() {
               sketch_event_channel.single_write(SketchEvent::Select(entity));
             }
+            for (entity, _, _, _) in (&entities, &sym_circles, &circle_styles, !&selected).join() {
+              sketch_event_channel.single_write(SketchEvent::Select(entity));
+            }
           },
           GeometryAction::DeselectAll => {
             for (entity, _, _, _) in (&entities, &sym_points, &point_styles, &selected).join() {
               sketch_event_channel.single_write(SketchEvent::Deselect(entity));
             }
             for (entity, _, _, _) in (&entities, &sym_lines, &line_styles, &selected).join() {
+              sketch_event_channel.single_write(SketchEvent::Deselect(entity));
+            }
+            for (entity, _, _, _) in (&entities, &sym_circles, &circle_styles, &selected).join() {
               sketch_event_channel.single_write(SketchEvent::Deselect(entity));
             }
           },
@@ -72,6 +82,11 @@ impl<'a> System<'a> for SeldeAllHandler {
               }
             }
             for (entity, _, _, _) in (&entities, &sym_lines, &line_styles, &selected).join() {
+              if entity != *except_this {
+                sketch_event_channel.single_write(SketchEvent::Deselect(entity));
+              }
+            }
+            for (entity, _, _, _) in (&entities, &sym_circles, &circle_styles, &selected).join() {
               if entity != *except_this {
                 sketch_event_channel.single_write(SketchEvent::Deselect(entity));
               }

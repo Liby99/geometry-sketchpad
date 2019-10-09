@@ -1,6 +1,6 @@
 use specs::prelude::*;
 use crate::{
-  components::{SymbolicPoint, Point, PointStyle, SymbolicLine, Line, LineStyle, Selected},
+  components::*,
   resources::events::{SketchEvent, SketchEventChannel, SketchEventReader, SketchGeometry},
 };
 
@@ -23,6 +23,9 @@ impl<'a> System<'a> for RemoveHandler {
     WriteStorage<'a, SymbolicLine>,
     WriteStorage<'a, Line>,
     WriteStorage<'a, LineStyle>,
+    WriteStorage<'a, SymbolicCircle>,
+    WriteStorage<'a, Circle>,
+    WriteStorage<'a, CircleStyle>,
     WriteStorage<'a, Selected>,
   );
 
@@ -39,6 +42,9 @@ impl<'a> System<'a> for RemoveHandler {
     mut sym_lines,
     mut lines,
     mut line_styles,
+    mut sym_circles,
+    mut circles,
+    mut circle_styles,
     mut selected,
   ): Self::SystemData) {
     if let Some(reader_id) = &mut self.sketch_event_reader {
@@ -56,7 +62,12 @@ impl<'a> System<'a> for RemoveHandler {
                 sym_lines.remove(*entity);
                 lines.remove(*entity);
                 line_styles.remove(*entity);
-              }
+              },
+              SketchGeometry::Circle(_, _) => {
+                sym_circles.remove(*entity);
+                circles.remove(*entity);
+                circle_styles.remove(*entity);
+              },
             }
           },
           _ => (),

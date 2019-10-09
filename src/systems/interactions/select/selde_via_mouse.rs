@@ -16,7 +16,7 @@ use crate::{
       GeometryActionChannel, GeometryAction,
     },
   },
-  components::{Point, Line, Selected},
+  components::{Point, Line, Circle, Selected},
 };
 use super::super::helpers::hitting_object;
 
@@ -52,6 +52,7 @@ impl<'a> System<'a> for SeldeViaMouse {
     Write<'a, SelectRectangle>,
     ReadStorage<'a, Point>,
     ReadStorage<'a, Line>,
+    ReadStorage<'a, Circle>,
     ReadStorage<'a, Selected>,
   );
 
@@ -72,6 +73,7 @@ impl<'a> System<'a> for SeldeViaMouse {
     mut select_rectangle,
     points,
     lines,
+    circles,
     selected,
   ): Self::SystemData) {
 
@@ -101,7 +103,7 @@ impl<'a> System<'a> for SeldeViaMouse {
           MouseEvent::MouseDown(mouse_pos) => {
 
             // Check if hitting something
-            if let Some(entity) = hitting_object(*mouse_pos, &*viewport, &*spatial_table, &points, &lines, SELECT_DIST_THRES) {
+            if let Some(entity) = hitting_object(*mouse_pos, &*viewport, &*spatial_table, &points, &lines, &circles, SELECT_DIST_THRES) {
 
               // Check if shift is held
               if input_state.keyboard.is_shift_activated() {
@@ -127,7 +129,7 @@ impl<'a> System<'a> for SeldeViaMouse {
           MouseEvent::DragBegin(start_position) => {
 
             // We need the dragging begin from an empty space
-            if hitting_object(*start_position, &*viewport, &*spatial_table, &points, &lines, SELECT_DIST_THRES).is_none() {
+            if hitting_object(*start_position, &*viewport, &*spatial_table, &points, &lines, &circles, SELECT_DIST_THRES).is_none() {
 
               // If ther's no shift, clear the selection
               if !input_state.keyboard.is_shift_activated() {
@@ -156,7 +158,7 @@ impl<'a> System<'a> for SeldeViaMouse {
               select_rectangle.set(rect);
 
               // Select all the elements intersecting with AABB
-              let mut new_entities = get_entities_in_aabb(rect, &*viewport, &*spatial_table, &points, &lines);
+              let mut new_entities = get_entities_in_aabb(rect, &*viewport, &*spatial_table, &points, &lines, &circles);
               let mut to_remove = vec![];
               for entity in &self.drag_selected_new_entities {
                 if !new_entities.contains(entity) {
@@ -193,6 +195,7 @@ fn get_entities_in_aabb<'a>(
   spatial_table: &SpatialHashTable<Entity>,
   points: &ReadStorage<'a, Point>,
   lines: &ReadStorage<'a, Line>,
+  circles: &ReadStorage<'a, Circle>,
 ) -> HashSet<Entity> {
   let mut result = HashSet::new();
 
@@ -205,6 +208,11 @@ fn get_entities_in_aabb<'a>(
       }
     } else if let Some(line) = lines.get(entity) {
       let actual = line.to_actual(viewport);
+      if actual.intersect(aabb).is_some() {
+        result.insert(entity);
+      }
+    } else if let Some(circle) = circles.get(entity) {
+      let actual = circle.to_actual(viewport);
       if actual.intersect(aabb).is_some() {
         result.insert(entity);
       }

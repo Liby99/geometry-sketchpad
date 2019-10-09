@@ -3,7 +3,7 @@ use std::hash::Hash;
 use itertools::Itertools;
 use super::{Viewport, ViewportTransform};
 use crate::utilities::{Vector2, AABB, Intersect};
-use crate::components::{Point, Line};
+use crate::components::{Point, Line, Circle};
 
 static TILE_SIZE : f64 = 40.0;
 
@@ -83,6 +83,26 @@ impl<T: Clone + Eq + Hash> SpatialHashTable<T> {
           curr_y = next_y;
           curr_x_tile = next_x_tile;
           curr_y_tile = curr_y_tile + yi as i64;
+        }
+      }
+    }
+  }
+
+  pub fn insert_circle(&mut self, ent: T, c: Circle, vp: &Viewport) {
+    let actual_center = c.center.to_actual(vp);
+    let actual_radius = c.radius.to_actual(vp);
+    let (left, top) = self.get_unlimited_cell(vec2![actual_center.x - actual_radius, actual_center.y - actual_radius]);
+    let (right, bottom) = self.get_unlimited_cell(vec2![actual_center.x + actual_radius, actual_center.y + actual_radius]);
+    for j in top..(bottom + 1) {
+      for i in left..(right + 1) {
+        if 0 <= i && i < self.x_tiles as i64 && 0 <= j && j < self.y_tiles as i64 {
+          let cell_aabb = AABB::new(i as f64 * TILE_SIZE, j as f64 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          let closest_dist = (cell_aabb.get_closest_point_to(actual_center) - actual_center).magnitude();
+          let furthest_dist = (cell_aabb.get_furthest_point_to(actual_center) - actual_center).magnitude();
+          if closest_dist <= actual_radius && closest_dist <= furthest_dist {
+            let tile = self.get_cell_by_x_y(i as usize, j as usize);
+            self.table[tile].insert(ent.clone());
+          }
         }
       }
     }
@@ -320,5 +340,17 @@ mod tests {
     assert!(table.table[1].contains(&0));
     assert!(table.table[2].contains(&0));
     assert!(table.table[3].contains(&0));
+  }
+
+  #[test]
+  fn test_insert_circle_1() {
+    let vp = &Viewport::new(vec2![0., 0.], vec2![3., 3.], vec2![120., 120.]);
+    let mut table : SpatialHashTable<i32> = SpatialHashTable::default();
+    table.init_viewport(vp);
+
+    let c = Circle { center: vec2![0.0, 0.0], radius: 1. };
+    table.insert_circle(0, c, vp);
+
+    println!("{:?}", table);
   }
 }

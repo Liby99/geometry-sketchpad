@@ -5,34 +5,28 @@ use crate::{
     ToolState, Tool,
     geometry::{CreateLineData, SnapPoint, MaybeSnapPoint},
   },
-  components::{Point, Line, LineStyle},
+  components::{Point, Circle, CircleStyle},
 };
 
-pub struct CreateLineRenderer {
+pub struct CreateCircleRenderer {
   entity: Option<Entity>,
 }
 
-impl Default for CreateLineRenderer {
+impl Default for CreateCircleRenderer {
   fn default() -> Self {
     Self { entity: None }
   }
 }
 
-/// # Create Line Renderer
-///
-/// This `CreateLineRenderer` system intends to render a dimmed line when the first
-/// point is created and before placing the second point. Given the first point,
-/// it will take the second point from the `SnapPoint`. It will only show line when
-/// 1. It's currently Line Tool
-impl<'a> System<'a> for CreateLineRenderer {
+impl<'a> System<'a> for CreateCircleRenderer {
   type SystemData = (
     Entities<'a>,
     Read<'a, ToolState>,
     Read<'a, CreateLineData>,
     Read<'a, MaybeSnapPoint>,
     ReadStorage<'a, Point>,
-    WriteStorage<'a, Line>,
-    WriteStorage<'a, LineStyle>,
+    WriteStorage<'a, Circle>,
+    WriteStorage<'a, CircleStyle>,
   );
 
   fn run(&mut self, (
@@ -41,8 +35,8 @@ impl<'a> System<'a> for CreateLineRenderer {
     create_line_data,
     maybe_snap_point,
     points,
-    mut lines,
-    mut styles
+    mut circles,
+    mut styles,
   ): Self::SystemData) {
 
     // First make sure there's an entity here
@@ -52,8 +46,8 @@ impl<'a> System<'a> for CreateLineRenderer {
       ent
     };
 
-    // Check if it is line tool
-    if tool_state.get() == Tool::Line {
+    // Check if it is circle tool
+    if tool_state.get() == Tool::Circle {
 
       // Do caching
       let mut need_render = false;
@@ -65,18 +59,19 @@ impl<'a> System<'a> for CreateLineRenderer {
 
             // Need to make sure that the first point is not second point
             if *first_point_position != second_point_position {
+              let radius = (second_point_position - *first_point_position).magnitude();
 
               // Insert line and line styles
               need_render = true;
-              if let Err(err) = lines.insert(ent, Line::from_to(*first_point_position, second_point_position)) { panic!(err) }
-              if let Err(err) = styles.insert(ent, LineStyle { color: Color::new(0.3, 0.3, 1.0, 0.5), width: 2. }) { panic!(err) }
+              if let Err(err) = circles.insert(ent, Circle::new(*first_point_position, radius)) { panic!(err) }
+              if let Err(err) = styles.insert(ent, CircleStyle { color: Color::new(0.3, 0.6, 0.3, 0.5), width: 2. }) { panic!(err) }
             }
           }
         }
       }
 
       if !need_render {
-        lines.remove(ent);
+        circles.remove(ent);
         styles.remove(ent);
       }
     }

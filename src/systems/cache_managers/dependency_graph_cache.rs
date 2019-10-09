@@ -4,7 +4,7 @@ use crate::{
     DependencyGraph,
     events::{SketchGeometry, SketchEvent, SketchEventChannel, SketchEventReader},
   },
-  components::{SymbolicLine, SymbolicPoint},
+  components::{SymbolicLine, SymbolicPoint, SymbolicCircle},
 };
 
 pub struct DependencyGraphCache {
@@ -55,6 +55,15 @@ fn add_line(dependency_graph: &mut DependencyGraph, ent: &Entity, sym_line: &Sym
   }
 }
 
+fn add_circle(dependency_graph: &mut DependencyGraph, ent: &Entity, sym_circle: &SymbolicCircle) {
+  match sym_circle {
+    SymbolicCircle::CenterRadius(center_ent, point_on_circle) => {
+      dependency_graph.add(center_ent, ent);
+      dependency_graph.add(point_on_circle, ent);
+    },
+  }
+}
+
 impl<'a> System<'a> for DependencyGraphCache {
   type SystemData = (
     Entities<'a>,
@@ -62,6 +71,7 @@ impl<'a> System<'a> for DependencyGraphCache {
     Write<'a, DependencyGraph>,
     ReadStorage<'a, SymbolicPoint>,
     ReadStorage<'a, SymbolicLine>,
+    ReadStorage<'a, SymbolicCircle>,
   );
 
   fn setup(&mut self, world: &mut World) {
@@ -75,6 +85,7 @@ impl<'a> System<'a> for DependencyGraphCache {
     mut dependency_graph,
     sym_points,
     sym_lines,
+    sym_circles,
   ): Self::SystemData) {
     if self.initialized {
       if let Some(reader_id) = &mut self.sketch_events_reader_id {
@@ -83,6 +94,7 @@ impl<'a> System<'a> for DependencyGraphCache {
             SketchEvent::Insert(entity, geom, _) => match geom {
               SketchGeometry::Point(sym_point, _) => add_point(&mut dependency_graph, entity, sym_point),
               SketchGeometry::Line(sym_line, _) => add_line(&mut dependency_graph, entity, sym_line),
+              SketchGeometry::Circle(sym_circle, _) => add_circle(&mut dependency_graph, entity, sym_circle),
             },
             SketchEvent::Remove(entity, _, _) => dependency_graph.remove(entity),
             SketchEvent::Select(_) | SketchEvent::Deselect(_) | SketchEvent::MovePoint(_, _) => (),
@@ -97,6 +109,9 @@ impl<'a> System<'a> for DependencyGraphCache {
       }
       for (entity, sym_line) in (&entities, &sym_lines).join() {
         add_line(&mut dependency_graph, &entity, sym_line);
+      }
+      for (entity, sym_circle) in (&entities, &sym_circles).join() {
+        add_circle(&mut dependency_graph, &entity, sym_circle);
       }
     }
   }

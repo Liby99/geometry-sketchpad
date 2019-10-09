@@ -17,26 +17,9 @@ pub enum SymbolicPoint {
   MidPoint(Entity, Entity), // point 1, point 2
   OnLine(Entity, f64), // Point on a line, distance t from origin
   LineLineIntersect(Entity, Entity), // Should be two entities of lines
-}
-
-impl SymbolicPoint {
-  pub fn is_on_same_line_with(&self, other: &SymbolicPoint) -> bool {
-    match self {
-      SymbolicPoint::Free(_) | SymbolicPoint::MidPoint(_, _) => false,
-      SymbolicPoint::OnLine(line_ent, _) => match other {
-        SymbolicPoint::Free(_) | SymbolicPoint::MidPoint(_, _) => false,
-        SymbolicPoint::OnLine(l1_ent, _) => line_ent == l1_ent,
-        SymbolicPoint::LineLineIntersect(l1_ent, l2_ent) => line_ent == l1_ent || line_ent == l2_ent,
-      },
-      SymbolicPoint::LineLineIntersect(l1_ent, l2_ent) => match other {
-        SymbolicPoint::Free(_) | SymbolicPoint::MidPoint(_, _) => false,
-        SymbolicPoint::OnLine(line_ent, _) => l1_ent == line_ent || l2_ent == line_ent,
-        SymbolicPoint::LineLineIntersect(l3_ent, l4_ent) => {
-          l1_ent == l3_ent || l1_ent == l4_ent || l2_ent == l3_ent || l2_ent == l4_ent
-        },
-      },
-    }
-  }
+  // OnCircle(Entity, f64), // Point on a circle, theta
+  // CircleLineIntersect(Entity, Entity, u8), // circle, line, Identifier
+  // CircleCircleIntersect(Entity, Entity, u8), // circle 1, circle 2, Identifier of the intersection
 }
 
 impl Component for SymbolicPoint {

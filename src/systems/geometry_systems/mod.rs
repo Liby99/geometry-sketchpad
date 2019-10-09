@@ -16,5 +16,8 @@ pub use insert_new_point_system::*;
 mod insert_new_line_system;
 pub use insert_new_line_system::*;
 
+mod insert_new_circle_system;
+pub use insert_new_circle_system::*;
+
 mod insert_history_geometry;
 pub use insert_history_geometry::*;

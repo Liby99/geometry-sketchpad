@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use specs::prelude::*;
-use crate::events::SketchGeometry;
+use super::events::SketchGeometry;
 
 pub struct SketchHistory {
   history: Vec<SketchHistoryEvent>,

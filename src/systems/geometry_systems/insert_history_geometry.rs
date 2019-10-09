@@ -1,7 +1,7 @@
 use specs::prelude::*;
 use crate::{
   resources::events::{SketchEvent, SketchEventChannel, SketchEventReader, SketchGeometry},
-  components::{SymbolicLine, LineStyle, SymbolicPoint, PointStyle},
+  components::{SymbolicLine, LineStyle, SymbolicPoint, PointStyle, SymbolicCircle, CircleStyle},
 };
 
 pub struct InsertHistoryGeometry {
@@ -21,6 +21,8 @@ impl<'a> System<'a> for InsertHistoryGeometry {
     WriteStorage<'a, PointStyle>,
     WriteStorage<'a, SymbolicLine>,
     WriteStorage<'a, LineStyle>,
+    WriteStorage<'a, SymbolicCircle>,
+    WriteStorage<'a, CircleStyle>,
   );
 
   fn setup(&mut self, world: &mut World) {
@@ -34,6 +36,8 @@ impl<'a> System<'a> for InsertHistoryGeometry {
     mut point_styles,
     mut sym_lines,
     mut line_styles,
+    mut sym_circles,
+    mut circle_styles,
   ): Self::SystemData) {
     if let Some(reader_id) = &mut self.sketch_event_reader {
       for event in sketch_event_channel.read(reader_id) {
@@ -47,7 +51,11 @@ impl<'a> System<'a> for InsertHistoryGeometry {
               SketchGeometry::Line(sym_line, line_style) => {
                 if let Err(err) = sym_lines.insert(*entity, *sym_line) { panic!(err) }
                 if let Err(err) = line_styles.insert(*entity, *line_style) { panic!(err) }
-              }
+              },
+              SketchGeometry::Circle(sym_circle, circle_style) => {
+                if let Err(err) = sym_circles.insert(*entity, *sym_circle) { panic!(err) }
+                if let Err(err) = circle_styles.insert(*entity, *circle_style) { panic!(err) }
+              },
             }
           },
           _ => (),

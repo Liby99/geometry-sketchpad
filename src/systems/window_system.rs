@@ -7,7 +7,7 @@ use crate::{
     DeltaTime, Viewport, ViewportTransform, InputState,
     events::{ExitEvent, ExitEventChannel, ViewportEvent, ViewportEventChannel, MouseEvent, MouseEventChannel},
   },
-  components::{Selected, Point, PointStyle, Line, LineStyle, Rectangle, RectangleStyle},
+  components::{Selected, Point, PointStyle, Line, LineStyle, Circle, CircleStyle, Rectangle, RectangleStyle},
 };
 
 static CLICK_TIME_THRESHOLD : u128 = 100; // 0.1 second
@@ -57,6 +57,52 @@ fn draw_point(point: &Point, style: &PointStyle, selected: bool, vp: &Viewport, 
   );
 }
 
+fn draw_circle(circle: &Circle, style: &CircleStyle, selected: bool, vp: &Viewport, context: Context, graphics: &mut G2d) {
+  let actual_center = circle.center.to_actual(vp);
+  let actual_radius = circle.radius.to_actual(vp);
+  if selected {
+    let inner_radius = actual_radius - style.width / 2.0 - 3.0;
+    let outer_radius = actual_radius + style.width / 2.0 + 3.0;
+    circle_arc(
+      Color::magenta().into(),
+      0.5,
+      0.0,
+      std::f64::consts::PI * 1.999999999,
+      [
+        actual_center.x - inner_radius,
+        actual_center.y - inner_radius,
+        inner_radius * 2.0,
+        inner_radius * 2.0,
+      ],
+      context.transform,
+      graphics,
+    );
+    circle_arc(
+      Color::magenta().into(),
+      0.5,
+      0.0,
+      std::f64::consts::PI * 1.999999999,
+      [
+        actual_center.x - outer_radius,
+        actual_center.y - outer_radius,
+        outer_radius * 2.0,
+        outer_radius * 2.0,
+      ],
+      context.transform,
+      graphics,
+    )
+  }
+  circle_arc(
+    style.color.into(),
+    style.width,
+    0.0,
+    std::f64::consts::PI * 1.999999999,
+    [actual_center.x - actual_radius, actual_center.y - actual_radius, actual_radius * 2., actual_radius * 2.],
+    context.transform,
+    graphics,
+  );
+}
+
 fn draw_rectangle(rect: &Rectangle, style: &RectangleStyle, context: Context, graphics: &mut G2d) {
   line_from_to(style.border.color.into(), style.border.width, [rect.x, rect.y], [rect.x, rect.y + rect.height], context.transform, graphics);
   line_from_to(style.border.color.into(), style.border.width, [rect.x, rect.y], [rect.x + rect.width, rect.y], context.transform, graphics);
@@ -81,6 +127,8 @@ impl<'a> System<'a> for WindowSystem {
     ReadStorage<'a, PointStyle>,
     ReadStorage<'a, Line>,
     ReadStorage<'a, LineStyle>,
+    ReadStorage<'a, Circle>,
+    ReadStorage<'a, CircleStyle>,
     ReadStorage<'a, Rectangle>,
     ReadStorage<'a, RectangleStyle>,
     ReadStorage<'a, Selected>,
@@ -97,6 +145,8 @@ impl<'a> System<'a> for WindowSystem {
     point_styles,
     lines,
     line_styles,
+    circles,
+    circle_styles,
     rects,
     rect_styles,
     selected,
@@ -184,6 +234,16 @@ impl<'a> System<'a> for WindowSystem {
                 // Fisrt draw lines
                 for (line, style, _) in (&lines, &line_styles, &selected).join() {
                   draw_line(line, style, true, &*viewport, context, graphics);
+                }
+
+                // Draw regular circles
+                for (circle, style, _) in (&circles, &circle_styles, !&selected).join() {
+                  draw_circle(circle, style, false, &*viewport, context, graphics);
+                }
+
+                // Draw selected circles
+                for (circle, style, _) in (&circles, &circle_styles, &selected).join() {
+                  draw_circle(circle, style, true, &*viewport, context, graphics);
                 }
 
                 // Then draw regular points (not selected)

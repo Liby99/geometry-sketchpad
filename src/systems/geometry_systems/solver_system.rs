@@ -1,7 +1,7 @@
 use specs::prelude::*;
 use crate::{
   utilities::{Vector2, Intersect},
-  components::{SymbolicPoint, Point, SymbolicLine, Line},
+  components::{SymbolicPoint, Point, SymbolicLine, Line, SymbolicCircle, Circle},
   resources::{
     DependencyGraph,
     events::{SketchEvent, SketchEventChannel, SketchEventReader, SketchGeometry},
@@ -11,26 +11,28 @@ use crate::{
 enum ToCompute {
   Point(Entity),
   Line(Entity),
+  Circle(Entity),
 }
 
 enum SolveResult {
   AlreadyComputed, // Already Computed
   SolvedPoint(Point), // The result of point
   SolvedLine(Line), // The result of line
+  SolvedCircle(Circle), // The result of circle
   Request(ToCompute), // Need other dependency
   Undefined, // The result does not exist
 }
 
 fn insert_point<'a>(points: &mut WriteStorage<'a, Point>, ent: Entity, p: Point) {
-  if let Err(err) = points.insert(ent, p) {
-    panic!("[solver_system] Error when inserting position: {:?}", err);
-  }
+  if let Err(err) = points.insert(ent, p) { panic!(err) }
 }
 
 fn insert_line<'a>(lines: &mut WriteStorage<'a, Line>, ent: Entity, line: Line) {
-  if let Err(err) = lines.insert(ent, line) {
-    panic!("[solver_system] Error when inserting position: {:?}", err);
-  }
+  if let Err(err) = lines.insert(ent, line) { panic!(err) }
+}
+
+fn insert_circle<'a>(circles: &mut WriteStorage<'a, Circle>, ent: Entity, circle: Circle) {
+  if let Err(err) = circles.insert(ent, circle) { panic!(err) }
 }
 
 fn solve_point<'a>(
@@ -137,6 +139,37 @@ fn solve_line<'a>(
   }
 }
 
+fn solve_circle<'a>(
+  sym_circles: &ReadStorage<'a, SymbolicCircle>,
+  points: &mut WriteStorage<'a, Point>,
+  // lines: &mut WriteStorage<'a, Line>,
+  circles: &mut WriteStorage<'a, Circle>,
+  ent: Entity,
+) -> SolveResult {
+  match circles.get(ent) {
+    Some(_) => SolveResult::AlreadyComputed,
+    None => match sym_circles.get(ent) {
+      Some(sym) => match sym {
+
+        // If the line is constructed from two points, then we require the two
+        // points to be computed first. After that the line is originated from
+        // point 1 to the direction of point 2.
+        SymbolicCircle::CenterRadius(p1_ent, p2_ent) => match points.get(*p1_ent) {
+          Some(pos_1) => match points.get(*p2_ent) {
+            Some(pos_2) => {
+              let radius = (*pos_2 - *pos_1).magnitude();
+              SolveResult::SolvedCircle(Circle::new(*pos_1, radius))
+            },
+            None => SolveResult::Request(ToCompute::Point(*p2_ent))
+          },
+          None => SolveResult::Request(ToCompute::Point(*p1_ent))
+        },
+      },
+      None => panic!("[solver_system] Could not find to compute line"),
+    },
+  }
+}
+
 pub struct SolverSystem {
   need_initialize: bool,
   sketch_events_reader_id: Option<SketchEventReader>,
@@ -158,8 +191,10 @@ impl<'a> System<'a> for SolverSystem {
     Read<'a, SketchEventChannel>,
     ReadStorage<'a, SymbolicPoint>,
     ReadStorage<'a, SymbolicLine>,
+    ReadStorage<'a, SymbolicCircle>,
     WriteStorage<'a, Point>,
     WriteStorage<'a, Line>,
+    WriteStorage<'a, Circle>,
   );
 
   fn setup(&mut self, world: &mut World) {
@@ -173,8 +208,10 @@ impl<'a> System<'a> for SolverSystem {
     sketch_events,
     sym_points,
     sym_lines,
+    sym_circles,
     mut points,
     mut lines,
+    mut circles,
   ): Self::SystemData) {
     let mut stack = vec![];
 
@@ -198,13 +235,19 @@ impl<'a> System<'a> for SolverSystem {
     if self.need_initialize {
       self.need_initialize = false; // set to false afterwards
 
-      // Fisrt push all the lines into stack
+      // First push all the circles into stack
+      for (ent, _) in (&*entities, &sym_circles).join() {
+        circles.remove(ent);
+        stack.push(ToCompute::Circle(ent));
+      }
+
+      // Then push all the lines into stack
       for (ent, _) in (&*entities, &sym_lines).join() {
         lines.remove(ent);
         stack.push(ToCompute::Line(ent));
       }
 
-      // Then push all the points into stack
+      // Finally push all the points into stack
       // As we want to first calculate points
       for (ent, _) in (&*entities, &sym_points).join() {
         points.remove(ent);
@@ -219,6 +262,7 @@ impl<'a> System<'a> for SolverSystem {
             SketchEvent::Insert(entity, geom, _) => match geom {
               SketchGeometry::Point(_, _) => stack.push(ToCompute::Point(*entity)),
               SketchGeometry::Line(_, _) => stack.push(ToCompute::Line(*entity)),
+              SketchGeometry::Circle(_, _) => stack.push(ToCompute::Circle(*entity)),
             },
             SketchEvent::Remove(_, _, _) => (), // Do nothing since they are already removed
             SketchEvent::Select(_) | SketchEvent::Deselect(_) => (), // Do nothing to select/deselect event
@@ -231,6 +275,9 @@ impl<'a> System<'a> for SolverSystem {
                 } else if let Some(_) = sym_lines.get(dependent) {
                   lines.remove(dependent);
                   stack.push(ToCompute::Line(dependent));
+                } else if let Some(_) = sym_circles.get(dependent) {
+                  circles.remove(dependent);
+                  stack.push(ToCompute::Circle(dependent));
                 }
               }
             }
@@ -247,12 +294,14 @@ impl<'a> System<'a> for SolverSystem {
       let (ent, result) = match to_comp {
         ToCompute::Point(ent) => (ent, solve_point(&sym_points, &mut points, &mut lines, ent)),
         ToCompute::Line(ent) => (ent, solve_line(&sym_lines, &mut points, &mut lines, ent)),
+        ToCompute::Circle(ent) => (ent, solve_circle(&sym_circles, &mut points, &mut circles, ent)),
       };
       match result {
         SolveResult::AlreadyComputed => (),
         SolveResult::Undefined => (),
         SolveResult::SolvedLine(l) => insert_line(&mut lines, ent, l),
         SolveResult::SolvedPoint(p) => insert_point(&mut points, ent, p),
+        SolveResult::SolvedCircle(c) => insert_circle(&mut circles, ent, c),
         SolveResult::Request(req) => {
           stack.push(to_comp);
           stack.push(req);
