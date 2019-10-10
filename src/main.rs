@@ -32,6 +32,7 @@ fn main() {
     .with(interactions::remove::RemoveSelectedViaDelete, "remove_selected_via_delete", &[])
     .with(interactions::create::line::AbortCreateLineViaKeyboard, "abort_create_line_via_keyboard", &[])
     .with(interactions::hide::HideSelectedViaKeyboard, "hide_selected_via_keyboard", &[])
+    .with(interactions::hide::UnhideAllViaKeyboard, "unhide_all_via_keyboard", &[])
     .with(interactions::history::UndoViaKeyboard, "undo_via_keyboard", &[])
     .with(interactions::history::RedoViaKeyboard, "redo_via_keyboard", &[])
 
@@ -58,6 +59,7 @@ fn main() {
     .with(geometry_actions::SeldeAllHandler::default(), "selde_all_handler", &["selde_all_via_keyboard", "selde_via_mouse"])
     .with(geometry_actions::RemoveSelectedHandler::default(), "remove_selected_handler", &["remove_selected_via_delete", "dependency_graph_cache"])
     .with(geometry_actions::HideSelectedHandler::default(), "hide_selected_handler", &["hide_selected_via_keyboard"])
+    .with(geometry_actions::UnhideAllHandler::default(), "unhide_all_handler", &["unhide_all_via_keyboard"])
 
     // Geometry helpers
     .with(interactions::create::point::SnapPointSystem, "snap_point_system", &["spatial_hash_cache", "tool_state_manager", "viewport_state_manager"])
