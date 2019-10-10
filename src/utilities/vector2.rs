@@ -38,6 +38,12 @@ impl Vector2 {
   }
 }
 
+impl Default for Vector2 {
+  fn default() -> Self {
+    Self::zero()
+  }
+}
+
 impl Into<[f64; 2]> for Vector2 {
   fn into(self) -> [f64; 2] {
     [self.x, self.y]

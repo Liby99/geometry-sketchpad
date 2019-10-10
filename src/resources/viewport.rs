@@ -1,4 +1,4 @@
-use crate::utilities::{Vector2, Line, Circle, AABB};
+use crate::utilities::{Vector2, Line, LineType, Circle, AABB};
 
 pub static WINDOW_SIZE : [f64; 2] = [960., 720.];
 
@@ -135,17 +135,43 @@ impl ViewportTransform for Vector2 {
   }
 }
 
+impl ViewportTransform for LineType {
+  type Output = Self;
+
+  fn to_actual(&self, vp: &Viewport) -> Self::Output {
+    match self {
+      LineType::Segment(t) => LineType::Segment(t.to_actual(vp)),
+      _ => *self,
+    }
+  }
+
+  fn to_virtual(&self, vp: &Viewport) -> Self::Output {
+    match self {
+      LineType::Segment(t) => LineType::Segment(t.to_virtual(vp)),
+      _ => *self,
+    }
+  }
+}
+
 impl ViewportTransform for Line {
   type Output = Self;
 
   fn to_actual(&self, vp: &Viewport) -> Self::Output {
-    let Line { origin, direction: Vector2 { x: dx, y: dy} } = self;
-    Line { origin: origin.to_actual(vp), direction: vec2![*dx, -dy] }
+    let Line { origin, direction: Vector2 { x: dx, y: dy}, line_type } = self;
+    Line {
+      origin: origin.to_actual(vp),
+      direction: vec2![*dx, -dy],
+      line_type: line_type.to_actual(vp),
+    }
   }
 
   fn to_virtual(&self, vp: &Viewport) -> Self::Output {
-    let Line { origin, direction: Vector2 { x: dx, y: dy} } = self;
-    Line { origin: origin.to_virtual(vp), direction: vec2![*dx, -dy] }
+    let Line { origin, direction: Vector2 { x: dx, y: dy}, line_type } = self;
+    Line {
+      origin: origin.to_virtual(vp),
+      direction: vec2![*dx, -dy],
+      line_type: line_type.to_virtual(vp),
+    }
   }
 }
 

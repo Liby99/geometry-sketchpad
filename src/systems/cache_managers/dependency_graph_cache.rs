@@ -55,6 +55,10 @@ fn add_line(dependency_graph: &mut DependencyGraph, ent: &Entity, sym_line: &Sym
       dependency_graph.add(p1_ent, ent);
       dependency_graph.add(p2_ent, ent);
     },
+    SymbolicLine::Ray(p1_ent, p2_ent) => {
+      dependency_graph.add(p1_ent, ent);
+      dependency_graph.add(p2_ent, ent);
+    },
     SymbolicLine::Parallel(line_ent, point_ent) => {
       dependency_graph.add(line_ent, ent);
       dependency_graph.add(point_ent, ent);

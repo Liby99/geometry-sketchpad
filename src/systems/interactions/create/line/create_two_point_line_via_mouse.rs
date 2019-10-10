@@ -44,7 +44,7 @@ impl<'a> System<'a> for CreateTwoPointLineViaMouse {
     // First deal with tooling states
     if let Some(reader_id) = &mut self.last_active_point_reader {
       match tool_state.get() {
-        Tool::Line => (),
+        Tool::Line(_) => (),
         _ => {
           drop(reader_id);
           self.last_active_point_reader = None;
@@ -53,7 +53,7 @@ impl<'a> System<'a> for CreateTwoPointLineViaMouse {
       }
     } else {
       match tool_state.get() {
-        Tool::Line => {
+        Tool::Line(_) => {
           self.last_active_point_reader = Some(last_active_point_channel.register_reader());
         },
         _ => ()
