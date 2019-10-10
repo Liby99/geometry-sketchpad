@@ -118,20 +118,35 @@ impl<'a> System<'a> for SpatialHashCache {
               let dependents = dependency_graph.get_all_dependents(entity);
               for dependent in dependents {
                 table.remove_from_all(dependent);
-                if let Some(point) = points.get(dependent) {
-                  table.insert_point(dependent, *point, &*vp);
-                } else if let Some(line) = lines.get(dependent) {
-                  table.insert_line(dependent, *line, &*vp);
-                } else if let Some(circle) = circles.get(dependent) {
-                  table.insert_circle(dependent, *circle, &*vp);
-                }
+                insert_entity(dependent, &*vp, &mut table, &points, &lines, &circles);
               }
             },
+            SketchEvent::Hide(entity, _) => table.remove_from_all(*entity),
+            SketchEvent::Unhide(entity, _) => {
+              insert_entity(*entity, &*vp, &mut table, &points, &lines, &circles);
+            }
           }
         }
       } else {
         panic!("[spatial_hash_cache] No sketch event reader id");
       }
     }
+  }
+}
+
+fn insert_entity<'a>(
+  entity: Entity,
+  viewport: &Viewport,
+  table: &mut SpatialHashTable<Entity>,
+  points: &ReadStorage<'a, Point>,
+  lines: &ReadStorage<'a, Line>,
+  circles: &ReadStorage<'a, Circle>,
+) {
+  if let Some(point) = points.get(entity) {
+    table.insert_point(entity, *point, viewport);
+  } else if let Some(line) = lines.get(entity) {
+    table.insert_line(entity, *line, &*viewport);
+  } else if let Some(circle) = circles.get(entity) {
+    table.insert_circle(entity, *circle, viewport);
   }
 }

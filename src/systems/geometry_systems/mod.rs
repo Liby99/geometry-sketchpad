@@ -4,6 +4,9 @@ pub use solver_system::SolverSystem;
 mod remove_handler;
 pub use remove_handler::*;
 
+mod hide_handler;
+pub use hide_handler::*;
+
 mod selde_handler;
 pub use selde_handler::*;
 

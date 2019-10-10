@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use specs::prelude::*;
 use super::events::SketchGeometry;
 
@@ -21,6 +21,8 @@ impl Default for SketchHistory {
 pub enum SketchHistoryEvent {
   RemoveMany(HashMap<Entity, SketchGeometry>),
   InsertMany(HashMap<Entity, SketchGeometry>),
+  HideMany(HashSet<Entity>),
+  UnhideMany(HashSet<Entity>),
   // Update(Entity, SketchGeometry, SketchGeometry), // Entity, old, new
 }
 

@@ -7,6 +7,8 @@ pub enum GeometryAction {
   DeselectAll,
   DeselectAllExcept(Entity),
   RemoveSelected,
+  HideSelected,
+  UnhideAll,
   DrawParallelOnSelected,
   DrawPerpendicularOnSelected,
   DrawMidpointOnSelected,

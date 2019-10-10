@@ -7,7 +7,7 @@ use crate::{
     DeltaTime, Viewport, ViewportTransform, InputState,
     events::{ExitEvent, ExitEventChannel, ViewportEvent, ViewportEventChannel, MouseEvent, MouseEventChannel},
   },
-  components::{Selected, Point, PointStyle, Line, LineStyle, Circle, CircleStyle, Rectangle, RectangleStyle},
+  components::{Hidden, Selected, Point, PointStyle, Line, LineStyle, Circle, CircleStyle, Rectangle, RectangleStyle},
 };
 
 static CLICK_TIME_THRESHOLD : u128 = 100; // 0.1 second
@@ -132,6 +132,7 @@ impl<'a> System<'a> for WindowSystem {
     ReadStorage<'a, Rectangle>,
     ReadStorage<'a, RectangleStyle>,
     ReadStorage<'a, Selected>,
+    ReadStorage<'a, Hidden>,
   );
 
   fn run(&mut self, (
@@ -150,6 +151,7 @@ impl<'a> System<'a> for WindowSystem {
     rects,
     rect_styles,
     selected,
+    hidden,
   ): Self::SystemData) {
 
     // Reset information
@@ -227,32 +229,32 @@ impl<'a> System<'a> for WindowSystem {
                 clear(Color::white().into(), graphics); // We clean the screen
 
                 // Fisrt draw regular lines
-                for (line, style, _) in (&lines, &line_styles, !&selected).join() {
+                for (line, style, _, _) in (&lines, &line_styles, !&selected, !&hidden).join() {
                   draw_line(line, style, false, &*viewport, context, graphics);
                 }
 
                 // Fisrt draw lines
-                for (line, style, _) in (&lines, &line_styles, &selected).join() {
+                for (line, style, _, _) in (&lines, &line_styles, &selected, !&hidden).join() {
                   draw_line(line, style, true, &*viewport, context, graphics);
                 }
 
                 // Draw regular circles
-                for (circle, style, _) in (&circles, &circle_styles, !&selected).join() {
+                for (circle, style, _, _) in (&circles, &circle_styles, !&selected, !&hidden).join() {
                   draw_circle(circle, style, false, &*viewport, context, graphics);
                 }
 
                 // Draw selected circles
-                for (circle, style, _) in (&circles, &circle_styles, &selected).join() {
+                for (circle, style, _, _) in (&circles, &circle_styles, &selected, !&hidden).join() {
                   draw_circle(circle, style, true, &*viewport, context, graphics);
                 }
 
                 // Then draw regular points (not selected)
-                for (point, style, _) in (&points, &point_styles, !&selected).join() {
+                for (point, style, _, _) in (&points, &point_styles, !&selected, !&hidden).join() {
                   draw_point(point, style, false, &*viewport, context, graphics);
                 }
 
                 // Then draw selected points (as points are on top of lines)
-                for (point, style, _) in (&points, &point_styles, &selected).join() {
+                for (point, style, _, _) in (&points, &point_styles, &selected, !&hidden).join() {
                   draw_point(point, style, true, &*viewport, context, graphics);
                 }
 

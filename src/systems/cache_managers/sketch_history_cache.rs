@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use specs::prelude::*;
 use crate::{
   resources::{
@@ -11,6 +11,8 @@ enum Event {
   None,
   Insert(HashMap<Entity, SketchGeometry>),
   Remove(HashMap<Entity, SketchGeometry>),
+  Hide(HashSet<Entity>),
+  Unhide(HashSet<Entity>),
 }
 
 pub struct SketchHistoryCache {
@@ -64,6 +66,26 @@ impl<'a> System<'a> for SketchHistoryCache {
               curr_event = Event::Remove(removals);
             }
           },
+          SketchEvent::Hide(entity, false) => {
+            if let Event::Hide(entities) = &mut curr_event {
+              entities.insert(*entity);
+            } else {
+              push_event(curr_event, &mut sketch_history);
+              let mut entities = HashSet::new();
+              entities.insert(*entity);
+              curr_event = Event::Hide(entities);
+            }
+          },
+          SketchEvent::Unhide(entity, false) => {
+            if let Event::Unhide(entities) = &mut curr_event {
+              entities.insert(*entity);
+            } else {
+              push_event(curr_event, &mut sketch_history);
+              let mut entities = HashSet::new();
+              entities.insert(*entity);
+              curr_event = Event::Unhide(entities);
+            }
+          },
           _ => (),
         }
       }
@@ -78,5 +100,7 @@ fn push_event(event: Event, history: &mut SketchHistory) {
     Event::None => (),
     Event::Insert(insertions) => history.push(SketchHistoryEvent::InsertMany(insertions)),
     Event::Remove(removals) => history.push(SketchHistoryEvent::RemoveMany(removals)),
+    Event::Hide(entities) => history.push(SketchHistoryEvent::HideMany(entities)),
+    Event::Unhide(entities) => history.push(SketchHistoryEvent::UnhideMany(entities)),
   }
 }

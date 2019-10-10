@@ -1,9 +1,10 @@
+use std::collections::{HashMap, HashSet};
 use specs::prelude::*;
 use crate::{
   resources::{
     events::{
       HistoryAction, HistoryActionReader, HistoryActionChannel,
-      SketchEvent, SketchEventChannel,
+      SketchEvent, SketchEventChannel, SketchGeometry,
     },
     SketchHistory, SketchHistoryEvent,
   },
@@ -42,32 +43,20 @@ impl<'a> System<'a> for SketchHistoryActionHandler {
           HistoryAction::Undo => {
             if let Some(history_event) = sketch_history.undo() {
               match history_event {
-                SketchHistoryEvent::InsertMany(insertions) => {
-                  for (inserted_entity, inserted_geometry) in insertions {
-                    sketch_event_channel.single_write(SketchEvent::remove_by_history(*inserted_entity, *inserted_geometry));
-                  }
-                },
-                SketchHistoryEvent::RemoveMany(removals) => {
-                  for (removed_entity, removed_geometry) in removals {
-                    sketch_event_channel.single_write(SketchEvent::insert_by_history(*removed_entity, *removed_geometry));
-                  }
-                },
+                SketchHistoryEvent::InsertMany(insertions) => remove(&mut sketch_event_channel, insertions),
+                SketchHistoryEvent::RemoveMany(removals) => insert(&mut sketch_event_channel, removals),
+                SketchHistoryEvent::HideMany(entities) => unhide(&mut sketch_event_channel, entities),
+                SketchHistoryEvent::UnhideMany(entities) => hide(&mut sketch_event_channel, entities),
               }
             }
           },
           HistoryAction::Redo => {
             if let Some(history_event) = sketch_history.redo() {
               match history_event {
-                SketchHistoryEvent::InsertMany(insertions) => {
-                  for (inserted_entity, inserted_geometry) in insertions {
-                    sketch_event_channel.single_write(SketchEvent::insert_by_history(*inserted_entity, *inserted_geometry));
-                  }
-                },
-                SketchHistoryEvent::RemoveMany(removals) => {
-                  for (removed_entity, removed_geometry) in removals {
-                    sketch_event_channel.single_write(SketchEvent::remove_by_history(*removed_entity, *removed_geometry));
-                  }
-                },
+                SketchHistoryEvent::InsertMany(insertions) => insert(&mut sketch_event_channel, insertions),
+                SketchHistoryEvent::RemoveMany(removals) => remove(&mut sketch_event_channel, removals),
+                SketchHistoryEvent::HideMany(entities) => hide(&mut sketch_event_channel, entities),
+                SketchHistoryEvent::UnhideMany(entities) => unhide(&mut sketch_event_channel, entities),
               }
             }
           },
@@ -75,5 +64,29 @@ impl<'a> System<'a> for SketchHistoryActionHandler {
         }
       }
     }
+  }
+}
+
+fn remove(sketch_event_channel: &mut SketchEventChannel, entities: &HashMap<Entity, SketchGeometry>) {
+  for (entity, geometry) in entities {
+    sketch_event_channel.single_write(SketchEvent::remove_by_history(*entity, *geometry));
+  }
+}
+
+fn insert(sketch_event_channel: &mut SketchEventChannel, entities: &HashMap<Entity, SketchGeometry>) {
+  for (entity, geometry) in entities {
+    sketch_event_channel.single_write(SketchEvent::insert_by_history(*entity, *geometry));
+  }
+}
+
+fn hide(sketch_event_channel: &mut SketchEventChannel, entities: &HashSet<Entity>) {
+  for entity in entities {
+    sketch_event_channel.single_write(SketchEvent::hide_by_history(*entity));
+  }
+}
+
+fn unhide(sketch_event_channel: &mut SketchEventChannel, entities: &HashSet<Entity>) {
+  for entity in entities {
+    sketch_event_channel.single_write(SketchEvent::unhide_by_history(*entity));
   }
 }

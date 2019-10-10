@@ -318,7 +318,8 @@ impl<'a> System<'a> for SolverSystem {
               SketchGeometry::Circle(_, _) => stack.push(ToCompute::Circle(*entity)),
             },
             SketchEvent::Remove(_, _, _) => (), // Do nothing since they are already removed
-            SketchEvent::Select(_) | SketchEvent::Deselect(_) => (), // Do nothing to select/deselect event
+            SketchEvent::Select(_) |
+            SketchEvent::Deselect(_) => (), // Do nothing to select/deselect event
             SketchEvent::MovePoint(ent, _) => {
               let dependents = dependency_graph.get_all_dependents(ent);
               for dependent in dependents {
@@ -333,7 +334,9 @@ impl<'a> System<'a> for SolverSystem {
                   stack.push(ToCompute::Circle(dependent));
                 }
               }
-            }
+            },
+            SketchEvent::Hide(_, _) |
+            SketchEvent::Unhide(_, _) => (),
           }
         }
       } else {

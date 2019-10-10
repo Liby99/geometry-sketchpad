@@ -108,7 +108,11 @@ impl<'a> System<'a> for DependencyGraphCache {
               SketchGeometry::Circle(sym_circle, _) => add_circle(&mut dependency_graph, entity, sym_circle),
             },
             SketchEvent::Remove(entity, _, _) => dependency_graph.remove(entity),
-            SketchEvent::Select(_) | SketchEvent::Deselect(_) | SketchEvent::MovePoint(_, _) => (),
+            SketchEvent::Select(_) |
+            SketchEvent::Deselect(_) |
+            SketchEvent::MovePoint(_, _) |
+            SketchEvent::Hide(_, _) |
+            SketchEvent::Unhide(_, _) => (),
           }
         }
       } else {

@@ -11,6 +11,8 @@ pub enum SketchEvent {
   Insert(Entity, SketchGeometry, bool), // the last bool represents "is_by_history"
   Remove(Entity, SketchGeometry, bool), // the last bool represents "is_by_history"
   MovePoint(Entity, MovePoint),
+  Hide(Entity, bool),
+  Unhide(Entity, bool),
 }
 
 impl SketchEvent {
@@ -28,6 +30,22 @@ impl SketchEvent {
 
   pub fn remove_by_history(ent: Entity, sketch_geom: SketchGeometry) -> Self {
     SketchEvent::Remove(ent, sketch_geom, true)
+  }
+
+  pub fn hide(ent: Entity) -> Self {
+    SketchEvent::Hide(ent, false)
+  }
+
+  pub fn hide_by_history(ent: Entity) -> Self {
+    SketchEvent::Hide(ent, true)
+  }
+
+  pub fn unhide(ent: Entity) -> Self {
+    SketchEvent::Unhide(ent, false)
+  }
+
+  pub fn unhide_by_history(ent: Entity) -> Self {
+    SketchEvent::Unhide(ent, true)
   }
 }
 

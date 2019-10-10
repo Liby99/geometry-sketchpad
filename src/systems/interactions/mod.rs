@@ -4,6 +4,7 @@ pub mod create;
 pub mod update;
 pub mod remove;
 pub mod select;
+pub mod hide;
 pub mod history;
 
 mod change_tool_via_keyboard;
