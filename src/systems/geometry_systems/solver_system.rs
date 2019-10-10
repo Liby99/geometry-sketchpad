@@ -175,7 +175,20 @@ fn solve_line<'a>(
             None => SolveResult::Request(ToCompute::Point(*p2_ent))
           },
           None => SolveResult::Request(ToCompute::Point(*p1_ent))
-        }
+        },
+
+        SymbolicLine::Segment(p1_ent, p2_ent) => match points.get(*p1_ent) {
+          Some(pos_1) => match points.get(*p2_ent) {
+            Some(pos_2) => {
+              let origin = *pos_1;
+              let diff = *pos_2 - *pos_1;
+              let direction = diff.normalized();
+              SolveResult::SolvedLine(Line { origin, direction, line_type: LineType::Segment(diff.magnitude()) })
+            },
+            None => SolveResult::Request(ToCompute::Point(*p2_ent))
+          },
+          None => SolveResult::Request(ToCompute::Point(*p1_ent))
+        },
 
         SymbolicLine::Parallel(line_ent, point_ent) => match points.get(*point_ent) {
           Some(pos) => match lines.get(*line_ent) {

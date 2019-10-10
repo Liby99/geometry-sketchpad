@@ -121,7 +121,9 @@ impl<'a> System<'a> for SpatialHashCache {
                 insert_entity(dependent, &*vp, &mut table, &points, &lines, &circles);
               }
             },
-            SketchEvent::Hide(entity, _) => table.remove_from_all(*entity),
+            SketchEvent::Hide(entity, _) => {
+              table.remove_from_all(*entity)
+            },
             SketchEvent::Unhide(entity, _) => {
               insert_entity(*entity, &*vp, &mut table, &points, &lines, &circles);
             }

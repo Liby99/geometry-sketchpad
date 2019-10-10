@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use specs::prelude::*;
 use crate::{
   resources::{
-    ToolState, Tool, DependencyGraph,
+    ToolState, Tool, LineTool, DependencyGraph,
     geometry::{LastActivePointReader, LastActivePointChannel, CreateLineData},
     events::{GeometryAction, GeometryActionChannel},
   },
@@ -69,13 +69,19 @@ impl<'a> System<'a> for CreateTwoPointLineViaMouse {
 
           // Need to check first point is not second point
           if first_point_entity != curr_point_entity && !on_same_line(first_point_entity, curr_point_entity, &dependency_graph, &sym_points, &sym_lines) {
-            let sym_line = SymbolicLine::TwoPoints(first_point_entity, curr_point_entity);
+            if let Tool::Line(line_tool) = tool_state.get() {
+              let sym_line = match line_tool {
+                LineTool::Line => SymbolicLine::TwoPoints(first_point_entity, curr_point_entity),
+                LineTool::Ray => SymbolicLine::Ray(first_point_entity, curr_point_entity),
+                LineTool::Segment => SymbolicLine::Segment(first_point_entity, curr_point_entity), // TODO
+              };
 
-            // Push event to created lines
-            geometry_action_channel.single_write(GeometryAction::InsertLine(sym_line));
+              // Push event to created lines
+              geometry_action_channel.single_write(GeometryAction::InsertLine(sym_line));
 
-            // Reset the maybe first point
-            create_line_data.maybe_first_point = None;
+              // Reset the maybe first point
+              create_line_data.maybe_first_point = None;
+            }
           }
         } else {
 

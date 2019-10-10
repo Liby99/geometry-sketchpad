@@ -16,6 +16,7 @@ impl Component for LineStyle {
 pub enum SymbolicLine {
   TwoPoints(Entity, Entity), // Should be two points
   Ray(Entity, Entity), // Ray from one point toward another
+  Segment(Entity, Entity), // Segment from one point to another
   Parallel(Entity, Entity), // (line_entity, point_entity)
   Perpendicular(Entity, Entity), // (line_entity, point_entity)
 }

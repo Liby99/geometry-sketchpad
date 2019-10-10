@@ -26,7 +26,8 @@ fn main() {
 
     // Interactions
     .with(interactions::ExitViaKeyboard, "exit_via_keyboard", &[])
-    .with(interactions::ChangeToolViaKeyboard, "change_tool_via_keyboard", &[])
+    .with(interactions::tool::ChangeToolViaKeyboard, "change_tool_via_keyboard", &[])
+    .with(interactions::tool::ChangeLineToolViaKeyboard, "change_line_tool_via_keyboard", &[])
     .with(interactions::MoveViewportViaScroll, "move_viewport_via_scroll", &[])
     .with(interactions::select::SeldeAllViaKeyboard, "selde_all_via_keyboard", &[])
     .with(interactions::remove::RemoveSelectedViaDelete, "remove_selected_via_delete", &[])

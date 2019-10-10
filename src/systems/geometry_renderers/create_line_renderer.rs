@@ -66,11 +66,12 @@ impl<'a> System<'a> for CreateLineRenderer {
             // Need to make sure that the first point is not second point
             if *first_point_position != second_point_position {
               let origin = *first_point_position;
-              let direction = (second_point_position - origin).normalized();
+              let diff = second_point_position - origin;
+              let direction = diff.normalized();
               let line = match line_tool {
                 LineTool::Line => Line { origin, direction, ..Default::default() },
                 LineTool::Ray => Line { origin, direction, line_type: LineType::Ray },
-                LineTool::Segment => Line { origin, direction, line_type: LineType::Segment(direction.magnitude()) }
+                LineTool::Segment => Line { origin, direction, line_type: LineType::Segment(diff.magnitude()) }
               };
 
               // Insert line and line styles

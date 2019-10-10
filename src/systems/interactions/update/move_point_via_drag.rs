@@ -1,6 +1,6 @@
 use specs::prelude::*;
 use crate::{
-  utilities::Project,
+  utilities::{Project, LineType},
   resources::{
     Tool,
     InputState,
@@ -116,6 +116,11 @@ impl<'a> System<'a> for MovePointViaDrag {
                       let diff = projected_position - line.origin;
                       let sign = diff.dot(line.direction).signum();
                       let new_t = sign * diff.magnitude();
+                      let new_t = match line.line_type {
+                        LineType::Line => new_t,
+                        LineType::Ray => new_t.max(0.0),
+                        LineType::Segment(max_t) => new_t.max(0.0).min(max_t),
+                      };
                       sketch_event_channel.single_write(SketchEvent::MovePoint(ent, MovePoint::OnLine(line_entity, old_t, new_t)));
                     }
                   },

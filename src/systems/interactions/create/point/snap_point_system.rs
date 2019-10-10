@@ -10,7 +10,7 @@ use crate::{
     geometry::{MaybeSnapPoint, SnapPoint, SnapPointType},
   },
   components::{Point, Line, Circle, CircleIntersectionType},
-  utilities::{Vector2, Intersect, Project, CircleIntersect},
+  utilities::{Vector2, Intersect, Project, LineType, CircleIntersect},
 };
 
 // In actual space
@@ -86,7 +86,24 @@ impl<'a> System<'a> for SnapPointSystem {
               }
             }
           } else if let Some(l) = lines.get(entity) {
-            let actual_proj_point = mouse_pos.project(l.to_actual(&*vp));
+            let actual_line = l.to_actual(&*vp);
+            let actual_proj_point = mouse_pos.project(actual_line);
+            let t = (actual_proj_point - actual_line.origin).dot(l.direction);
+            let actual_proj_point = match actual_line.line_type {
+              LineType::Line => actual_proj_point,
+              LineType::Ray => if t < 0.0 {
+                actual_line.origin
+              } else {
+                actual_proj_point
+              },
+              LineType::Segment(max_t) => if t < 0.0 {
+                actual_line.origin
+              } else if t > max_t {
+                actual_line.origin + actual_line.direction * max_t
+              } else {
+                actual_proj_point
+              }
+            };
             let dist = (actual_proj_point - mouse_pos).magnitude();
             if dist <= SNAP_TO_POINT_THRES {
               closest_lines.push((entity, *l));
