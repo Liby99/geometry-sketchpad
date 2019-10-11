@@ -4,6 +4,8 @@ pub mod state_managers;
 pub mod geometry_actions;
 pub mod geometry_systems;
 pub mod geometry_renderers;
+
+#[cfg(target_os = "windows")]
 pub mod gui_system;
 
 mod window_system;
