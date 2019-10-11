@@ -1,6 +1,8 @@
 extern crate piston_window;
 extern crate specs;
 extern crate shrev;
+#[macro_use] extern crate native_windows_gui as nwg;
+#[macro_use] extern crate lazy_static;
 
 #[macro_use] mod utilities;
 mod components;
@@ -16,6 +18,7 @@ fn main() {
 
   // Create a world
   let mut world = World::new();
+  let gui_system = gui_system::GuiSystem::default();
 
   // Create a window
   let window : PistonWindow = WindowSettings::new("Geometry Sketchpad - Untitled.gsp", WINDOW_SIZE).build().unwrap();
@@ -104,6 +107,7 @@ fn main() {
     .with(geometry_systems::SolverSystem::default(), "solver_system", &[
       "insert_new_point_system", "insert_new_line_system", "insert_history_geometry", "insert_new_circle_system", "remove_handler"
     ])
+    .with_thread_local(gui_system)
     .with_thread_local(window_system)
     .build();
 
