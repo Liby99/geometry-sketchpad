@@ -128,7 +128,11 @@ impl Keyboard {
   }
 
   pub fn is_command_activated(&self) -> bool {
-    self.is_activated(Key::LCommand) || self.is_activated(Key::RCommand)
+    if cfg!(target_os = "macos") {
+      self.is_activated(Key::LCommand) || self.is_activated(Key::RCommand)
+    } else {
+      self.is_activated(Key::LCtrl) || self.is_activated(Key::RCtrl)
+    }
   }
 
   pub fn reset_relative_data(&mut self) {
