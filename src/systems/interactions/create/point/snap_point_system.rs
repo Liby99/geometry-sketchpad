@@ -88,7 +88,7 @@ impl<'a> System<'a> for SnapPointSystem {
           } else if let Some(l) = lines.get(entity) {
             let actual_line = l.to_actual(&*vp);
             let actual_proj_point = mouse_pos.project(actual_line);
-            let t = (actual_proj_point - actual_line.origin).dot(l.direction);
+            let t = (actual_proj_point - actual_line.origin).dot(actual_line.direction);
             let actual_proj_point = match actual_line.line_type {
               LineType::Line => actual_proj_point,
               LineType::Ray => if t < 0.0 {

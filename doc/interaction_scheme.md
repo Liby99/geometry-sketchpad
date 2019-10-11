@@ -18,6 +18,9 @@
 
 | Key Stroke | Action | Descriptions |
 |------------|--------|--------------|
+| `1`        | (In Line Mode) draw straight line |  |
+| `2`        | (In Line Mode) draw rays |  |
+| `3`        | (In Line Mode) draw segments |  |
 | `Cmd - A`  | Select all elements |  |
 | `Cmd - D`  | Deselect all elements |  |
 | `Cmd - M`  | Create a mid-point | you need to select exactly two points in order to create this mid-point |
