@@ -24,8 +24,10 @@ fn main() {
   let window : PistonWindow = WindowSettings::new("Geometry Sketchpad - Untitled.gsp", WINDOW_SIZE).build().unwrap();
   let window_system = WindowSystem { window };
 
+  let gui_system = gui_system::GuiSystem::default();
+
   // Create dispatcher
-  let mut dispatcher_builder = DispatcherBuilder::new()
+  let mut dispatcher = DispatcherBuilder::new()
 
     // Interactions
     .with(interactions::ExitViaKeyboard, "exit_via_keyboard", &[])
@@ -106,12 +108,8 @@ fn main() {
     // Solver & final rendering
     .with(geometry_systems::SolverSystem::default(), "solver_system", &[
       "insert_new_point_system", "insert_new_line_system", "insert_history_geometry", "insert_new_circle_system", "remove_handler"
-    ]);
-  if cfg!(target_os = "windows") {
-    let gui_system = gui_system::GuiSystem::default();
-    dispatcher_builder = dispatcher_builder.with_thread_local(gui_system);
-  }
-  let mut dispatcher = dispatcher_builder
+    ])
+    .with_thread_local(gui_system)
     .with_thread_local(window_system)
     .build();
 

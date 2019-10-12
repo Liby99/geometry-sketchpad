@@ -5,7 +5,9 @@ pub mod geometry_actions;
 pub mod geometry_systems;
 pub mod geometry_renderers;
 
-#[cfg(target_os = "windows")]
+#[cfg_attr(linux, path = "gui_system_linux.rs")]
+#[cfg_attr(macos, path = "gui_system_macos.rs")]
+#[cfg_attr(windows, path = "gui_system_windows.rs")]
 pub mod gui_system;
 
 mod window_system;
