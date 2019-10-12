@@ -1,6 +1,7 @@
 mod helpers;
 
 pub mod tool;
+pub mod file;
 pub mod create;
 pub mod update;
 pub mod remove;

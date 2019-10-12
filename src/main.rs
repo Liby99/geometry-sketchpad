@@ -1,6 +1,7 @@
 extern crate piston_window;
 extern crate specs;
 extern crate shrev;
+extern crate nfd;
 
 #[macro_use] mod utilities;
 mod components;
@@ -36,6 +37,8 @@ fn main() {
     .with(interactions::hide::UnhideAllViaKeyboard, "unhide_all_via_keyboard", &[])
     .with(interactions::history::UndoViaKeyboard, "undo_via_keyboard", &[])
     .with(interactions::history::RedoViaKeyboard, "redo_via_keyboard", &[])
+
+    .with(interactions::file::OpenFileViaKeyboard, "open_file_via_keyboard", &[])
 
     // We put tooling handler here first
     .with(state_managers::ToolStateManager::default(), "tool_state_manager", &["change_tool_via_keyboard"])
