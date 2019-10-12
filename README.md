@@ -2,7 +2,9 @@
 
 A Cross-Platform Sketchpad written in Rust using [Piston](https://www.piston.rs) and [specs](https://slide-rs.github.io/specs/)
 
-![screenshot.png](doc/images/screenshot_2.png)
+![screenshot.png](doc/images/screenshot_3.png)
+
+(P.S. The screen shot is from [IMO 1959 Problem 5](https://artofproblemsolving.com/wiki/index.php/1959_IMO_Problems/Problem_5))
 
 ## How to build/run
 
