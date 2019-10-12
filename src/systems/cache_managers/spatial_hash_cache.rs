@@ -9,7 +9,7 @@ use crate::{
       SketchGeometry, SketchEvent, SketchEventChannel, SketchEventReader
     },
   },
-  components::{SymbolicPoint, Point, SymbolicLine, Line, SymbolicCircle, Circle},
+  components::{SymbolicPoint, Point, SymbolicLine, Line, SymbolicCircle, Circle, Hidden},
 };
 
 pub struct SpatialHashCache {
@@ -53,6 +53,7 @@ impl<'a> System<'a> for SpatialHashCache {
     ReadStorage<'a, Line>,
     ReadStorage<'a, SymbolicCircle>,
     ReadStorage<'a, Circle>,
+    ReadStorage<'a, Hidden>,
   );
 
   fn setup(&mut self, world: &mut World) {
@@ -76,6 +77,7 @@ impl<'a> System<'a> for SpatialHashCache {
     lines,
     sym_circles,
     circles,
+    hidden,
   ): Self::SystemData) {
 
     // First check if needs full refresh
@@ -83,13 +85,13 @@ impl<'a> System<'a> for SpatialHashCache {
 
       // If is then reconstruct the whole table
       table.init_viewport(&*vp);
-      for (ent, _, point) in (&*entities, &sym_points, &points).join() {
+      for (ent, _, point, _) in (&*entities, &sym_points, &points, !&hidden).join() {
         table.insert_point(ent, *point, &*vp);
       }
-      for (ent, _, line) in (&*entities, &sym_lines, &lines).join() {
+      for (ent, _, line, _) in (&*entities, &sym_lines, &lines, !&hidden).join() {
         table.insert_line(ent, *line, &*vp);
       }
-      for (ent, _, circle) in (&*entities, &sym_circles, &circles).join() {
+      for (ent, _, circle, _) in (&*entities, &sym_circles, &circles, !&hidden).join() {
         table.insert_circle(ent, *circle, &*vp);
       }
     } else {
@@ -117,12 +119,14 @@ impl<'a> System<'a> for SpatialHashCache {
             SketchEvent::MovePoint(entity, _) => {
               let dependents = dependency_graph.get_all_dependents(entity);
               for dependent in dependents {
-                table.remove_from_all(dependent);
-                insert_entity(dependent, &*vp, &mut table, &points, &lines, &circles);
+                if hidden.get(dependent).is_none() {
+                  table.remove_from_all(dependent);
+                  insert_entity(dependent, &*vp, &mut table, &points, &lines, &circles);
+                }
               }
             },
             SketchEvent::Hide(entity, _) => {
-              table.remove_from_all(*entity)
+              table.remove_from_all(*entity);
             },
             SketchEvent::Unhide(entity, _) => {
               insert_entity(*entity, &*vp, &mut table, &points, &lines, &circles);
