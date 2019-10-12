@@ -33,10 +33,13 @@ pub fn hitting_object<'a>(
           maybe_selected_point = Some((entity, dist));
         }
       } else if let Some(l) = lines.get(entity) {
-        let actual_proj_point = mouse_pos.project(l.to_actual(viewport));
-        let dist = (actual_proj_point - mouse_pos).magnitude();
-        if dist < threshold && (maybe_selected_line.is_none() || dist < maybe_selected_line.unwrap().1) {
-          maybe_selected_line = Some((entity, dist));
+        let actual_line = l.to_actual(viewport);
+        let actual_proj_point = mouse_pos.project(actual_line);
+        if actual_line.point_is_on_line(actual_proj_point) {
+          let dist = (actual_proj_point - mouse_pos).magnitude();
+          if dist < threshold && (maybe_selected_line.is_none() || dist < maybe_selected_line.unwrap().1) {
+            maybe_selected_line = Some((entity, dist));
+          }
         }
       } else if let Some(c) = circles.get(entity) {
         let actual_circle = c.to_actual(viewport);
