@@ -1,7 +1,4 @@
 use specs::prelude::*;
-use nwg::{Event, Ui, dispatch_events};
-use std::thread::spawn;
-use std::sync::Mutex;
 use crate::resources::{InputState, Tool, events::{ToolChangeEventChannel, ToolChangeEvent}};
 use shrev::{EventChannel, ReaderId};
 
