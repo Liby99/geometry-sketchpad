@@ -1,12 +1,12 @@
 use std::collections::HashSet;
 use specs::prelude::*;
 use crate::{
-  utilities::{Vector2, Intersect, CircleIntersect},
-  components::{SymbolicPoint, Point, SymbolicLine, Line, SymbolicCircle, Circle, CircleIntersectionType},
+  utilities::{Vector2, Intersect, CircleIntersect, LineType},
   resources::{
     DependencyGraph,
     events::{SketchEvent, SketchEventChannel, SketchEventReader, SketchGeometry},
-  }
+  },
+  components::{SymbolicPoint, Point, SymbolicLine, Line, SymbolicCircle, Circle, CircleIntersectionType},
 };
 
 enum ToCompute {
@@ -76,9 +76,7 @@ fn solve_point<'a>(
         // along the direction. If the computed line is not found we request the
         // algorithm to compute the line first
         SymbolicPoint::OnLine(line_ent, t) => match lines.get(*line_ent) {
-          Some(Line { origin, direction }) => {
-            SolveResult::SolvedPoint(origin.clone() + *t * direction.clone())
-          },
+          Some(Line { origin, direction, .. }) => SolveResult::SolvedPoint(origin.clone() + *t * *direction),
           None => SolveResult::Request(ToCompute::Line(*line_ent))
         },
 
@@ -160,7 +158,32 @@ fn solve_line<'a>(
             Some(pos_2) => {
               let origin = *pos_1;
               let direction = (*pos_2 - *pos_1).normalized();
-              SolveResult::SolvedLine(Line { origin, direction })
+              SolveResult::SolvedLine(Line { origin, direction, line_type: LineType::Line })
+            },
+            None => SolveResult::Request(ToCompute::Point(*p2_ent))
+          },
+          None => SolveResult::Request(ToCompute::Point(*p1_ent))
+        },
+
+        SymbolicLine::Ray(p1_ent, p2_ent) => match points.get(*p1_ent) {
+          Some(pos_1) => match points.get(*p2_ent) {
+            Some(pos_2) => {
+              let origin = *pos_1;
+              let direction = (*pos_2 - *pos_1).normalized();
+              SolveResult::SolvedLine(Line { origin, direction, line_type: LineType::Ray })
+            },
+            None => SolveResult::Request(ToCompute::Point(*p2_ent))
+          },
+          None => SolveResult::Request(ToCompute::Point(*p1_ent))
+        },
+
+        SymbolicLine::Segment(p1_ent, p2_ent) => match points.get(*p1_ent) {
+          Some(pos_1) => match points.get(*p2_ent) {
+            Some(pos_2) => {
+              let origin = *pos_1;
+              let diff = *pos_2 - *pos_1;
+              let direction = diff.normalized();
+              SolveResult::SolvedLine(Line { origin, direction, line_type: LineType::Segment(diff.magnitude()) })
             },
             None => SolveResult::Request(ToCompute::Point(*p2_ent))
           },
@@ -169,7 +192,7 @@ fn solve_line<'a>(
 
         SymbolicLine::Parallel(line_ent, point_ent) => match points.get(*point_ent) {
           Some(pos) => match lines.get(*line_ent) {
-            Some(Line { direction, .. }) => SolveResult::SolvedLine(Line { origin: *pos, direction: *direction }),
+            Some(Line { direction, .. }) => SolveResult::SolvedLine(Line { origin: *pos, direction: *direction, line_type: LineType::Line }),
             None => SolveResult::Request(ToCompute::Line(*line_ent))
           },
           None => SolveResult::Request(ToCompute::Point(*point_ent))
@@ -179,7 +202,7 @@ fn solve_line<'a>(
           Some(pos) => match lines.get(*line_ent) {
             Some(Line { direction: Vector2 { x, y }, .. }) => {
               let perp_dir = vec2![-y, *x];
-              SolveResult::SolvedLine(Line { origin: *pos, direction: perp_dir })
+              SolveResult::SolvedLine(Line { origin: *pos, direction: perp_dir, line_type: LineType::Line })
             },
             None => SolveResult::Request(ToCompute::Line(*line_ent))
           },

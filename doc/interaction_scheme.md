@@ -18,12 +18,17 @@
 
 | Key Stroke | Action | Descriptions |
 |------------|--------|--------------|
+| `1`        | (In Line Mode) draw straight line |  |
+| `2`        | (In Line Mode) draw rays |  |
+| `3`        | (In Line Mode) draw segments |  |
 | `Cmd - A`  | Select all elements |  |
 | `Cmd - D`  | Deselect all elements |  |
 | `Cmd - M`  | Create a mid-point | you need to select exactly two points in order to create this mid-point |
 | `Delete` or `Backspace` | Remove all selected | |
 | `Cmd - Shift - _` | Create parallel lines | you need to select exactly one line and whatever many points to draw a parallel line on every selected point |
 | `Cmd - Shift - \` | Create perpendicular lines | you need to select exactly one line and whatever many points to draw a perpendicular line on every select point |
+| `Cmd - H` | Hide selection | Hide the selected elements without deleting them |
+| `Cmd - Shift - H` | Unhide all | Unhide all the hidden elements |
 | `Cmd - Z`  | Undo | |
 | `Cmd - Shift - Z` | Redo | |
 | `Cmd - Q`  | Quit | |

@@ -1,14 +1,12 @@
 mod helpers;
 
+pub mod tool;
 pub mod create;
 pub mod update;
 pub mod remove;
 pub mod select;
 pub mod hide;
 pub mod history;
-
-mod change_tool_via_keyboard;
-pub use change_tool_via_keyboard::ChangeToolViaKeyboard;
 
 mod exit_via_keyboard;
 pub use exit_via_keyboard::ExitViaKeyboard;

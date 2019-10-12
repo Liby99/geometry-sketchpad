@@ -23,7 +23,7 @@ impl<'a> System<'a> for ChangeToolViaKeyboard {
     } else if input_state.keyboard.just_activated(Key::P) {
       tool_change_events.single_write(ToolChangeEvent(Tool::Point));
     } else if input_state.keyboard.just_activated(Key::L) {
-      tool_change_events.single_write(ToolChangeEvent(Tool::Line));
+      tool_change_events.single_write(ToolChangeEvent(Tool::default_line()));
     } else if input_state.keyboard.just_activated(Key::C) {
       tool_change_events.single_write(ToolChangeEvent(Tool::Circle));
     } else if input_state.keyboard.just_activated(Key::V) {

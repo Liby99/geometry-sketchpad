@@ -2,17 +2,34 @@
 pub enum Tool {
   Select,
   Point,
-  Line,
+  Line(LineTool),
   Circle,
   ViewportDrag,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LineTool {
+  Line,
+  Ray,
+  Segment,
+}
+
+impl Default for LineTool {
+  fn default() -> Self {
+    LineTool::Line
+  }
 }
 
 impl Tool {
   pub fn depend_on_active_point(&self) -> bool {
     match self {
-      Tool::Point | Tool::Line | Tool::Circle => true,
+      Tool::Point | Tool::Line(_) | Tool::Circle => true,
       _ => false,
     }
+  }
+
+  pub fn default_line() -> Self {
+    Tool::Line(LineTool::default())
   }
 }
 
