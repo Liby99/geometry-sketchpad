@@ -39,51 +39,37 @@ impl<T: Clone + Eq + Hash> SpatialHashTable<T> {
   /// l: line in virtual space
   pub fn insert_line(&mut self, ent: T, l: Line, vp: &Viewport) {
     let aabb = vp.actual_aabb();
-    if let Some((p1, p2)) = l.to_actual(vp).intersect(aabb) {
+    let actual = l.to_actual(vp);
+    if let Some((p1, p2)) = actual.intersect(aabb) {
+
+      // Making sure p1 to p2 is from left to right
+      let (p1, p2) = if p1.x > p2.x { (p2, p1) } else { (p1, p2) };
+      let dir = (p2 - p1).normalized();
+      let p1 = p1 + dir;
       let (init_x_tile, init_y_tile) = self.get_unlimited_cell(p1);
-      let (end_x_tile, end_y_tile) = self.get_unlimited_cell(p2);
-      if init_x_tile == end_x_tile {
-        if 0 <= init_x_tile && init_x_tile < self.x_tiles as i64 {
-          for y_tile in 0..self.y_tiles {
-            let tile = self.get_cell_by_x_y(init_x_tile as usize, y_tile);
+      let (end_x_tile, _) = self.get_unlimited_cell(p2);
+
+      let yi = if dir.y < 0.0 { -1.0 } else { 1.0 };
+      let mut curr_x = p1.x;
+      let mut curr_y = p1.y;
+      let mut curr_x_tile = init_x_tile as i64;
+      let mut curr_y_tile = init_y_tile as i64;
+      while curr_x_tile <= end_x_tile as i64 && 0 <= curr_y_tile && curr_y_tile < self.y_tiles as i64 {
+        let next_y = (curr_y_tile + if dir.y > 0.0 { 1 } else { 0 }) as f64 * TILE_SIZE;
+        let tile_offset_y = (next_y - curr_y) * yi;
+        let next_x_diff = tile_offset_y / dir.y.abs() * dir.x;
+        let next_x = curr_x + next_x_diff;
+        let next_x_tile = (next_x / TILE_SIZE) as i64;
+        for tile_x in curr_x_tile..(next_x_tile + 1) {
+          if tile_x <= end_x_tile as i64 && tile_x < self.x_tiles as i64 {
+            let tile = self.get_cell_by_x_y(tile_x as usize, curr_y_tile as usize);
             self.table[tile].insert(ent.clone());
           }
         }
-      } else if init_y_tile == end_y_tile {
-        if 0 <= init_y_tile && init_y_tile < self.y_tiles as i64 {
-          for x_tile in 0..self.x_tiles {
-            let tile = self.get_cell_by_x_y(x_tile, init_y_tile as usize);
-            self.table[tile].insert(ent.clone());
-          }
-        }
-      } else {
-        // Making sure p1 to p2 is from left to right
-        let (p1, p2) = if p1.x > p2.x { (p2, p1) } else { (p1, p2) };
-        let dir = (p2 - p1).normalized();
-        let p1 = p1 + dir;
-        let (init_x_tile, init_y_tile) = self.get_unlimited_cell(p1);
-        let yi = if dir.y < 0.0 { -1.0 } else { 1.0 };
-        let mut curr_x = p1.x;
-        let mut curr_y = p1.y;
-        let mut curr_x_tile = init_x_tile as i64;
-        let mut curr_y_tile = init_y_tile as i64;
-        while curr_x_tile < self.x_tiles as i64 && 0 <= curr_y_tile && curr_y_tile < self.y_tiles as i64 {
-          let next_y = (curr_y_tile + if dir.y > 0.0 { 1 } else { 0 }) as f64 * TILE_SIZE;
-          let tile_offset_y = (next_y - curr_y) * yi;
-          let next_x_diff = tile_offset_y / dir.y.abs() * dir.x;
-          let next_x = curr_x + next_x_diff;
-          let next_x_tile = (next_x / TILE_SIZE) as i64;
-          for tile_x in curr_x_tile..(next_x_tile + 1) {
-            if tile_x < self.x_tiles as i64 {
-              let tile = self.get_cell_by_x_y(tile_x as usize, curr_y_tile as usize);
-              self.table[tile].insert(ent.clone());
-            }
-          }
-          curr_x = next_x;
-          curr_y = next_y;
-          curr_x_tile = next_x_tile;
-          curr_y_tile = curr_y_tile + yi as i64;
-        }
+        curr_x = next_x;
+        curr_y = next_y;
+        curr_x_tile = next_x_tile;
+        curr_y_tile = curr_y_tile + yi as i64;
       }
     }
   }
@@ -93,8 +79,8 @@ impl<T: Clone + Eq + Hash> SpatialHashTable<T> {
     let actual_radius = c.radius.to_actual(vp);
     let (left, top) = self.get_unlimited_cell(vec2![actual_center.x - actual_radius, actual_center.y - actual_radius]);
     let (right, bottom) = self.get_unlimited_cell(vec2![actual_center.x + actual_radius, actual_center.y + actual_radius]);
-    for j in top..(bottom + 1) {
-      for i in left..(right + 1) {
+    for j in top.max(0)..(bottom.min(self.x_tiles as i64) + 1) {
+      for i in left.max(0)..(right.min(self.y_tiles as i64) + 1) {
         if 0 <= i && i < self.x_tiles as i64 && 0 <= j && j < self.y_tiles as i64 {
           let cell_aabb = AABB::new(i as f64 * TILE_SIZE, j as f64 * TILE_SIZE, TILE_SIZE, TILE_SIZE);
           let closest_dist = (cell_aabb.get_closest_point_to(actual_center) - actual_center).magnitude();
@@ -201,6 +187,7 @@ impl<T: Clone + Eq + Hash> SpatialHashTable<T> {
 #[cfg(test)]
 mod tests {
   use super::*;
+  use crate::utilities::LineType;
 
   #[test]
   fn test_insert_point_1() {
@@ -238,7 +225,7 @@ mod tests {
     let mut table : SpatialHashTable<i32> = SpatialHashTable::default();
     table.init_viewport(vp);
 
-    let l = Line { origin: vec2![-0.5, 0.0], direction: vec2![0.0, 1.0] };
+    let l = Line { origin: vec2![-0.5, 0.0], direction: vec2![0.0, 1.0], ..Default::default() };
     table.insert_line(0, l, vp);
 
     assert!(table.table[0].contains(&0));
@@ -247,14 +234,23 @@ mod tests {
     assert!(table.table[3].is_empty());
   }
 
+  /// 0 - - 1 - - +
+  /// |     |/    |
+  /// |    /|     |
+  /// 2 - - 3 - - +
+  /// | /   |     |
+  /// |     |     |
+  /// + - - + - - +
   #[test]
   fn test_insert_line_2() {
     let vp = &Viewport::new(vec2![0., 0.], vec2![2., 2.], vec2![80., 80.]); // 田
     let mut table : SpatialHashTable<i32> = SpatialHashTable::default();
     table.init_viewport(vp);
 
-    let l = Line { origin: vec2![-0.5, 0.0], direction: vec2![(2.0 as f64).sqrt(), (2.0 as f64).sqrt()] };
+    let l = Line { origin: vec2![-0.5, 0.0], direction: vec2![(2.0 as f64).sqrt(), (2.0 as f64).sqrt()] / 2.0, ..Default::default() };
     table.insert_line(0, l, vp);
+
+    println!("{:?}", table);
 
     assert!(table.table[0].contains(&0));
     assert!(table.table[1].contains(&0));
@@ -275,7 +271,7 @@ mod tests {
     let mut table : SpatialHashTable<i32> = SpatialHashTable::default();
     table.init_viewport(vp);
 
-    let l = Line { origin: vec2![-0.5, 0.0], direction: vec2![(2.0 as f64).sqrt(), -(2.0 as f64).sqrt()] };
+    let l = Line { origin: vec2![-0.5, 0.0], direction: vec2![(2.0 as f64).sqrt(), -(2.0 as f64).sqrt()] / 2.0, ..Default::default() };
     table.insert_line(0, l, vp);
 
     println!("{:?}", table);
@@ -292,7 +288,7 @@ mod tests {
     let mut table : SpatialHashTable<i32> = SpatialHashTable::default();
     table.init_viewport(vp);
 
-    let l = Line { origin: vec2![-0.5, 0.0], direction: vec2![(2.0 as f64).sqrt(), (2.0 as f64).sqrt()] };
+    let l = Line { origin: vec2![-0.5, 0.0], direction: vec2![(2.0 as f64).sqrt(), (2.0 as f64).sqrt()] / 2.0, ..Default::default() };
     table.insert_line(0, l, vp);
 
     println!("{:?}", table);
@@ -312,7 +308,7 @@ mod tests {
     table.init_viewport(vp);
 
     let sqrt17 = (17.0 as f64).sqrt();
-    let l = Line { origin: vec2![0.0, -0.1], direction: vec2![4.0 / sqrt17, 1.0 / sqrt17] };
+    let l = Line { origin: vec2![0.0, -0.1], direction: vec2![4.0, 1.0] / sqrt17, ..Default::default() };
     table.insert_line(0, l, vp);
 
     println!("{:?}", table);
@@ -331,7 +327,7 @@ mod tests {
     let mut table : SpatialHashTable<i32> = SpatialHashTable::default();
     table.init_viewport(vp);
 
-    let l = Line { origin: vec2![0.0, -0.5], direction: vec2![(2.0 as f64).sqrt(), (2.0 as f64).sqrt()] };
+    let l = Line { origin: vec2![0.0, -0.5], direction: vec2![(2.0 as f64).sqrt(), (2.0 as f64).sqrt()] / 2.0, ..Default::default() };
     table.insert_line(0, l, vp);
 
     println!("{:?}", table);
@@ -339,6 +335,122 @@ mod tests {
     assert!(table.table[0].is_empty());
     assert!(table.table[1].contains(&0));
     assert!(table.table[2].contains(&0));
+    assert!(table.table[3].contains(&0));
+  }
+
+  /// + - - + - - +
+  /// |     |   / |
+  /// |     |  /  |
+  /// + - - + - - +
+  /// |     |/    |
+  /// |     |     |
+  /// + - - + - - +
+  #[test]
+  fn test_insert_ray_1() {
+    let vp = &Viewport::new(vec2![0., 0.], vec2![2., 2.], vec2![80., 80.]); // 田
+    let mut table : SpatialHashTable<i32> = SpatialHashTable::default();
+    table.init_viewport(vp);
+
+    let l = Line { origin: vec2![0.1, -0.5], direction: vec2![(2.0 as f64).sqrt(), (2.0 as f64).sqrt()] / 2.0, line_type: LineType::Ray };
+    table.insert_line(0, l, vp);
+
+    println!("{:?}", table);
+
+    assert!(table.table[0].is_empty());
+    assert!(table.table[1].contains(&0));
+    assert!(table.table[2].is_empty());
+    assert!(table.table[3].contains(&0));
+  }
+
+  #[test]
+  fn test_insert_ray_2() {
+    let vp = &Viewport::new(vec2![0., 0.], vec2![2., 2.], vec2![80., 80.]); // 田
+    let mut table : SpatialHashTable<i32> = SpatialHashTable::default();
+    table.init_viewport(vp);
+
+    let l = Line { origin: vec2![-0.1, -0.5], direction: vec2![(2.0 as f64).sqrt(), (2.0 as f64).sqrt()] / 2.0, line_type: LineType::Ray };
+    table.insert_line(0, l, vp);
+
+    println!("{:?}", table);
+
+    assert!(table.table[0].is_empty());
+    assert!(table.table[1].contains(&0));
+    assert!(table.table[2].contains(&0));
+    assert!(table.table[3].contains(&0));
+  }
+
+  /// + - - + - - +
+  /// |     |     |
+  /// |     |     |
+  /// + - - + - - +
+  /// |     |     |
+  /// |    /|     |
+  /// + - - + - - +
+  #[test]
+  fn test_insert_ray_3() {
+    let vp = &Viewport::new(vec2![0., 0.], vec2![2., 2.], vec2![80., 80.]); // 田
+    let mut table : SpatialHashTable<i32> = SpatialHashTable::default();
+    table.init_viewport(vp);
+
+    let l = Line { origin: vec2![-0.1, -0.5], direction: vec2![-(2.0 as f64).sqrt(), -(2.0 as f64).sqrt()] / 2.0, line_type: LineType::Ray };
+    table.insert_line(0, l, vp);
+
+    println!("{:?}", table);
+
+    assert!(table.table[0].is_empty());
+    assert!(table.table[1].is_empty());
+    assert!(table.table[2].contains(&0));
+    assert!(table.table[3].is_empty());
+  }
+
+  #[test]
+  fn test_insert_ray_4() {
+    let vp = &Viewport::new(vec2![0., 0.], vec2![2., 2.], vec2![80., 80.]); // 田
+    let mut table : SpatialHashTable<i32> = SpatialHashTable::default();
+    table.init_viewport(vp);
+
+    let l = Line { origin: vec2![-0.5, -1.5], direction: vec2![-(2.0 as f64).sqrt(), -(2.0 as f64).sqrt()] / 2.0, line_type: LineType::Ray };
+    table.insert_line(0, l, vp);
+
+    println!("{:?}", table);
+
+    assert!(table.table[0].is_empty());
+    assert!(table.table[1].is_empty());
+    assert!(table.table[2].is_empty());
+    assert!(table.table[3].is_empty());
+  }
+
+  #[test]
+  fn test_insert_segment_1() {
+    let vp = &Viewport::new(vec2![0., 0.], vec2![2., 2.], vec2![80., 80.]); // 田
+    let mut table : SpatialHashTable<i32> = SpatialHashTable::default();
+    table.init_viewport(vp);
+
+    let l = Line { origin: vec2![-0.4, -1.5], direction: vec2![(2.0 as f64).sqrt(), (2.0 as f64).sqrt()] / 2.0, line_type: LineType::Segment(5.0) };
+    table.insert_line(0, l, vp);
+
+    println!("{:?}", table);
+
+    assert!(table.table[0].is_empty());
+    assert!(table.table[1].is_empty());
+    assert!(table.table[2].is_empty());
+    assert!(table.table[3].contains(&0));
+  }
+
+  #[test]
+  fn test_insert_segment_2() {
+    let vp = &Viewport::new(vec2![0., 0.], vec2![2., 2.], vec2![80., 80.]); // 田
+    let mut table : SpatialHashTable<i32> = SpatialHashTable::default();
+    table.init_viewport(vp);
+
+    let l = Line { origin: vec2![-0.4, -1.5], direction: vec2![(2.0 as f64).sqrt(), (2.0 as f64).sqrt()] / 2.0, line_type: LineType::Segment(1.2) };
+    table.insert_line(0, l, vp);
+
+    println!("{:?}", table);
+
+    assert!(table.table[0].is_empty());
+    assert!(table.table[1].is_empty());
+    assert!(table.table[2].is_empty());
     assert!(table.table[3].contains(&0));
   }
 

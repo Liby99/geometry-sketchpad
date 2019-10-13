@@ -51,7 +51,9 @@ fn add_point(dependency_graph: &mut DependencyGraph, ent: &Entity, sym_point: &S
 
 fn add_line(dependency_graph: &mut DependencyGraph, ent: &Entity, sym_line: &SymbolicLine) {
   match sym_line {
-    SymbolicLine::TwoPoints(p1_ent, p2_ent) => {
+    SymbolicLine::TwoPoints(p1_ent, p2_ent) |
+    SymbolicLine::Ray(p1_ent, p2_ent) |
+    SymbolicLine::Segment(p1_ent, p2_ent) => {
       dependency_graph.add(p1_ent, ent);
       dependency_graph.add(p2_ent, ent);
     },

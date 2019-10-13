@@ -8,7 +8,7 @@ pub trait Project<T> {
 impl Project<Line> for Vector2 {
   type Output = Self;
 
-  fn project(self, Line { origin, direction }: Line) -> Self::Output {
+  fn project(self, Line { origin, direction, .. }: Line) -> Self::Output {
     origin + (self - origin).dot(direction) * direction
   }
 }
