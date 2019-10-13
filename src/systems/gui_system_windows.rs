@@ -1,7 +1,7 @@
 use specs::prelude::*;
 use nwg::{Event, Ui};
 use std::sync::Mutex;
-use crate::resources::{InputState, Tool, events::*};
+use crate::resources::{InputState, Tool, LineTool, events::*};
 use shrev::{EventChannel, ReaderId};
 
 enum GuiSystemAction {
@@ -170,7 +170,7 @@ nwg_template!(
           (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::ToolChange(Tool::Point));
         }),
         (LineToolBtn, LineToolEvent, Event::Click, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::ToolChange(Tool::Line));
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::ToolChange(Tool::Line(LineTool::Line)));
         }),
         (CircleToolBtn, CircleToolEvent, Event::Click, |_ui,_,_,_| {
           (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::ToolChange(Tool::Circle));
