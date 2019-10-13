@@ -197,7 +197,6 @@ nwg_template!(
 
 
 pub struct GuiSystem {
-  init: bool,
   gui_action_reader: Option<GuiSystemActionReader>,
   ui: Option<Ui<AppId>>,
 }
@@ -205,7 +204,6 @@ pub struct GuiSystem {
 impl Default for GuiSystem {
   fn default() -> Self {
     Self {
-      init: false,
       gui_action_reader: None,
       ui: None,
     }
@@ -223,18 +221,12 @@ impl<'a> System<'a> for GuiSystem {
   fn setup(&mut self, world: &mut World) {
     Self::SystemData::setup(world);
     self.gui_action_reader = Some((*GUI_ACTION_CHANNEL).lock().unwrap().register_reader());
+    let ui = Ui::new().unwrap();
+    setup_ui(&ui).unwrap();
+    self.ui = Some(ui);
   }
   
   fn run(&mut self, (_input_state, mut tool_change_events, mut exit_events, mut history_action_channel): Self::SystemData) {
-
-    if !self.init {
-      self.init = true;
-      let ui = Ui::new().unwrap();
-      setup_ui(&ui).unwrap();
-      self.ui = Some(ui);
-      return;
-    }
-
     use user32::{PeekMessageW, TranslateMessage, DispatchMessageW};
     unsafe {
       let mut msg: winapi::winuser::MSG = std::mem::uninitialized();
