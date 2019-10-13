@@ -2,6 +2,7 @@ use specs::prelude::Entity;
 use shrev::{EventChannel, ReaderId};
 use crate::components::{SymbolicPoint, SymbolicLine, SymbolicCircle};
 
+#[derive(Debug, Copy, Clone)]
 pub enum GeometryAction {
   SelectAll,
   DeselectAll,

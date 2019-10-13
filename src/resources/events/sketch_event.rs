@@ -5,6 +5,7 @@ use crate::{
   components::{SymbolicLine, SymbolicPoint, SymbolicCircle, LineStyle, PointStyle, CircleStyle},
 };
 
+#[derive(Debug, Copy, Clone)]
 pub enum SketchEvent {
   Select(Entity),
   Deselect(Entity),
@@ -56,6 +57,7 @@ pub enum SketchGeometry {
   Circle(SymbolicCircle, CircleStyle),
 }
 
+#[derive(Debug, Clone, Copy)]
 pub enum MovePoint {
   Free(Vector2, Vector2), // old_position, new_position
   OnLine(Entity, f64, f64), // line_entity, old_t, new_t

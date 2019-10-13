@@ -1,5 +1,6 @@
 use shrev::{EventChannel, ReaderId};
 
+#[derive(Debug, Copy, Clone)]
 pub enum HistoryAction {
   Undo,
   Redo,
