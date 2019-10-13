@@ -1,9 +1,14 @@
 extern crate piston_window;
 extern crate specs;
 extern crate shrev;
+extern crate open;
+#[macro_use] extern crate lazy_static;
 #[cfg(target_os = "windows")]
 #[macro_use] extern crate native_windows_gui as nwg;
-#[macro_use] extern crate lazy_static;
+#[cfg(target_os = "windows")]
+extern crate user32;
+#[cfg(target_os = "windows")]
+extern crate winapi;
 
 #[macro_use] mod utilities;
 mod components;
