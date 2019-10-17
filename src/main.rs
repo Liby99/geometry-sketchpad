@@ -26,7 +26,7 @@ fn main() {
   let mut world = World::new();
 
   // Create a window
-  let window : PistonWindow = WindowSettings::new("Geometry Sketchpad - Untitled.gsp", WINDOW_SIZE).build().unwrap();
+  let window : PistonWindow = WindowSettings::new("canvas", WINDOW_SIZE).build().unwrap();
   let window_system = WindowSystem { window };
 
   let gui_system = gui_system::GuiSystem::default();
