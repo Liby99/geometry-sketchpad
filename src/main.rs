@@ -1,6 +1,7 @@
 extern crate piston_window;
 extern crate specs;
 extern crate shrev;
+extern crate rand;
 
 #[macro_use] mod utilities;
 mod components;
