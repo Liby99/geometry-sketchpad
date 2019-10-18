@@ -1,7 +1,16 @@
 extern crate piston_window;
 extern crate specs;
 extern crate shrev;
+#[cfg(test)]
 extern crate rand;
+extern crate open;
+#[macro_use] extern crate lazy_static;
+#[cfg(target_os = "windows")]
+#[macro_use] extern crate native_windows_gui as nwg;
+#[cfg(target_os = "windows")]
+extern crate user32;
+#[cfg(target_os = "windows")]
+extern crate winapi;
 
 #[macro_use] mod utilities;
 mod components;
@@ -21,6 +30,8 @@ fn main() {
   // Create a window
   let window : PistonWindow = WindowSettings::new("Geometry Sketchpad - Untitled.gsp", WINDOW_SIZE).build().unwrap();
   let window_system = WindowSystem { window };
+
+  let gui_system = gui_system::GuiSystem::default();
 
   // Create dispatcher
   let mut dispatcher = DispatcherBuilder::new()
@@ -106,6 +117,7 @@ fn main() {
     .with(geometry_systems::SolverSystem::default(), "solver_system", &[
       "insert_new_point_system", "insert_new_line_system", "insert_history_geometry", "insert_new_circle_system", "remove_handler"
     ])
+    .with_thread_local(gui_system)
     .with_thread_local(window_system)
     .build();
 
