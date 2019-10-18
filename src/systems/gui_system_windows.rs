@@ -6,9 +6,10 @@ use shrev::{EventChannel, ReaderId};
 
 enum GuiSystemAction {
   ToolChange(Tool),
-  Exit,
   History(HistoryAction),
+  Geometry(GeometryAction),
   Resize,
+  Exit,
 }
 
 type GuiSystemActionChannel = EventChannel<GuiSystemAction>;
@@ -28,6 +29,16 @@ pub enum AppId {
   MenuEdit,
   MenuEditUndo,
   MenuEditRedo,
+  MenuSelect,
+  MenuSelectAll,
+  MenuSelectDeselect,
+  MenuCreate,
+  MenuCreateMid,
+  MenuCreateParallel,
+  MenuCreatePerpendicular,
+  MenuDisplay,
+  MenuDisplayHide,
+  MenuDisplayUnhiddenAll,
   MenuHelp,
   MenuHelpIssue,
   MenuHelpAbout,
@@ -47,7 +58,13 @@ pub enum AppId {
   FileExitEvent,
   EditUndoEvent,
   EditRedoEvent,
-
+  SelectAllEvent,
+  SelectDeselectEvent,
+  CreateMidEvent,
+  CreateParallelEvent,
+  CreatePerpendicularEvent,
+  DisplayHideEvent,
+  DisplayUnhiddenAllEvent,
   HelpIssueEvent,
   HelpAboutEvent,
 
@@ -84,7 +101,8 @@ nwg_template!(
         )),
             (MenuFileOpen, nwg_menuitem!(
                   parent=MenuFile;
-                  text="&Open...\tCtrl+O"
+                  text="&Open...\tCtrl+O";
+                  disabled=true
             )),
             (MenuFileSave, nwg_menuitem!(
                   parent=MenuFile;
@@ -107,6 +125,50 @@ nwg_template!(
                   parent=MenuEdit;
                   text="&Redo\tCtrl+Shift+Z"
             )),
+
+        (MenuSelect, nwg_menu!(
+             parent=MainWindow;
+             text="Select"
+        )),
+            (MenuSelectAll, nwg_menuitem!(
+                  parent=MenuSelect;
+                  text="&Select All\tCtrl+A"
+            )),
+            (MenuSelectDeselect, nwg_menuitem!(
+                  parent=MenuSelect;
+                  text="&Deselect\tCtrl+D"
+            )),
+
+        (MenuCreate, nwg_menu!(
+             parent=MainWindow;
+             text="Create"
+        )),
+            (MenuCreateMid, nwg_menuitem!(
+                  parent=MenuCreate;
+                  text="&Mid Point\tCtrl+M"
+            )),
+            (MenuCreateParallel, nwg_menuitem!(
+                  parent=MenuCreate;
+                  text="&Parallel Line\tCtrl+Shift+_"
+            )),
+            (MenuCreatePerpendicular, nwg_menuitem!(
+                  parent=MenuCreate;
+                  text="&Perpendicular Line\tCtrl+Shift+\\"
+            )),
+
+        (MenuDisplay, nwg_menu!(
+             parent=MainWindow;
+             text="Display"
+        )),
+            (MenuDisplayHide, nwg_menuitem!(
+                  parent=MenuDisplay;
+                  text="&Hide Selection\tCtrl+H"
+            )),
+            (MenuDisplayUnhiddenAll, nwg_menuitem!(
+                  parent=MenuDisplay;
+                  text="&Unhidden All\tCtrl+Shift+H"
+            )),
+
         (MenuHelp, nwg_menu!(
              parent=MainWindow;
              text="Help"
@@ -170,6 +232,40 @@ nwg_template!(
             panic!()
           }
         }),
+
+        (MenuFileExit, FileExitEvent, Event::Triggered, |_ui,_,_,_| {
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Exit);
+        }),
+        (MenuEditUndo, EditUndoEvent, Event::Triggered, |_ui,_,_,_| {
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::History(HistoryAction::Undo));
+        }),
+        (MenuEditRedo, EditRedoEvent, Event::Triggered, |_ui,_,_,_| {
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::History(HistoryAction::Redo));
+        }),
+
+
+        (MenuSelectAll, SelectAllEvent, Event::Triggered, |_ui,_,_,_| {
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Geometry(GeometryAction::SelectAll));
+        }),
+        (MenuSelectDeselect, SelectDeselectEvent, Event::Triggered, |_ui,_,_,_| {
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Geometry(GeometryAction::DeselectAll));
+        }),
+        (MenuCreateMid, CreateMidEvent, Event::Triggered, |_ui,_,_,_| {
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Geometry(GeometryAction::DrawMidpointOnSelected));
+        }),
+        (MenuCreateParallel, CreateParallelEvent, Event::Triggered, |_ui,_,_,_| {
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Geometry(GeometryAction::DrawParallelOnSelected));
+        }),
+        (MenuCreatePerpendicular, CreatePerpendicularEvent, Event::Triggered, |_ui,_,_,_| {
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Geometry(GeometryAction::DrawPerpendicularOnSelected));
+        }),
+        (MenuDisplayHide, DisplayHideEvent, Event::Triggered, |_ui,_,_,_| {
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Geometry(GeometryAction::HideSelected));
+        }),
+        (MenuDisplayUnhiddenAll, DisplayUnhiddenAllEvent, Event::Triggered, |_ui,_,_,_| {
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Geometry(GeometryAction::UnhideAll));
+        }),
+
         (MenuHelpIssue, HelpIssueEvent, Event::Triggered, |_ui,_,_,_| {
           let _ = open::that("https://github.com/Liby99/geometry-sketchpad/issues/new");
         }),
@@ -197,16 +293,7 @@ nwg_template!(
         (ViewportDragToolBtn, ViewportDragToolEvent, Event::Click, |_ui,_,_,_| {
           (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::ToolChange(Tool::ViewportDrag));
         }),
-        
-        (MenuFileExit, FileExitEvent, Event::Triggered, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Exit);
-        }),
-        (MenuEditUndo, EditUndoEvent, Event::Triggered, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::History(HistoryAction::Undo));
-        }),
-        (MenuEditRedo, EditRedoEvent, Event::Triggered, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::History(HistoryAction::Redo));
-        }),
+
 
         (MainWindow, WindowCloseEvent, Event::Closed, |_ui,_,_,_| {
           (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Exit);
@@ -271,6 +358,7 @@ impl<'a> System<'a> for GuiSystem {
     Write<'a, ToolChangeEventChannel>,
     Write<'a, ExitEventChannel>,
     Write<'a, HistoryActionChannel>,
+    Write<'a, GeometryActionChannel>,
   );
 
   fn setup(&mut self, world: &mut World) {
@@ -278,7 +366,13 @@ impl<'a> System<'a> for GuiSystem {
     self.gui_action_reader = Some((*GUI_ACTION_CHANNEL).lock().unwrap().register_reader());
   }
 
-  fn run(&mut self, (_input_state, mut tool_change_events, mut exit_events, mut history_action_channel): Self::SystemData) {
+  fn run(&mut self,
+         (_input_state,
+           mut tool_change_events,
+           mut exit_events,
+           mut history_action_channel,
+           mut geometry_action_channel
+         ): Self::SystemData) {
     unsafe {
       use user32::{PeekMessageW, TranslateMessage, DispatchMessageW, SendMessageW, GetCursorPos, WindowFromPoint, BringWindowToTop};
       let mut msg: winapi::winuser::MSG = std::mem::uninitialized();
@@ -320,6 +414,9 @@ impl<'a> System<'a> for GuiSystem {
                 SetWindowPos(self.piston, 0 as winapi::HWND, 0, WINDOW_TOOLBAR_HEIGHT, width, height - WINDOW_TOOLBAR_HEIGHT, SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
               }
             }
+          }
+          GuiSystemAction::Geometry(action) => {
+            geometry_action_channel.single_write(*action);
           }
         }
       }
