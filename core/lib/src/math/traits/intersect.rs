@@ -1,5 +1,5 @@
-use super::super::{Vector2, Line, LineType, Circle, AABB};
-use super::project::Project;
+use super::super::*;
+use super::{DotProduct, Project};
 
 pub trait Intersect<T> {
   type Output;
@@ -21,18 +21,22 @@ impl Intersect<Line> for Line {
   type Output = Option<Vector2>;
 
   fn intersect(self, other: Self) -> Self::Output {
-    let det = self.direction.x * other.direction.y - self.direction.y * other.direction.x;
+    let Position(Vector2 { x: sox, y: soy }) = self.origin;
+    let Position(Vector2 { x: oox, y: ooy }) = other.origin;
+    let Direction(Vector2 { x: sdx, y: sdy }) = self.direction;
+    let Direction(Vector2 { x: odx, y: ody }) = other.direction;
+    let det = sdx * ody - sdy * odx;
     if det == 0. {
       None
     } else {
-      let x2 = self.origin.x + self.direction.x;
-      let y2 = self.origin.y + self.direction.y;
-      let x4 = other.origin.x + other.direction.x;
-      let y4 = other.origin.y + other.direction.y;
-      let nom_1 = self.origin.y * x2 - self.origin.x * y2;
-      let nom_2 = other.origin.y * x4 - other.origin.x * y4;
-      let x_nom = nom_1 * other.direction.x - self.direction.x * nom_2;
-      let y_nom = nom_1 * other.direction.y - self.direction.y * nom_2;
+      let x2 = sox + sdx;
+      let y2 = soy + sdy;
+      let x4 = oox + odx;
+      let y4 = ooy + ody;
+      let nom_1 = soy * x2 - sox * y2;
+      let nom_2 = ooy * x4 - oox * y4;
+      let x_nom = nom_1 * odx - sdx * nom_2;
+      let y_nom = nom_1 * ody - sdy * nom_2;
 
       // The intersection position
       let itsct = vec2![x_nom / det, y_nom / det];
@@ -47,39 +51,6 @@ impl Intersect<Line> for Line {
   }
 }
 
-#[cfg(test)]
-mod test_line_line_intersection {
-  use super::*;
-
-  #[test]
-  fn test_line_line_intersect_1() {
-    let l1 = Line { origin: vec2![0.0, 0.0], direction: vec2![1.0, 0.0], line_type: LineType::Line };
-    let l2 = Line { origin: vec2![-1.0, -1.0], direction: vec2![0.0, 1.0], line_type: LineType::Line };
-    assert!(l1.intersect(l2) == Some(vec2![-1.0, 0.0]));
-  }
-
-  #[test]
-  fn test_line_line_intersect_2() {
-    let l1 = Line { origin: vec2![0.0, 0.0], direction: vec2![1.0, 0.0], line_type: LineType::Ray };
-    let l2 = Line { origin: vec2![-1.0, -1.0], direction: vec2![0.0, 1.0], line_type: LineType::Line };
-    assert!(l1.intersect(l2).is_none());
-  }
-
-  #[test]
-  fn test_line_line_intersect_3() {
-    let l1 = Line { origin: vec2![0.0, 0.0], direction: vec2![1.0, 0.0], line_type: LineType::Segment(0.5) };
-    let l2 = Line { origin: vec2![1.0, -1.0], direction: vec2![0.0, 1.0], line_type: LineType::Line };
-    assert!(l1.intersect(l2).is_none());
-  }
-
-  #[test]
-  fn test_line_line_intersect_4() {
-    let l1 = Line { origin: vec2![0.0, 0.0], direction: vec2![1.0, 0.0], line_type: LineType::Segment(1.5) };
-    let l2 = Line { origin: vec2![1.0, -1.0], direction: vec2![0.0, 1.0], line_type: LineType::Line };
-    assert!(l1.intersect(l2) == Some(vec2![1.0, 0.0]));
-  }
-}
-
 impl Intersect<AABB> for Line {
   type Output = Option<(Vector2, Vector2)>;
 
@@ -87,7 +58,7 @@ impl Intersect<AABB> for Line {
     let AABB { x: x_min, y: y_min, width, height } = aabb;
     let x_max = x_min + width;
     let y_max = y_min + height;
-    let Line { origin: Vector2 { x: ox, y: oy }, direction: Vector2 { x: dx, y: dy }, line_type } = self;
+    let Line { origin: Position(Vector2 { x: ox, y: oy }), direction: Direction(Vector2 { x: dx, y: dy }), line_type } = self;
     let (p1, p2) = if dx == 0.0 {
       if x_min <= ox && ox <= x_max {
         (vec2![ox, y_min], vec2![ox, y_max])
@@ -129,15 +100,15 @@ impl Intersect<AABB> for Line {
         if d1 && d2 {
           Some((p1, p2))
         } else if d1 {
-          Some((self.origin, p1))
+          Some((self.origin.into(), p1))
         } else if d2 {
-          Some((self.origin, p2))
+          Some((self.origin.into(), p2))
         } else {
           None
         }
       },
       LineType::Segment(t) => {
-        let (a, b) = (self.origin, self.origin + self.direction * t);
+        let (a, b) = (self.origin.into(), self.origin + self.direction * t);
         let (ca, cb) = (aabb.contains(a), aabb.contains(b));
         if ca && cb {
           Some((a, b))

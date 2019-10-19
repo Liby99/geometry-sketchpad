@@ -1,4 +1,5 @@
 use super::super::*;
+use super::DotProduct;
 
 pub trait Project<T> {
   type Output;

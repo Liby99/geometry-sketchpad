@@ -1,5 +1,5 @@
 #[macro_use] mod point;
-mod line;
+#[macro_use] mod line;
 mod circle;
 mod aabb;
 

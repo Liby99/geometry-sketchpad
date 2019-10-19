@@ -30,10 +30,6 @@ impl Vector2 {
     self / self.magnitude()
   }
 
-  pub fn dot(self, other: Self) -> f64 {
-    self.x * other.x + self.y * other.y
-  }
-
   pub fn is_not_zero(&self) -> bool {
     self.x != 0.0 || self.y != 0.0
   }
@@ -129,3 +125,37 @@ impl Mul<Vector2> for f64 {
     }
   }
 }
+
+#[derive(Default, Debug, Copy, Clone, PartialEq)]
+pub struct Position(pub Vector2);
+
+impl Into<Vector2> for Position { fn into(self) -> Vector2 { self.0 } }
+impl From<Vector2> for Position { fn from(v: Vector2) -> Self { Self(v) } }
+impl Add<Position> for Position { type Output = Vector2; fn add(self, other: Self) -> Vector2 { self.0 + other.0 } }
+impl Add<Direction> for Position { type Output = Vector2; fn add(self, other: Direction) -> Vector2 { self.0 + other.0 } }
+impl Add<Vector2> for Position { type Output = Vector2; fn add(self, other: Vector2) -> Vector2 { self.0 + other } }
+impl Add<Position> for Vector2 { type Output = Vector2; fn add(self, other: Position) -> Vector2 { self + other.0 } }
+impl Sub<Position> for Position { type Output = Vector2; fn sub(self, other: Self) -> Vector2 { self.0 - other.0 } }
+impl Sub<Direction> for Position { type Output = Vector2; fn sub(self, other: Direction) -> Vector2 { self.0 - other.0 } }
+impl Sub<Vector2> for Position { type Output = Vector2; fn sub(self, other: Vector2) -> Vector2 { self.0 - other } }
+impl Sub<Position> for Vector2 { type Output = Vector2; fn sub(self, other: Position) -> Vector2 { self - other.0 } }
+impl Mul<f64> for Position { type Output = Vector2; fn mul(self, other: f64) -> Vector2 { self.0 * other } }
+impl Mul<Position> for f64 { type Output = Vector2; fn mul(self, other: Position) -> Vector2 { other.0 * self } }
+impl Div<f64> for Position { type Output = Vector2; fn div(self, other: f64) -> Vector2 { self.0 / other } }
+
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub struct Direction(pub Vector2);
+
+impl Default for Direction { fn default() -> Self { Self(vec2![1.0, 0.0]) } } // Default to pos x direction
+impl Into<Vector2> for Direction { fn into(self) -> Vector2 { self.0 } }
+impl From<Vector2> for Direction { fn from(v: Vector2) -> Self { Self(v) } }
+impl Add<Direction> for Direction { type Output = Vector2; fn add(self, other: Self) -> Vector2 { self.0 + other.0 } }
+impl Add<Position> for Direction { type Output = Vector2; fn add(self, other: Position) -> Vector2 { self.0 + other.0 } }
+impl Add<Vector2> for Direction { type Output = Vector2; fn add(self, other: Vector2) -> Vector2 { self.0 + other } }
+impl Sub<Direction> for Direction { type Output = Vector2; fn sub(self, other: Self) -> Vector2 { self.0 - other.0 } }
+impl Sub<Position> for Direction { type Output = Vector2; fn sub(self, other: Position) -> Vector2 { self.0 - other.0 } }
+impl Sub<Vector2> for Direction { type Output = Vector2; fn sub(self, other: Vector2) -> Vector2 { self.0 - other } }
+impl Sub<Direction> for Vector2 { type Output = Vector2; fn sub(self, other: Direction) -> Vector2 { self - other.0 } }
+impl Mul<f64> for Direction { type Output = Vector2; fn mul(self, other: f64) -> Vector2 { self.0 * other } }
+impl Mul<Direction> for f64 { type Output = Vector2; fn mul(self, other: Direction) -> Vector2 { other.0 * self } }
+impl Div<f64> for Direction { type Output = Vector2; fn div(self, other: f64) -> Vector2 { self.0 / other } }
