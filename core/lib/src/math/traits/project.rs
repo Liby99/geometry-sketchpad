@@ -1,4 +1,4 @@
-use super::super::{Vector2, Line, Circle};
+use super::super::*;
 
 pub trait Project<T> {
   type Output;

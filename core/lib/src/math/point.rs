@@ -13,8 +13,6 @@ macro_rules! vec2 {
   ($x:expr, $y:expr) => (Vector2 { x: $x, y: $y });
 }
 
-pub type Point = Vector2;
-
 impl Vector2 {
   pub fn new(x: f64, y: f64) -> Self {
     Vector2 { x, y }
