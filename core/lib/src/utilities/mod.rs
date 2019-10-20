@@ -1,11 +1,9 @@
 mod geometry;
-mod viewport;
+mod screen_space;
+mod virtual_space;
 mod spatial_hash_table;
-mod dependency_graph;
-mod history;
 
 pub use geometry::*;
-pub use viewport::*;
+pub use screen_space::*;
+pub use virtual_space::*;
 pub use spatial_hash_table::*;
-pub use dependency_graph::*;
-pub use history::*;

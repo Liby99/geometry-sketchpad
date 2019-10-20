@@ -1,5 +1,5 @@
 use specs::prelude::*;
-use crate::utilities::VirtualPosition;
+use crate::utilities::*;
 
 pub enum SymbolicPoint {
   Fixed(VirtualPosition),

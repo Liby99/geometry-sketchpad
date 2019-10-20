@@ -1,6 +1,4 @@
-use std::collections::{HashMap, HashSet};
-use specs::prelude::*;
-use super::Geometry;
+use crate::events::HistoryEvent;
 
 pub struct History {
   history: Vec<HistoryEvent>,
@@ -16,14 +14,6 @@ impl Default for History {
       head: 0,
     }
   }
-}
-
-pub enum HistoryEvent {
-  RemoveMany(HashMap<Entity, Geometry>),
-  InsertMany(HashMap<Entity, Geometry>),
-  Update(Entity, Geometry, Geometry), // Entity, old, new
-  HideMany(HashSet<Entity>),
-  UnhideMany(HashSet<Entity>),
 }
 
 impl History {
