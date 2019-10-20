@@ -1,3 +1,4 @@
+#[derive(Debug, Copy, Clone)]
 pub struct Color {
   pub r: f64,
   pub g: f64,
@@ -30,11 +31,23 @@ impl Color {
     Self { r, g, b, a }
   }
 
+  pub fn transparent() -> Self {
+    rgba!(0.0, 0.0, 0.0, 0.0)
+  }
+
   pub fn black() -> Self {
     rgb!(0.0, 0.0, 0.0)
   }
 
   pub fn red() -> Self {
     rgb!(1.0, 0.0, 0.0)
+  }
+
+  pub fn green() -> Self {
+    rgb!(0.0, 1.0, 0.0)
+  }
+
+  pub fn blue() -> Self {
+    rgb!(0.0, 0.0, 1.0)
   }
 }
