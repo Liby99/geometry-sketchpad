@@ -203,3 +203,24 @@ impl Intersect<Circle> for Circle {
     }
   }
 }
+
+impl Intersect<AABB> for AABB {
+  type Output = Option<AABB>;
+
+  fn intersect(self, other: AABB) -> Self::Output {
+    let x_min = self.x_min().max(other.x_min());
+    let x_max = self.x_max().min(other.x_max());
+    let y_min = self.y_min().max(other.y_min());
+    let y_max = self.y_max().min(other.y_max());
+    if x_min <= x_max && y_min <= y_max {
+      Some(AABB {
+        x: x_min,
+        y: y_min,
+        width: x_max - x_min,
+        height: y_max - y_min,
+      })
+    } else {
+      None
+    }
+  }
+}

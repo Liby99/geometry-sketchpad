@@ -13,6 +13,30 @@ impl AABB {
     Self { x, y, width, height }
   }
 
+  pub fn min(&self) -> Vector2 {
+    vec2![self.x, self.y]
+  }
+
+  pub fn max(&self) -> Vector2 {
+    vec2![self.x + self.width, self.y + self.height]
+  }
+
+  pub fn x_min(&self) -> f64 {
+    self.x
+  }
+
+  pub fn x_max(&self) -> f64 {
+    self.x + self.width
+  }
+
+  pub fn y_min(&self) -> f64 {
+    self.y
+  }
+
+  pub fn y_max(&self) -> f64 {
+    self.y + self.width
+  }
+
   pub fn contains(&self, p: Vector2) -> bool {
     let Vector2 { x, y } = p;
     self.x <= x && x <= self.x + self.width && self.y <= y && y <= self.y + self.height
