@@ -1,5 +1,4 @@
 use super::super::*;
-use super::{DotProduct, Project};
 
 pub trait Intersect<T> {
   type Output;
@@ -9,11 +8,11 @@ pub trait Intersect<T> {
 static LINE_ITSCT_THRESHOLD : f64 = 1e-10;
 
 fn itsct_line_is_not_none(l: Line, itsct: Vector2) -> bool {
-  let d = (itsct - l.origin).dot(l.direction);
+  let t = l.t_of_point(itsct);
   match l.line_type {
     LineType::Line => true,
-    LineType::Ray => d > -LINE_ITSCT_THRESHOLD,
-    LineType::Segment(t) => d > -LINE_ITSCT_THRESHOLD && d < t + LINE_ITSCT_THRESHOLD,
+    LineType::Ray => t > -LINE_ITSCT_THRESHOLD,
+    LineType::Segment => t > -LINE_ITSCT_THRESHOLD && t < l.from_to_length() + LINE_ITSCT_THRESHOLD,
   }
 }
 
@@ -21,10 +20,10 @@ impl Intersect<Line> for Line {
   type Output = Option<Vector2>;
 
   fn intersect(self, other: Self) -> Self::Output {
-    let Position(Vector2 { x: sox, y: soy }) = self.origin;
-    let Position(Vector2 { x: oox, y: ooy }) = other.origin;
-    let Direction(Vector2 { x: sdx, y: sdy }) = self.direction;
-    let Direction(Vector2 { x: odx, y: ody }) = other.direction;
+    let Vector2 { x: sox, y: soy } = self.from;
+    let Vector2 { x: oox, y: ooy } = other.from;
+    let Vector2 { x: sdx, y: sdy } = self.direction();
+    let Vector2 { x: odx, y: ody } = other.direction();
     let det = sdx * ody - sdy * odx;
     if det == 0. {
       None
@@ -58,7 +57,8 @@ impl Intersect<AABB> for Line {
     let AABB { x: x_min, y: y_min, width, height } = aabb;
     let x_max = x_min + width;
     let y_max = y_min + height;
-    let Line { origin: Position(Vector2 { x: ox, y: oy }), direction: Direction(Vector2 { x: dx, y: dy }), line_type } = self;
+    let Line { from: Vector2 { x: ox, y: oy }, line_type, .. } = self;
+    let Vector2 { x: dx, y: dy } = self.direction();
     let (p1, p2) = if dx == 0.0 {
       if x_min <= ox && ox <= x_max {
         (vec2![ox, y_min], vec2![ox, y_max])
@@ -92,23 +92,23 @@ impl Intersect<AABB> for Line {
         _ => return None
       }
     };
-    let d1 = (p1 - self.origin).dot(self.direction) > 0.0;
-    let d2 = (p2 - self.origin).dot(self.direction) > 0.0;
+    let d1 = self.t_of_point(p1) >= 0.0;
+    let d2 = self.t_of_point(p2) >= 0.0;
     match line_type {
       LineType::Line => Some((p1, p2)),
       LineType::Ray => {
         if d1 && d2 {
           Some((p1, p2))
         } else if d1 {
-          Some((self.origin.into(), p1))
+          Some((self.from, p1))
         } else if d2 {
-          Some((self.origin.into(), p2))
+          Some((self.from, p2))
         } else {
           None
         }
       },
-      LineType::Segment(t) => {
-        let (a, b) = (self.origin.into(), self.origin + self.direction * t);
+      LineType::Segment => {
+        let (a, b) = (self.from, self.to);
         let (ca, cb) = (aabb.contains(a), aabb.contains(b));
         if ca && cb {
           Some((a, b))
@@ -150,9 +150,9 @@ impl Intersect<Line> for Circle {
     let dist = (proj - self.center).magnitude();
     if dist < self.radius - CIRCLE_ITSCT_THRESHOLD {
       let da = (self.radius * self.radius - dist * dist).sqrt();
-      let t_proj = (proj - line.origin).dot(line.direction);
-      let p1 = line.origin + line.direction * (t_proj - da);
-      let p2 = line.origin + line.direction * (t_proj + da);
+      let t_proj = line.t_of_point(proj);
+      let p1 = line.point_at_t(t_proj - da);
+      let p2 = line.point_at_t(t_proj + da);
       let has_p1 = itsct_line_is_not_none(line, p1);
       let has_p2 = itsct_line_is_not_none(line, p2);
       if has_p1 && has_p2 {
@@ -184,19 +184,20 @@ impl Intersect<Circle> for Circle {
   type Output = CircleIntersect;
 
   fn intersect(self, other: Circle) -> Self::Output {
-    let center_diff = other.center - self.center;
+    let (c1, c2) = if self.center < other.center { (self, other) } else { (other, self) };
+    let center_diff = c2.center - c1.center;
     let d = center_diff.magnitude();
-    if d < self.radius + other.radius - CIRCLE_ITSCT_THRESHOLD {
+    if d < c1.radius + c2.radius - CIRCLE_ITSCT_THRESHOLD {
       let center_theta = center_diff.y.atan2(center_diff.x);
-      let d1 = (d * d - other.radius * other.radius + self.radius * self.radius) / (2.0 * d);
-      let theta = (d1 / self.radius).acos();
+      let d1 = (d * d - c2.radius * c2.radius + c1.radius * c1.radius) / (2.0 * d);
+      let theta = (d1 / c1.radius).acos();
       let theta_1 = center_theta - theta;
       let theta_2 = center_theta + theta;
-      let p1 = self.center + vec2![self.radius * theta_1.cos(), self.radius * theta_1.sin()];
-      let p2 = self.center + vec2![self.radius * theta_2.cos(), self.radius * theta_2.sin()];
+      let p1 = c1.center + vec2![c1.radius * theta_1.cos(), c1.radius * theta_1.sin()];
+      let p2 = c1.center + vec2![c1.radius * theta_2.cos(), c1.radius * theta_2.sin()];
       CircleIntersect::TwoPoints(p1, p2)
-    } else if d < self.radius + other.radius + CIRCLE_ITSCT_THRESHOLD {
-      CircleIntersect::OnePoint(self.center + center_diff / d * self.radius)
+    } else if d < c1.radius + c2.radius + CIRCLE_ITSCT_THRESHOLD {
+      CircleIntersect::OnePoint(c1.center + center_diff / d * c1.radius)
     } else {
       CircleIntersect::None
     }

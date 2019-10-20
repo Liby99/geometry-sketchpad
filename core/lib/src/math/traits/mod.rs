@@ -2,6 +2,6 @@ mod dot_product;
 mod project;
 mod intersect;
 
-pub use dot_product::DotProduct;
-pub use project::Project;
-pub use intersect::Intersect;
+pub use dot_product::*;
+pub use project::*;
+pub use intersect::*;

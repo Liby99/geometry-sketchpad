@@ -1,5 +1,4 @@
 use super::super::*;
-use super::DotProduct;
 
 pub trait Project<T> {
   type Output;
@@ -9,8 +8,9 @@ pub trait Project<T> {
 impl Project<Line> for Vector2 {
   type Output = Self;
 
-  fn project(self, Line { origin, direction, .. }: Line) -> Self::Output {
-    origin + (self - origin).dot(direction) * direction
+  fn project(self, line: Line) -> Self::Output {
+    let dir = line.direction();
+    line.from + (self - line.from).dot(dir) * dir
   }
 }
 

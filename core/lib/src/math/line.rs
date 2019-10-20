@@ -1,42 +1,52 @@
-use super::{Vector2, Position, Direction};
-use super::traits::DotProduct;
+use super::{Vector2, DotProduct};
 
-#[derive(Debug, Copy, Clone, Default)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Line {
-  pub origin: Position,
-  pub direction: Direction,
+  pub from: Vector2,
+  pub to: Vector2,
   pub line_type: LineType,
 }
 
-#[macro_export]
-macro_rules! line {
-  ($o : expr, $d : expr, $t : expr) => (Line {
-    origin: Position($o),
-    direction: Direction($d),
-    line_type: $t,
-  })
-}
-
-impl Line {
-  pub fn point_is_on_line(&self, p: Vector2) -> bool {
-    let t = (p - self.origin).dot(self.direction);
-    match self.line_type {
-      LineType::Line => true,
-      LineType::Ray => t >= 0.0,
-      LineType::Segment(max_t) => t >= 0.0 && t <= max_t,
-    }
-  }
-}
-
-#[derive(Debug, Copy, Clone)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum LineType {
   Line,
   Ray,
-  Segment(f64), // Max t
+  Segment,
 }
 
-impl Default for LineType {
-  fn default() -> Self {
-    LineType::Line
+impl Line {
+  pub fn direction(&self) -> Vector2 {
+    (self.to - self.from).normalized()
+  }
+
+  pub fn from_to_length(&self) -> f64 {
+    (self.to - self.from).magnitude()
+  }
+
+  pub fn t_of_point(&self, p: Vector2) -> f64 {
+    (p - self.from).dot(self.direction())
+  }
+
+  pub fn point_at_t(&self, t: f64) -> Vector2 {
+    self.from + self.direction() * t
+  }
+
+  pub fn point_is_on_line(&self, p: Vector2) -> bool {
+    let t = self.t_of_point(p);
+    match self.line_type {
+      LineType::Line => true,
+      LineType::Ray => t >= 0.0,
+      LineType::Segment => 0.0 <= t && t <= self.from_to_length(),
+    }
+  }
+
+  pub fn get_closest_point(&self, p: Vector2) -> Vector2 {
+    let t = self.t_of_point(p);
+    let t = match self.line_type {
+      LineType::Line => t,
+      LineType::Ray => t.max(0.0),
+      LineType::Segment => t.max(0.0).min(self.from_to_length()),
+    };
+    self.from + t * self.direction()
   }
 }
