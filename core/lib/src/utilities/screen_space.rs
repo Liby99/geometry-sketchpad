@@ -1,6 +1,7 @@
 use crate::math::*;
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
+#[derive(Debug, Clone, Copy)]
 pub struct ScreenScalar(pub f64);
 
 impl Into<f64> for ScreenScalar {
@@ -15,6 +16,7 @@ impl From<f64> for ScreenScalar {
   }
 }
 
+#[derive(Debug, Clone, Copy)]
 pub struct ScreenPosition(pub Vector2);
 
 impl Into<Vector2> for ScreenPosition {
@@ -71,6 +73,7 @@ impl Div<ScreenScalar> for ScreenPosition {
   }
 }
 
+#[derive(Debug, Clone, Copy)]
 pub struct ScreenLine {
   pub from: ScreenPosition,
   pub to: ScreenPosition,
@@ -97,6 +100,7 @@ impl From<Line> for ScreenLine {
   }
 }
 
+#[derive(Debug, Clone, Copy)]
 pub struct ScreenCircle {
   pub center: ScreenPosition,
   pub radius: ScreenScalar,

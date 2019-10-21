@@ -1,6 +1,8 @@
 use specs::prelude::*;
 use crate::utilities::*;
 
-impl Component for ScreenPosition {
+pub type ScreenPoint = ScreenPosition;
+
+impl Component for ScreenPoint {
   type Storage = VecStorage<Self>;
 }

@@ -1,6 +1,7 @@
 use crate::math::*;
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
+#[derive(Debug, Clone, Copy)]
 pub struct VirtualScalar(pub f64);
 
 impl Into<f64> for VirtualScalar {
@@ -15,6 +16,7 @@ impl From<f64> for VirtualScalar {
   }
 }
 
+#[derive(Debug, Clone, Copy)]
 pub struct VirtualPosition(pub Vector2);
 
 impl Into<Vector2> for VirtualPosition {
@@ -71,6 +73,7 @@ impl Div<VirtualScalar> for VirtualPosition {
   }
 }
 
+#[derive(Debug, Clone, Copy)]
 pub struct VirtualLine {
   pub from: VirtualPosition,
   pub to: VirtualPosition,
@@ -97,6 +100,7 @@ impl From<Line> for VirtualLine {
   }
 }
 
+#[derive(Debug, Clone, Copy)]
 pub struct VirtualCircle {
   pub center: VirtualPosition,
   pub radius: VirtualScalar,

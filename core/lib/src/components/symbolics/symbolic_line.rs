@@ -1,7 +1,9 @@
 use specs::prelude::*;
 
 pub enum SymbolicLine {
-  TwoPoints(Entity, Entity), // (Point Entity, Point Entity)
+  Straight(Entity, Entity), // (Point Entity, Point Entity)
+  Ray(Entity, Entity), // (Point Entity, Point Entity)
+  Segment(Entity, Entity), // (Point Entity, Point Entity)
   Parallel(Entity, Entity), // (Line Entity, Point Entity)
   Perpendicular(Entity, Entity), // (Line Entity, Point Entity)
 }

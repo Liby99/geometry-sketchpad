@@ -1,11 +1,11 @@
 use specs::prelude::*;
 use shrev::{EventChannel, ReaderId};
-use crate::utilities::ProcessedGeometry;
+use crate::utilities::Geometry;
 
 pub enum GeometryEvent {
-  Inserted(Entity, ProcessedGeometry),
-  Removed(Entity, ProcessedGeometry),
-  Updated(Entity, ProcessedGeometry, ProcessedGeometry),
+  Inserted(Entity, Geometry),
+  Removed(Entity, Geometry),
+  Updated(Entity, Geometry, Geometry),
 }
 
 pub type GeometryEventChannel = EventChannel<GeometryEvent>;

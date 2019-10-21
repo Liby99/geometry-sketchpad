@@ -4,7 +4,7 @@ pub mod utilities;
 pub mod components;
 pub mod resources;
 pub mod events;
-// pub mod systems;
+pub mod systems;
 // pub mod helpers;
 
 pub fn setup_world() {}
