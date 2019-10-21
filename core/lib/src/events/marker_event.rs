@@ -11,3 +11,21 @@ pub enum MarkerEvent {
 pub type MarkerEventChannel = EventChannel<MarkerEvent>;
 
 pub type MarkerEventReader = ReaderId<MarkerEvent>;
+
+impl MarkerEvent {
+  pub fn hide(ent: Entity) -> Self {
+    MarkerEvent::Hide(ent, false)
+  }
+
+  pub fn hide_by_history(ent: Entity) -> Self {
+    MarkerEvent::Hide(ent, true)
+  }
+
+  pub fn unhide(ent: Entity) -> Self {
+    MarkerEvent::Unhide(ent, false)
+  }
+
+  pub fn unhide_by_history(ent: Entity) -> Self {
+    MarkerEvent::Unhide(ent, true)
+  }
+}
