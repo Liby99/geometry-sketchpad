@@ -28,7 +28,7 @@ impl Viewport {
     }
   }
 
-  pub fn set_window_size(&mut self, window_size: Vector2) {
+  pub fn set_screen_size(&mut self, window_size: Vector2) {
     self.screen_size = window_size;
     self.virtual_size.y = self.virtual_size.x / self.screen_size.x * self.screen_size.y;
     self.half_screen_size = self.screen_size / 2.0;

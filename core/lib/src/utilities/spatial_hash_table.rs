@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 use std::hash::Hash;
-use crate::math::*;
+use crate::{math::*, resources::WINDOW_SIZE};
 
 static TILE_SIZE : f64 = 40.0;
 
@@ -15,13 +15,7 @@ pub struct SpatialHashTable<T: Clone + Eq + Hash> {
 
 impl<T: Clone + Eq + Hash> Default for SpatialHashTable<T> {
   fn default() -> Self {
-    Self {
-      width: 0.0,
-      height: 0.0,
-      x_tiles: 0,
-      y_tiles: 0,
-      table: vec![]
-    }
+    Self::new(WINDOW_SIZE[0], WINDOW_SIZE[1])
   }
 }
 
@@ -42,7 +36,7 @@ impl<T: Clone + Eq + Hash> SpatialHashTable<T> {
     }
   }
 
-  pub fn init_size(&mut self, width: f64, height: f64) {
+  pub fn set_size(&mut self, width: f64, height: f64) {
     self.width = width;
     self.height = height;
     self.x_tiles = (width / TILE_SIZE).ceil() as usize;
