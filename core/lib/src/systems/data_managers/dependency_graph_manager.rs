@@ -26,13 +26,13 @@ impl<'a> System<'a> for DependencyGraphManager {
     if let Some(reader) = &mut self.geometry_event_reader {
       for event in geometry_event_channel.read(reader) {
         match event {
-          GeometryEvent::Inserted(ent, geom) => match geom {
+          GeometryEvent::Inserted(ent, geom, _) => match geom {
             Geometry::Point(sym_point, _) => insert_point(ent, sym_point, &mut *dependency_graph),
             Geometry::Line(sym_line, _) => insert_line(ent, sym_line, &mut *dependency_graph),
             Geometry::Circle(sym_circle, _) => insert_circle(ent, sym_circle, &mut *dependency_graph),
           },
-          GeometryEvent::Removed(ent, _) => dependency_graph.remove(ent),
-          GeometryEvent::Updated(_, _, _) => (),
+          GeometryEvent::Removed(ent, _, _) => dependency_graph.remove(ent),
+          GeometryEvent::Updated(_, _, _, _) => (),
         }
       }
     }

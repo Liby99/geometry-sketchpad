@@ -1,6 +1,7 @@
 use specs::prelude::*;
 use crate::utilities::*;
 
+#[derive(Debug, Copy, Clone)]
 pub enum SymbolicPoint {
   Fixed(VirtualPosition),
   Free(VirtualPosition),
@@ -12,6 +13,7 @@ pub enum SymbolicPoint {
   CircleCircleIntersect(Entity, Entity, CircleIntersectId), // (Circle entity, Circle entity, Id)
 }
 
+#[derive(Debug, Copy, Clone)]
 pub enum CircleIntersectId {
   First,
   Second,

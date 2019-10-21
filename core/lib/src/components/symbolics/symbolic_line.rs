@@ -1,5 +1,6 @@
 use specs::prelude::*;
 
+#[derive(Debug, Copy, Clone)]
 pub enum SymbolicLine {
   Straight(Entity, Entity), // (Point Entity, Point Entity)
   Ray(Entity, Entity), // (Point Entity, Point Entity)

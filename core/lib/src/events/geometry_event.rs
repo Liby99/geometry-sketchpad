@@ -3,9 +3,9 @@ use shrev::{EventChannel, ReaderId};
 use crate::utilities::Geometry;
 
 pub enum GeometryEvent {
-  Inserted(Entity, Geometry),
-  Removed(Entity, Geometry),
-  Updated(Entity, Geometry, Geometry),
+  Inserted(Entity, Geometry, bool),
+  Removed(Entity, Geometry, bool),
+  Updated(Entity, Geometry, Geometry, bool),
 }
 
 pub type GeometryEventChannel = EventChannel<GeometryEvent>;

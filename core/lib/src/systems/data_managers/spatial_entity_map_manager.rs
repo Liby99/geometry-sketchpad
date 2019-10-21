@@ -85,13 +85,13 @@ impl<'a> System<'a> for SpatialEntityMapManager {
     if let Some(reader) = &mut self.geometry_event_reader {
       for event in geometry_event_channel.read(reader) {
         match event {
-          GeometryEvent::Inserted(ent, geom) => {
+          GeometryEvent::Inserted(ent, geom, _) => {
             insert(ent, geom, &mut spatial_entity_map, &screen_points, &screen_lines, &screen_circles);
           },
-          GeometryEvent::Removed(ent, _) => {
+          GeometryEvent::Removed(ent, _, _) => {
             spatial_entity_map.remove_from_all(*ent);
           },
-          GeometryEvent::Updated(ent, _, geom) => {
+          GeometryEvent::Updated(ent, _, geom, _) => {
             spatial_entity_map.remove_from_all(*ent);
             insert(ent, geom, &mut spatial_entity_map, &screen_points, &screen_lines, &screen_circles);
           },
@@ -103,10 +103,10 @@ impl<'a> System<'a> for SpatialEntityMapManager {
     if let Some(reader) = &mut self.marker_event_reader {
       for event in marker_event_channel.read(reader) {
         match event {
-          MarkerEvent::Hide(ent) => {
+          MarkerEvent::Hide(ent, _) => {
             spatial_entity_map.remove_from_all(*ent);
           },
-          MarkerEvent::Unhide(ent) => {
+          MarkerEvent::Unhide(ent, _) => {
             insert_without_geom(ent, &mut spatial_entity_map, &screen_points, &screen_lines, &screen_circles);
           },
           _ => (), // Do nothing otherwise

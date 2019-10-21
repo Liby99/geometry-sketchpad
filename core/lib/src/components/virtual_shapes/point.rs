@@ -1,6 +1,8 @@
 use specs::prelude::*;
 use crate::utilities::*;
 
-impl Component for VirtualPosition {
+pub type VirtualPoint = VirtualPosition;
+
+impl Component for VirtualPoint {
   type Storage = VecStorage<Self>;
 }
