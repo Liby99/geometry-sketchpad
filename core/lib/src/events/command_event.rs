@@ -1,6 +1,8 @@
 use specs::prelude::*;
+use shrev::*;
 use crate::components::symbolics::*;
 
+#[derive(Debug, Clone, Copy)]
 pub enum CommandEvent {
 
   // Insert things
@@ -28,3 +30,7 @@ pub enum CommandEvent {
   HideSelected,
   UnhideAll,
 }
+
+pub type CommandEventChannel = EventChannel<CommandEvent>;
+
+pub type CommandEventReader = ReaderId<CommandEvent>;
