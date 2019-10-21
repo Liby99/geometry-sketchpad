@@ -1,11 +1,11 @@
-use std::collections::{HashMap, HashSet};
-use specs::prelude::*;
-use crate::utilities::Geometry;
+use shrev::*;
 
 pub enum HistoryEvent {
-  RemoveMany(HashMap<Entity, Geometry>),
-  InsertMany(HashMap<Entity, Geometry>),
-  Update(Entity, Geometry, Geometry), // Entity, old, new
-  HideMany(HashSet<Entity>),
-  UnhideMany(HashSet<Entity>),
+  Redo,
+  Undo,
+  ClearCache,
 }
+
+pub type HistoryEventChannel = EventChannel<HistoryEvent>;
+
+pub type HistoryEventReader = ReaderId<HistoryEvent>;

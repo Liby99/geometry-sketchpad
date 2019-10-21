@@ -1,5 +1,4 @@
-// Cache managers
 pub mod data_managers;
-
-// All geometry related
-pub mod action_handlers;
+pub mod command_handlers;
+pub mod geometry_handlers;
+pub mod solvers;

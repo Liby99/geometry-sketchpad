@@ -1,7 +1,17 @@
-use crate::events::HistoryEvent;
+use std::collections::{HashMap, HashSet};
+use specs::prelude::*;
+use crate::utilities::ProcessedGeometry;
+
+pub enum Modification {
+  RemoveMany(HashMap<Entity, ProcessedGeometry>),
+  InsertMany(HashMap<Entity, ProcessedGeometry>),
+  Update(Entity, ProcessedGeometry, ProcessedGeometry), // Entity, old, new
+  HideMany(HashSet<Entity>),
+  UnhideMany(HashSet<Entity>),
+}
 
 pub struct History {
-  history: Vec<HistoryEvent>,
+  history: Vec<Modification>,
   cursor: usize,
   head: usize,
 }
@@ -17,7 +27,7 @@ impl Default for History {
 }
 
 impl History {
-  pub fn undo(&mut self) -> Option<&HistoryEvent> {
+  pub fn undo(&mut self) -> Option<&Modification> {
     if self.cursor > 0 {
       self.cursor -= 1;
       Some(&self.history[self.cursor])
@@ -26,7 +36,7 @@ impl History {
     }
   }
 
-  pub fn redo(&mut self) -> Option<&HistoryEvent> {
+  pub fn redo(&mut self) -> Option<&Modification> {
     if self.cursor < self.head {
       self.cursor += 1;
       Some(&self.history[self.cursor - 1])
@@ -35,7 +45,7 @@ impl History {
     }
   }
 
-  pub fn push(&mut self, event: HistoryEvent) {
+  pub fn push(&mut self, event: Modification) {
     if self.cursor < self.history.len() {
       self.history[self.cursor] = event;
     } else {

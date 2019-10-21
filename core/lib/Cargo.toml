@@ -6,4 +6,5 @@ edition = "2018"
 
 [dependencies]
 specs = "0.15"
+shrev = "1.1"
 itertools = "0.8"
