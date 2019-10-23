@@ -32,7 +32,7 @@ impl<'a> System<'a> for DependencyGraphManager {
             Geometry::Circle(sym_circle, _) => insert_circle(ent, sym_circle, &mut *dependency_graph),
           },
           GeometryEvent::Removed(ent, _, _) => dependency_graph.remove(ent),
-          GeometryEvent::Updated(_, _, _, _) => (),
+          _ => (),
         }
       }
     }

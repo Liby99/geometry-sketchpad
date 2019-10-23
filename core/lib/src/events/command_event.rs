@@ -16,7 +16,7 @@ pub enum CommandEvent {
 
   // Update things
   UpdatePoint(Entity, SymbolicPoint, SymbolicPoint), // Entity, before, after
-  DragPointEnd(Entity, SymbolicPoint, SymbolicPoint), // Entity, before, after
+  UpdatePointEnd(Entity, SymbolicPoint, SymbolicPoint), // Entity, before, after
 
   // Select/Deselect things
   Select(Entity),

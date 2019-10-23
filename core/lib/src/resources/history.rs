@@ -27,6 +27,12 @@ impl Default for History {
 }
 
 impl History {
+  pub fn clear(&mut self) {
+    self.history.clear();
+    self.cursor = 0;
+    self.head = 0;
+  }
+
   pub fn undo(&mut self) -> Option<&Modification> {
     if self.cursor > 0 {
       self.cursor -= 1;

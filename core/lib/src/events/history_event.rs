@@ -3,7 +3,7 @@ use shrev::*;
 pub enum HistoryEvent {
   Redo,
   Undo,
-  ClearCache,
+  Clear,
 }
 
 pub type HistoryEventChannel = EventChannel<HistoryEvent>;

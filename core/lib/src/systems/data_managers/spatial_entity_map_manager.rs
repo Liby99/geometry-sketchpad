@@ -95,6 +95,7 @@ impl<'a> System<'a> for SpatialEntityMapManager {
             spatial_entity_map.remove_from_all(*ent);
             insert(ent, geom, &mut spatial_entity_map, &screen_points, &screen_lines, &screen_circles);
           },
+          _ => (),
         }
       }
     }
