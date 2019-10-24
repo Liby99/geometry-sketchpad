@@ -56,7 +56,8 @@ impl<'a> System<'a> for CreatePointViaMouse {
           MouseEvent::MouseDown(_) => {
             if let Some(SnapPoint { position, symbol }) = maybe_snap_point.get() {
               let maybe_sym_point = match symbol {
-                SnapPointType::NotSnapped => Some(SymbolicPoint::Free(position.to_virtual(&*viewport)))
+                SnapPointType::NotSnapped => Some(SymbolicPoint::Free(position.to_virtual(&*viewport))),
+                SnapPointType::SnapOnPoint(_) => None,
               };
               if let Some(sym_point) = maybe_sym_point {
                 command_event_channel.single_write(CommandEvent::InsertPoint(sym_point));

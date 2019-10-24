@@ -1,12 +1,12 @@
 use specs::prelude::*;
-use geopad_core_lib::{math::*, components::screen_shapes::*, resources::*};
+use geopad_core_lib::{utilities::*, components::screen_shapes::*, resources::*};
 use crate::{resources::*};
 
 // In actual space
-static SNAP_TO_POINT_THRES : f64 = 12.0;
-static SNAP_TO_LINE_THRES : f64 = 8.0;
-static SNAP_TO_CIRCLE_THRES : f64 = 8.0;
-static SNAP_TO_INTERSECTION_THRES : f64 = 15.0;
+static SNAP_TO_POINT_THRES : ScreenScalar = ScreenScalar(12.0);
+static SNAP_TO_LINE_THRES : ScreenScalar = ScreenScalar(8.0);
+static SNAP_TO_CIRCLE_THRES : ScreenScalar = ScreenScalar(8.0);
+static SNAP_TO_INTERSECTION_THRES : ScreenScalar = ScreenScalar(15.0);
 
 #[derive(Default)]
 pub struct SnapPointViaMouse;
@@ -40,81 +40,82 @@ impl<'a> System<'a> for SnapPointViaMouse {
         symbol: SnapPointType::NotSnapped,
       });
 
-      // // Then get the potential neighbors
-      // let neighbor_entities = spatial_entity_map.get_entities_near_point(mouse_pos.into(), SNAP_TO_POINT_THRES);
+      // Then get the potential neighbors
+      let neighbor_entities = spatial_entity_map.get_entities_near_point(mouse_pos.into(), SNAP_TO_POINT_THRES.into());
 
+      let mut maybe_smallest_dist_to_point : Option<f64> = None;
+      let mut maybe_snap_point_on_point = None;
+      let mut is_snapping_to_point = false;
       // let mut closest_lines : Vec<(Entity, ScreenLine)> = vec![];
       // let mut closest_circles : Vec<(Entity, ScreenCircle)> = vec![];
-      // let mut maybe_smallest_dist_to_point : Option<f64> = None;
-      // let mut maybe_snap_point_on_point = None;
       // let mut maybe_smallest_dist_to_line : Option<f64> = None;
-      // let mut maybe_snap_point_on_line = None;
+      let mut maybe_snap_point_on_line = None;
       // let mut maybe_smallest_dist_to_circle : Option<f64> = None;
-      // let mut maybe_snap_point_on_circle = None;
-      // let mut is_snapping_to_point = false;
+      let mut maybe_snap_point_on_circle = None;
 
-      // // Loop through all the neighbor entities
-      // for entity in neighbor_entities {
-      //   if let Some(p) = scrn_points.get(entity) {
-      //     let norm_dist = (*p - mouse_pos).magnitude() / SNAP_TO_POINT_THRES;
-      //     if norm_dist < 1.0 {
-      //       if maybe_smallest_dist_to_point.is_none() || norm_dist < maybe_smallest_dist_to_point.unwrap() {
-      //         is_snapping_to_point = true;
-      //         maybe_smallest_dist_to_point = Some(norm_dist);
+      // Loop through all the neighbor entities
+      for entity in neighbor_entities {
+        if let Some(p) = scrn_points.get(entity) {
+          let norm_dist = (*p - mouse_pos).magnitude() / SNAP_TO_POINT_THRES;
+          if norm_dist < 1.0 {
+            if maybe_smallest_dist_to_point.is_none() || norm_dist < maybe_smallest_dist_to_point.unwrap() {
+              is_snapping_to_point = true;
+              maybe_smallest_dist_to_point = Some(norm_dist);
 
-      //         // Set the snap point to snap on point
-      //         maybe_snap_point_on_point = Some(SnapPoint {
-      //           position: *p,
-      //           symbol: SnapPointType::SnapOnPoint(entity)
-      //         });
-      //       }
-      //     }
-      //   } else if let Some(l) = scrn_lines.get(entity) {
-      //     let closest_point = l.get_closest_point(mouse_pos);
-      //     let dist = (closest_point - mouse_pos).magnitude();
-      //     if dist <= SNAP_TO_POINT_THRES {
-      //       closest_lines.push((entity, *l));
-      //     }
-      //     let norm_dist = dist / SNAP_TO_LINE_THRES;
-      //     if norm_dist < 1.0 && !is_snapping_to_point {
-      //       let t_of_point
-      //       if maybe_smallest_dist_to_line.is_none() || norm_dist < maybe_smallest_dist_to_line.unwrap() {
-      //         maybe_smallest_dist_to_line = Some(norm_dist);
+              // Set the snap point to snap on point
+              maybe_snap_point_on_point = Some(SnapPoint {
+                position: *p,
+                symbol: SnapPointType::SnapOnPoint(entity)
+              });
+            }
+          }
+        }
+        // } else if let Some(l) = scrn_lines.get(entity) {
+        //   let closest_point = l.get_closest_point(mouse_pos);
+        //   let dist = (closest_point - mouse_pos).magnitude();
+        //   if dist <= SNAP_TO_POINT_THRES {
+        //     closest_lines.push((entity, *l));
+        //   }
+        //   let norm_dist = dist / SNAP_TO_LINE_THRES;
+        //   if norm_dist < 1.0 && !is_snapping_to_point {
+        //     let t_of_point
+        //     if maybe_smallest_dist_to_line.is_none() || norm_dist < maybe_smallest_dist_to_line.unwrap() {
+        //       maybe_smallest_dist_to_line = Some(norm_dist);
 
-      //         // Set the snap point to snap on line
-      //         maybe_snap_point_on_line = Some(SnapPoint {
-      //           position: virtual_proj_point,
-      //           symbo: SnapPointType::SnapOnLine(entity, t),
-      //         });
-      //       }
-      //     }
-      //   } else if let Some(c) = circles.get(entity) {
-      //     let actual_circle = c.to_actual(&*vp);
-      //     let actual_proj_point = actual_circle.center + (mouse_pos - actual_circle.center).normalized() * actual_circle.radius;
-      //     let dist = (actual_proj_point - mouse_pos).magnitude();
-      //     if dist <= SNAP_TO_CIRCLE_THRES {
-      //       closest_circles.push((entity, *c));
-      //     }
-      //     let norm_dist = dist / SNAP_TO_CIRCLE_THRES;
-      //     if norm_dist < 1.0 && !is_snapping_to_point {
-      //       let virtual_proj_point = actual_proj_point.to_virtual(&*vp);
-      //       let p_to_cen = virtual_proj_point - c.center;
-      //       let theta = p_to_cen.y.atan2(p_to_cen.x);
-      //       if maybe_smallest_dist_to_circle.is_none() || norm_dist < maybe_smallest_dist_to_circle.unwrap() {
-      //         maybe_smallest_dist_to_circle = Some(norm_dist);
-      //         maybe_snap_point_on_circle = Some(SnapPoint {
-      //           position: virtual_proj_point,
-      //           symbo: SnapPointType::SnapOnCircle(entity, theta),
-      //         });
-      //       }
-      //     }
-      //   }
-      // }
+        //       // Set the snap point to snap on line
+        //       maybe_snap_point_on_line = Some(SnapPoint {
+        //         position: virtual_proj_point,
+        //         symbo: SnapPointType::SnapOnLine(entity, t),
+        //       });
+        //     }
+        //   }
+        // } else if let Some(c) = circles.get(entity) {
+        //   let actual_circle = c.to_actual(&*vp);
+        //   let actual_proj_point = actual_circle.center + (mouse_pos - actual_circle.center).normalized() * actual_circle.radius;
+        //   let dist = (actual_proj_point - mouse_pos).magnitude();
+        //   if dist <= SNAP_TO_CIRCLE_THRES {
+        //     closest_circles.push((entity, *c));
+        //   }
+        //   let norm_dist = dist / SNAP_TO_CIRCLE_THRES;
+        //   if norm_dist < 1.0 && !is_snapping_to_point {
+        //     let virtual_proj_point = actual_proj_point.to_virtual(&*vp);
+        //     let p_to_cen = virtual_proj_point - c.center;
+        //     let theta = p_to_cen.y.atan2(p_to_cen.x);
+        //     if maybe_smallest_dist_to_circle.is_none() || norm_dist < maybe_smallest_dist_to_circle.unwrap() {
+        //       maybe_smallest_dist_to_circle = Some(norm_dist);
+        //       maybe_snap_point_on_circle = Some(SnapPoint {
+        //         position: virtual_proj_point,
+        //         symbo: SnapPointType::SnapOnCircle(entity, theta),
+        //       });
+        //     }
+        //   }
+        // }
+      }
 
-      // // Weight snap on point higher than snap on line
-      // if let Some(snap_point) = maybe_snap_point_on_point.or(maybe_snap_point_on_line).or(maybe_snap_point_on_circle) {
-      //   maybe_snap_point.set(snap_point)
-      // }
+      // Weight snap on point higher than snap on line
+      if let Some(snap_point) = maybe_snap_point_on_point.or(maybe_snap_point_on_line).or(maybe_snap_point_on_circle) {
+        maybe_snap_point.set(snap_point)
+      }
 
       // // Check if snapping to an intersection
       // if !is_snapping_to_point {

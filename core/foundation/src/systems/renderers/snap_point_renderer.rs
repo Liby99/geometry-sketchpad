@@ -28,6 +28,8 @@ impl<'a> System<'a> for SnapPointRenderer {
     mut scrn_points,
     mut point_styles,
   ): Self::SystemData) {
+
+    // First make sure we have an entity for rendering the snap point
     let ent = match self.snap_point_entity {
       Some(ent) => ent,
       None => {
@@ -37,12 +39,17 @@ impl<'a> System<'a> for SnapPointRenderer {
       },
     };
 
+    // Then we render it
     if let Some(snap_point) = maybe_snap_point.get() {
 
       // First generate the point style of the snap point
       let point_style = match snap_point.symbol {
+
+        // For not snapped, we want dimmed style
         SnapPointType::NotSnapped => default_point_style.get().apply_alpha(0.6),
-        _ => default_point_style.get().resize(3.0),
+
+        // For snapped, we want it to be bigger than the default
+        _ => default_point_style.get().resize(2.0),
       };
 
       // Then insert the components

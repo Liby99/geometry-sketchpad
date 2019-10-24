@@ -16,8 +16,22 @@ impl From<f64> for ScreenScalar {
   }
 }
 
+impl Div<ScreenScalar> for ScreenScalar {
+  type Output = f64;
+
+  fn div(self, other: Self) -> f64 {
+    self.0 / other.0
+  }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct ScreenPosition(pub Vector2);
+
+impl ScreenPosition {
+  pub fn magnitude(self) -> ScreenScalar {
+    ScreenScalar(self.0.magnitude())
+  }
+}
 
 impl Into<Vector2> for ScreenPosition {
   fn into(self) -> Vector2 {

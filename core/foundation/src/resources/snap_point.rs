@@ -31,7 +31,7 @@ pub struct SnapPoint {
 
 #[derive(Debug, Copy, Clone)]
 pub enum SnapPointType {
-  // SnapOnPoint(Entity),
+  SnapOnPoint(Entity),
   // SnapOnLine(Entity, f64), // f64 is t
   // SnapOnLineLineIntersection(Entity, Entity), // Line Line
   // SnapOnCircle(Entity, f64), // f64 is theta
