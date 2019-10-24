@@ -1,4 +1,4 @@
-use super::{Vector2, DotProduct};
+use super::{Vector2, DotProduct, Project};
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Line {
@@ -41,12 +41,27 @@ impl Line {
   }
 
   pub fn get_closest_point(&self, p: Vector2) -> Vector2 {
-    let t = self.t_of_point(p);
-    let t = match self.line_type {
-      LineType::Straight => t,
-      LineType::Ray => t.max(0.0),
-      LineType::Segment => t.max(0.0).min(self.from_to_length()),
-    };
-    self.from + t * self.direction()
+    let proj = p.project(*self);
+    let t = self.t_of_point(proj);
+    match self.line_type {
+      LineType::Straight => proj,
+      LineType::Ray => if t >= 0.0 { proj } else { self.from },
+      LineType::Segment => if t >= 0.0 { if t <= self.from_to_length() { proj } else { self.to } } else { self.from }
+    }
+  }
+}
+
+#[cfg(test)]
+mod test {
+  use super::*;
+
+  #[test]
+  fn test_line_get_closest_point() {
+    let l = Line { from: vec2![0., 0.], to: vec2![1., 0.], line_type: LineType::Straight };
+    for i in -10..10 {
+      let p = vec2![i as f64, i as f64];
+      let proj = l.get_closest_point(p);
+      assert!(proj.x == p.x, "Expected: {}, Actual: {}", p.x, proj.x);
+    }
   }
 }

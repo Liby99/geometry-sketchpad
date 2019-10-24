@@ -6,6 +6,6 @@ pub trait DotProduct {
 
 impl DotProduct for Vector2 {
   fn dot(self, other: Self) -> f64 {
-    (self.x * other.x + self.y * other.y).sqrt()
+    self.x * other.x + self.y * other.y
   }
 }

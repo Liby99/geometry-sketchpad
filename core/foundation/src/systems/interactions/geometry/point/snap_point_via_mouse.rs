@@ -70,25 +70,25 @@ impl<'a> System<'a> for SnapPointViaMouse {
             }
           }
         } else if let Some(l) = scrn_lines.get(entity) {
-          let closest_point = (*l).get_closest_point(mouse_pos);
+          let l = *l;
+          let closest_point = l.get_closest_point(mouse_pos);
           let dist = (closest_point - mouse_pos).magnitude();
           if dist <= SNAP_TO_POINT_THRES {
-            closest_lines.push((entity, *l));
+            closest_lines.push((entity, l));
           }
           let norm_dist = dist / SNAP_TO_LINE_THRES;
           if norm_dist < 1.0 && !is_snapping_to_point {
-            let t_of_point = (*l).t_of_point(closest_point);
+            let t = l.t_of_point(closest_point) / l.from_to_length();
             if maybe_smallest_dist_to_line.is_none() || norm_dist < maybe_smallest_dist_to_line.unwrap() {
               maybe_smallest_dist_to_line = Some(norm_dist);
 
               // Set the snap point to snap on line
               maybe_snap_point_on_line = Some(SnapPoint {
                 position: closest_point,
-                symbol: SnapPointType::SnapOnLine(entity, t_of_point.into()),
+                symbol: SnapPointType::SnapOnLine(entity, t),
               });
             }
           }
-        }
         // } else if let Some(c) = circles.get(entity) {
         //   let actual_circle = c.to_actual(&*vp);
         //   let actual_proj_point = actual_circle.center + (mouse_pos - actual_circle.center).normalized() * actual_circle.radius;
@@ -109,7 +109,7 @@ impl<'a> System<'a> for SnapPointViaMouse {
         //       });
         //     }
         //   }
-        // }
+        }
       }
 
       // Weight snap on point higher than snap on line

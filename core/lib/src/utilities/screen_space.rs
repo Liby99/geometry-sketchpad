@@ -95,6 +95,11 @@ pub struct ScreenLine {
 }
 
 impl ScreenLine {
+  pub fn from_to_length(self) -> ScreenScalar {
+    let l : Line = self.into();
+    l.from_to_length().into()
+  }
+
   pub fn get_closest_point(self, p: ScreenPosition) -> ScreenPosition {
     let l : Line = self.into();
     l.get_closest_point(p.into()).into()
