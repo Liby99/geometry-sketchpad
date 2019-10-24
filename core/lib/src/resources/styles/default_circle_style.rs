@@ -15,3 +15,9 @@ impl Default for DefaultCircleStyle {
     })
   }
 }
+
+impl DefaultCircleStyle {
+  pub fn get(&self) -> CircleStyle {
+    self.0
+  }
+}

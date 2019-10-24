@@ -15,3 +15,9 @@ impl Default for DefaultSelectRectangleStyle {
     })
   }
 }
+
+impl DefaultSelectRectangleStyle {
+  pub fn get(&self) -> RectangleStyle {
+    self.0
+  }
+}

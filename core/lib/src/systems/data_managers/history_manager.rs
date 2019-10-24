@@ -1,12 +1,12 @@
 use std::collections::{HashMap, HashSet};
 use specs::prelude::*;
-use crate::{events::*, resources::*, utilities::*};
+use crate::{events::*, components::symbolics::SymbolicPoint, resources::*, utilities::*};
 
 enum Mod {
   None,
   Insert(HashMap<Entity, Geometry>),
   Remove(HashMap<Entity, Geometry>),
-  UpdateOne(Entity, Geometry, Geometry),
+  UpdatePoint(Entity, SymbolicPoint, SymbolicPoint),
   Hide(HashSet<Entity>),
   Unhide(HashSet<Entity>),
 }
@@ -68,9 +68,9 @@ impl<'a> System<'a> for HistoryManager {
               curr_event = Mod::Remove(removals);
             }
           },
-          GeometryEvent::UpdateFinished(entity, old_geom, new_geom, false) => {
+          GeometryEvent::PointUpdateFinished(entity, old_sym_point, new_sym_point, false) => {
             push_event(curr_event, &mut history);
-            curr_event = Mod::UpdateOne(*entity, *old_geom, *new_geom);
+            curr_event = Mod::UpdatePoint(*entity, *old_sym_point, *new_sym_point);
           },
           _ => (),
         }
@@ -116,7 +116,7 @@ fn push_event(event: Mod, history: &mut History) {
     Mod::None => (),
     Mod::Insert(insertions) => history.push(Modification::InsertMany(insertions)),
     Mod::Remove(removals) => history.push(Modification::RemoveMany(removals)),
-    Mod::UpdateOne(ent, old_geom, new_geom) => history.push(Modification::Update(ent, old_geom, new_geom)),
+    Mod::UpdatePoint(ent, old_sym_point, new_sym_point) => history.push(Modification::UpdatePoint(ent, old_sym_point, new_sym_point)),
     Mod::Hide(entities) => history.push(Modification::HideMany(entities)),
     Mod::Unhide(entities) => history.push(Modification::UnhideMany(entities)),
   }

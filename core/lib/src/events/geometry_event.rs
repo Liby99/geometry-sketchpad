@@ -1,12 +1,12 @@
 use specs::prelude::*;
 use shrev::{EventChannel, ReaderId};
-use crate::utilities::Geometry;
+use crate::{components::symbolics::SymbolicPoint, utilities::Geometry};
 
 pub enum GeometryEvent {
   Inserted(Entity, Geometry, bool),
   Removed(Entity, Geometry, bool),
-  Updated(Entity, Geometry, Geometry, bool),
-  UpdateFinished(Entity, Geometry, Geometry, bool),
+  PointUpdated(Entity, SymbolicPoint, SymbolicPoint, bool),
+  PointUpdateFinished(Entity, SymbolicPoint, SymbolicPoint, bool),
 }
 
 pub type GeometryEventChannel = EventChannel<GeometryEvent>;
@@ -30,19 +30,19 @@ impl GeometryEvent {
     GeometryEvent::Removed(entity, geometry, true)
   }
 
-  pub fn updated(entity: Entity, old_geom: Geometry, new_geom: Geometry) -> Self {
-    GeometryEvent::Updated(entity, old_geom, new_geom, false)
+  pub fn point_updated(entity: Entity, old_sym_point: SymbolicPoint, new_sym_point: SymbolicPoint) -> Self {
+    GeometryEvent::PointUpdated(entity, old_sym_point, new_sym_point, false)
   }
 
-  pub fn updated_by_history(entity: Entity, old_geom: Geometry, new_geom: Geometry) -> Self {
-    GeometryEvent::Updated(entity, old_geom, new_geom, true)
+  pub fn point_updated_by_history(entity: Entity, old_sym_point: SymbolicPoint, new_sym_point: SymbolicPoint) -> Self {
+    GeometryEvent::PointUpdated(entity, old_sym_point, new_sym_point, true)
   }
 
-  pub fn update_finished(entity: Entity, old_geom: Geometry, new_geom: Geometry) -> Self {
-    GeometryEvent::UpdateFinished(entity, old_geom, new_geom, false)
+  pub fn point_update_finished(entity: Entity, old_sym_point: SymbolicPoint, new_sym_point: SymbolicPoint) -> Self {
+    GeometryEvent::PointUpdateFinished(entity, old_sym_point, new_sym_point, false)
   }
 
-  pub fn update_finished_by_history(entity: Entity, old_geom: Geometry, new_geom: Geometry) -> Self {
-    GeometryEvent::UpdateFinished(entity, old_geom, new_geom, true)
+  pub fn point_update_finished_by_history(entity: Entity, old_sym_point: SymbolicPoint, new_sym_point: SymbolicPoint) -> Self {
+    GeometryEvent::PointUpdateFinished(entity, old_sym_point, new_sym_point, true)
   }
 }

@@ -1,11 +1,11 @@
 use std::collections::{HashMap, HashSet};
 use specs::prelude::*;
-use crate::utilities::Geometry;
+use crate::{components::symbolics::SymbolicPoint, utilities::Geometry};
 
 pub enum Modification {
   RemoveMany(HashMap<Entity, Geometry>),
   InsertMany(HashMap<Entity, Geometry>),
-  Update(Entity, Geometry, Geometry), // Entity, old, new
+  UpdatePoint(Entity, SymbolicPoint, SymbolicPoint), // Entity, old, new
   HideMany(HashSet<Entity>),
   UnhideMany(HashSet<Entity>),
 }

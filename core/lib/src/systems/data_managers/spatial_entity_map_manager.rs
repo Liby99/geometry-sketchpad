@@ -32,6 +32,7 @@ impl<'a> System<'a> for SpatialEntityMapManager {
     Read<'a, GeometryEventChannel>,
     Read<'a, ViewportEventChannel>,
     Read<'a, MarkerEventChannel>,
+    Read<'a, DependencyGraph>,
     Write<'a, SpatialEntityMap>,
     ReadStorage<'a, ScreenPosition>,
     ReadStorage<'a, ScreenLine>,
@@ -51,6 +52,7 @@ impl<'a> System<'a> for SpatialEntityMapManager {
     geometry_event_channel,
     viewport_event_channel,
     marker_event_channel,
+    dependency_graph,
     mut spatial_entity_map,
     screen_points,
     screen_lines,
@@ -85,15 +87,17 @@ impl<'a> System<'a> for SpatialEntityMapManager {
     if let Some(reader) = &mut self.geometry_event_reader {
       for event in geometry_event_channel.read(reader) {
         match event {
-          GeometryEvent::Inserted(ent, geom, _) => {
-            insert(ent, geom, &mut spatial_entity_map, &screen_points, &screen_lines, &screen_circles);
+          GeometryEvent::Inserted(ent, _, _) => {
+            insert(ent, &mut spatial_entity_map, &screen_points, &screen_lines, &screen_circles);
           },
           GeometryEvent::Removed(ent, _, _) => {
             spatial_entity_map.remove_from_all(*ent);
           },
-          GeometryEvent::Updated(ent, _, geom, _) => {
-            spatial_entity_map.remove_from_all(*ent);
-            insert(ent, geom, &mut spatial_entity_map, &screen_points, &screen_lines, &screen_circles);
+          GeometryEvent::PointUpdated(ent, _, _, _) => {
+            for dep in dependency_graph.get_all_dependents(ent) {
+              spatial_entity_map.remove_from_all(dep);
+              insert(&ent, &mut spatial_entity_map, &screen_points, &screen_lines, &screen_circles);
+            }
           },
           _ => (),
         }
@@ -119,22 +123,17 @@ impl<'a> System<'a> for SpatialEntityMapManager {
 
 fn insert<'a>(
   ent: &Entity,
-  geom: &Geometry,
   spatial_entity_map: &mut SpatialEntityMap,
   screen_points: &ReadStorage<'a, ScreenPoint>,
   screen_lines: &ReadStorage<'a, ScreenLine>,
   screen_circles: &ReadStorage<'a, ScreenCircle>,
 ) {
-  match geom {
-    Geometry::Point(_, _) => if let Some(screen_point) = screen_points.get(*ent) {
-      spatial_entity_map.insert_point(*ent, (*screen_point).into());
-    },
-    Geometry::Line(_, _) => if let Some(screen_line) = screen_lines.get(*ent) {
-      spatial_entity_map.insert_line(*ent, (*screen_line).into());
-    },
-    Geometry::Circle(_, _) => if let Some(screen_circle) = screen_circles.get(*ent) {
-      spatial_entity_map.insert_circle(*ent, (*screen_circle).into());
-    },
+  if let Some(screen_point) = screen_points.get(*ent) {
+    spatial_entity_map.insert_point(*ent, (*screen_point).into());
+  } else if let Some(screen_line) = screen_lines.get(*ent) {
+    spatial_entity_map.insert_line(*ent, (*screen_line).into());
+  } else if let Some(screen_circle) = screen_circles.get(*ent) {
+    spatial_entity_map.insert_circle(*ent, (*screen_circle).into());
   }
 }
 

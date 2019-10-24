@@ -14,3 +14,9 @@ impl Default for DefaultPointStyle {
     })
   }
 }
+
+impl DefaultPointStyle {
+  pub fn get(&self) -> PointStyle {
+    self.0
+  }
+}

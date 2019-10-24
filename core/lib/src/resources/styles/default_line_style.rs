@@ -12,3 +12,9 @@ impl Default for DefaultLineStyle {
     })
   }
 }
+
+impl DefaultLineStyle {
+  pub fn get(&self) -> LineStyle {
+    self.0
+  }
+}

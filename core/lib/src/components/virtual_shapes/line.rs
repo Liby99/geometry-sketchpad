@@ -1,5 +1,6 @@
 use specs::prelude::*;
-use crate::utilities::*;
+
+pub use crate::utilities::VirtualLine;
 
 impl Component for VirtualLine {
   type Storage = VecStorage<Self>;
