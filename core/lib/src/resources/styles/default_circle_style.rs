@@ -9,7 +9,7 @@ impl Default for DefaultCircleStyle {
     Self(CircleStyle {
       fill: Color::transparent(),
       border: LineStyle {
-        color: Color::green(),
+        color: rgb!(0.0, 0.6, 0.0),
         width: 2.0,
       },
     })

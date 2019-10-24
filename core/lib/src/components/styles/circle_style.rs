@@ -11,3 +11,12 @@ pub struct CircleStyle {
 impl Component for CircleStyle {
   type Storage = VecStorage<Self>;
 }
+
+impl CircleStyle {
+  pub fn apply_alpha(self, a: f32) -> Self {
+    Self {
+      fill: self.fill.apply_alpha(a),
+      border: self.border.apply_alpha(a)
+    }
+  }
+}
