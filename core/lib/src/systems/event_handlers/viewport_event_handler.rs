@@ -1,17 +1,17 @@
 use specs::prelude::*;
 use crate::{events::*, resources::*};
 
-pub struct ViewportManager {
+pub struct ViewportEventHandler {
   viewport_event_reader: Option<ViewportEventReader>,
 }
 
-impl Default for ViewportManager {
+impl Default for ViewportEventHandler {
   fn default() -> Self {
     Self { viewport_event_reader: None }
   }
 }
 
-impl<'a> System<'a> for ViewportManager {
+impl<'a> System<'a> for ViewportEventHandler {
   type SystemData = (
     Read<'a, ViewportEventChannel>,
     Write<'a, Viewport>,
