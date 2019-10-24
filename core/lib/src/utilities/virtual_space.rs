@@ -19,6 +19,12 @@ impl From<f64> for VirtualScalar {
 #[derive(Debug, Clone, Copy)]
 pub struct VirtualPosition(pub Vector2);
 
+impl VirtualPosition {
+  pub fn magnitude(&self) -> VirtualScalar {
+    VirtualScalar(self.0.magnitude())
+  }
+}
+
 impl Into<Vector2> for VirtualPosition {
   fn into(self) -> Vector2 {
     self.0
@@ -100,6 +106,16 @@ impl From<Line> for VirtualLine {
   }
 }
 
+impl Intersect<VirtualLine> for VirtualLine {
+  type Output = Option<VirtualPosition>;
+
+  fn intersect(self, other: Self) -> Self::Output {
+    let l1 : Line = self.into();
+    let l2 : Line = other.into();
+    l1.intersect(l2).map(VirtualPosition::from)
+  }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct VirtualCircle {
   pub center: VirtualPosition,
@@ -121,5 +137,51 @@ impl From<Circle> for VirtualCircle {
       center: c.center.into(),
       radius: c.radius.into(),
     }
+  }
+}
+
+pub enum VirtualCircleIntersect {
+  TwoPoints(VirtualPosition, VirtualPosition),
+  OnePoint(VirtualPosition),
+  None,
+}
+
+impl From<CircleIntersect> for VirtualCircleIntersect {
+  fn from(itsct: CircleIntersect) -> Self {
+    match itsct {
+      CircleIntersect::TwoPoints(p1, p2) => VirtualCircleIntersect::TwoPoints(p1.into(), p2.into()),
+      CircleIntersect::OnePoint(p) => VirtualCircleIntersect::OnePoint(p.into()),
+      CircleIntersect::None => VirtualCircleIntersect::None,
+    }
+  }
+}
+
+impl Intersect<VirtualCircle> for VirtualCircle {
+  type Output = VirtualCircleIntersect;
+
+  fn intersect(self, other: Self) -> Self::Output {
+    let c1 : Circle = self.into();
+    let c2 : Circle = other.into();
+    c1.intersect(c2).into()
+  }
+}
+
+impl Intersect<VirtualLine> for VirtualCircle {
+  type Output = VirtualCircleIntersect;
+
+  fn intersect(self, other: VirtualLine) -> Self::Output {
+    let c : Circle = self.into();
+    let l : Line = other.into();
+    c.intersect(l).into()
+  }
+}
+
+impl Intersect<VirtualCircle> for VirtualLine {
+  type Output = VirtualCircleIntersect;
+
+  fn intersect(self, other: VirtualCircle) -> Self::Output {
+    let l : Line = self.into();
+    let c : Circle = other.into();
+    c.intersect(l).into()
   }
 }

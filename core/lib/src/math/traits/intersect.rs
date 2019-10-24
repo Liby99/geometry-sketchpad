@@ -10,7 +10,7 @@ static LINE_ITSCT_THRESHOLD : f64 = 1e-10;
 fn itsct_line_is_not_none(l: Line, itsct: Vector2) -> bool {
   let t = l.t_of_point(itsct);
   match l.line_type {
-    LineType::Line => true,
+    LineType::Straight => true,
     LineType::Ray => t > -LINE_ITSCT_THRESHOLD,
     LineType::Segment => t > -LINE_ITSCT_THRESHOLD && t < l.from_to_length() + LINE_ITSCT_THRESHOLD,
   }
@@ -95,7 +95,7 @@ impl Intersect<AABB> for Line {
     let d1 = self.t_of_point(p1) >= 0.0;
     let d2 = self.t_of_point(p2) >= 0.0;
     match line_type {
-      LineType::Line => Some((p1, p2)),
+      LineType::Straight => Some((p1, p2)),
       LineType::Ray => {
         if d1 && d2 {
           Some((p1, p2))

@@ -9,7 +9,7 @@ pub struct Line {
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum LineType {
-  Line,
+  Straight,
   Ray,
   Segment,
 }
@@ -34,7 +34,7 @@ impl Line {
   pub fn point_is_on_line(&self, p: Vector2) -> bool {
     let t = self.t_of_point(p);
     match self.line_type {
-      LineType::Line => true,
+      LineType::Straight => true,
       LineType::Ray => t >= 0.0,
       LineType::Segment => 0.0 <= t && t <= self.from_to_length(),
     }
@@ -43,7 +43,7 @@ impl Line {
   pub fn get_closest_point(&self, p: Vector2) -> Vector2 {
     let t = self.t_of_point(p);
     let t = match self.line_type {
-      LineType::Line => t,
+      LineType::Straight => t,
       LineType::Ray => t.max(0.0),
       LineType::Segment => t.max(0.0).min(self.from_to_length()),
     };
