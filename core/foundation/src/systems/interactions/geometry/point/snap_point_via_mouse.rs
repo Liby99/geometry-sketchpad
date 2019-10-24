@@ -48,10 +48,10 @@ impl<'a> System<'a> for SnapPointViaMouse {
       let mut maybe_snap_point_on_point = None;
       let mut is_snapping_to_point = false;
       let mut closest_lines : Vec<(Entity, ScreenLine)> = vec![];
-      // let mut closest_circles : Vec<(Entity, ScreenCircle)> = vec![];
+      let mut closest_circles : Vec<(Entity, ScreenCircle)> = vec![];
       let mut maybe_smallest_dist_to_line : Option<f64> = None;
       let mut maybe_snap_point_on_line = None;
-      // let mut maybe_smallest_dist_to_circle : Option<f64> = None;
+      let mut maybe_smallest_dist_to_circle : Option<f64> = None;
       let mut maybe_snap_point_on_circle = None;
 
       // Loop through all the neighbor entities
@@ -90,26 +90,25 @@ impl<'a> System<'a> for SnapPointViaMouse {
               });
             }
           }
-        // } else if let Some(c) = circles.get(entity) {
-        //   let actual_circle = c.to_actual(&*vp);
-        //   let actual_proj_point = actual_circle.center + (mouse_pos - actual_circle.center).normalized() * actual_circle.radius;
-        //   let dist = (actual_proj_point - mouse_pos).magnitude();
-        //   if dist <= SNAP_TO_CIRCLE_THRES {
-        //     closest_circles.push((entity, *c));
-        //   }
-        //   let norm_dist = dist / SNAP_TO_CIRCLE_THRES;
-        //   if norm_dist < 1.0 && !is_snapping_to_point {
-        //     let virtual_proj_point = actual_proj_point.to_virtual(&*vp);
-        //     let p_to_cen = virtual_proj_point - c.center;
-        //     let theta = p_to_cen.y.atan2(p_to_cen.x);
-        //     if maybe_smallest_dist_to_circle.is_none() || norm_dist < maybe_smallest_dist_to_circle.unwrap() {
-        //       maybe_smallest_dist_to_circle = Some(norm_dist);
-        //       maybe_snap_point_on_circle = Some(SnapPoint {
-        //         position: virtual_proj_point,
-        //         symbo: SnapPointType::SnapOnCircle(entity, theta),
-        //       });
-        //     }
-        //   }
+        } else if let Some(c) = scrn_circles.get(entity) {
+          let c = *c;
+          let proj_point = mouse_pos.project(c);
+          let dist = (proj_point - mouse_pos).magnitude();
+          if dist <= SNAP_TO_CIRCLE_THRES {
+            closest_circles.push((entity, c));
+          }
+          let norm_dist = dist / SNAP_TO_CIRCLE_THRES;
+          if norm_dist < 1.0 && !is_snapping_to_point {
+            let p_to_cen : Vector2 = (proj_point - c.center).into();
+            let theta = -p_to_cen.y.atan2(p_to_cen.x);
+            if maybe_smallest_dist_to_circle.is_none() || norm_dist < maybe_smallest_dist_to_circle.unwrap() {
+              maybe_smallest_dist_to_circle = Some(norm_dist);
+              maybe_snap_point_on_circle = Some(SnapPoint {
+                position: proj_point,
+                symbol: SnapPointType::SnapOnCircle(entity, theta),
+              });
+            }
+          }
         }
       }
 

@@ -164,3 +164,12 @@ impl From<Circle> for ScreenCircle {
     }
   }
 }
+
+impl Project<ScreenCircle> for ScreenPosition {
+  type Output = Self;
+
+  fn project(self, target: ScreenCircle) -> Self {
+    let c : Circle = target.into();
+    self.0.project(c).into()
+  }
+}

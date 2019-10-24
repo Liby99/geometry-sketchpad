@@ -34,7 +34,7 @@ pub enum SnapPointType {
   SnapOnPoint(Entity),
   SnapOnLine(Entity, f64), // f64 is t
   SnapOnLineLineIntersection(Entity, Entity), // Line Line
-  // SnapOnCircle(Entity, f64), // f64 is theta
+  SnapOnCircle(Entity, f64), // f64 is theta
   // SnapOnCircleLineIntersection(Entity, Entity, CircleIntersectId), // Circle, Line, type
   // SnapOnCircleCircleIntersection(Entity, Entity, CircleIntersectId), // Circle, Circle, type
   NotSnapped,
