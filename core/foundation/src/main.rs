@@ -24,9 +24,12 @@ fn main() {
 
   // Interaction related systems
   builder.add(interactions::exit::ExitViaKeyboard::default(), "exit_via_keyboard", &[]);
+  builder.add(interactions::tool::ChangeToolViaKeyboard::default(), "change_tool_via_keyboard", &[]);
+  builder.add(interactions::tool::ChangeLineToolViaKeyboard::default(), "change_line_tool_via_keyboard", &[]);
 
   // State managers
   builder.add(state_managers::ExitStateManager::default(), "exit_state_manager", &["exit_via_keyboard"]);
+  builder.add(state_managers::ToolStateManager::default(), "tool_state_manager", &["change_tool_via_keyboard", "change_line_tool_via_keyboard"]);
 
   // Setup the core library
   setup_core_lib(&mut builder);
