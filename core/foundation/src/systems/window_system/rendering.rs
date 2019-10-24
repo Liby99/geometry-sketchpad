@@ -1,14 +1,11 @@
-use piston_window::{Event as PistonEvent, *};
+use piston_window::{Event as PistonEvent, PistonWindow, Context, G2d, clear, ellipse, circle_arc, line_from_to, rectangle};
 use specs::prelude::*;
-use geopad_core_lib::{
-  math::*,
-  utilities::*,
-  components::{screen_shapes::*, styles::*, markers::*}
-};
+use geopad_core_lib::{math::*, utilities::*, resources::Viewport, components::{screen_shapes::*, styles::*, markers::*}};
 
 pub fn render<'a>(
   window: &mut PistonWindow,
   event: &PistonEvent,
+  viewport: &Viewport,
   scrn_points: &ReadStorage<'a, ScreenPoint>,
   scrn_lines: &ReadStorage<'a, ScreenLine>,
   scrn_circles: &ReadStorage<'a, ScreenCircle>,
@@ -42,10 +39,10 @@ pub fn render<'a>(
 
     // Then, draw the lines
     for (line, style, _, _) in (scrn_lines, line_styles, !selecteds, !hiddens).join() {
-      render_line(line, style, false, context, graphics);
+      render_line(line, style, false, viewport, context, graphics);
     }
     for (line, style, _, _) in (scrn_lines, line_styles, selecteds, !hiddens).join() {
-      render_line(line, style, true, context, graphics);
+      render_line(line, style, true, viewport, context, graphics);
     }
 
     // Lastly, draw the points
@@ -98,20 +95,21 @@ fn render_point(
 }
 
 fn render_line(
-  ScreenLine { from, to, .. }: &ScreenLine,
+  l: &ScreenLine,
   style: &LineStyle,
   selected: bool,
+  viewport: &Viewport,
   context: Context,
   graphics: &mut G2d,
 ) {
-  let from : Vector2 = Into::<Vector2>::into(*from);
-  let to : Vector2 = Into::<Vector2>::into(*to);
-  line_from_to(style.color.into(), style.width, from, to, context.transform, graphics);
-  if selected {
-    let Vector2 { x: dx, y: dy } = (to - from).normalized();
-    let perp_dir = vec2![-dy, dx] * (style.width / 2.0 + 3.0);
-    line_from_to(Color::magenta().into(), 0.5, from - perp_dir, to - perp_dir, context.transform, graphics);
-    line_from_to(Color::magenta().into(), 0.5, from + perp_dir, to + perp_dir, context.transform, graphics);
+  if let Some((from, to)) = Into::<Line>::into(*l).intersect(viewport.screen_aabb()) {
+    line_from_to(style.color.into(), style.width, from, to, context.transform, graphics);
+    if selected {
+      let Vector2 { x: dx, y: dy } = (to - from).normalized();
+      let perp_dir = vec2![-dy, dx] * (style.width / 2.0 + 3.0);
+      line_from_to(Color::magenta().into(), 0.5, from - perp_dir, to - perp_dir, context.transform, graphics);
+      line_from_to(Color::magenta().into(), 0.5, from + perp_dir, to + perp_dir, context.transform, graphics);
+    }
   }
 }
 

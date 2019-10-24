@@ -1,7 +1,7 @@
 use crate::math::*;
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialOrd, PartialEq)]
 pub struct ScreenScalar(pub f64);
 
 impl Into<f64> for ScreenScalar {
@@ -92,6 +92,18 @@ pub struct ScreenLine {
   pub from: ScreenPosition,
   pub to: ScreenPosition,
   pub line_type: LineType,
+}
+
+impl ScreenLine {
+  pub fn get_closest_point(self, p: ScreenPosition) -> ScreenPosition {
+    let l : Line = self.into();
+    l.get_closest_point(p.into()).into()
+  }
+
+  pub fn t_of_point(self, p: ScreenPosition) -> ScreenScalar {
+    let l : Line = self.into();
+    l.t_of_point(p.into()).into()
+  }
 }
 
 impl Into<Line> for ScreenLine {

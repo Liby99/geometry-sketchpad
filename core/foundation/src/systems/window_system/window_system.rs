@@ -1,9 +1,6 @@
 use piston_window::{Event as PistonEvent, *};
 use specs::prelude::*;
-use geopad_core_lib::{
-  events::*,
-  components::{screen_shapes::*, styles::*, markers::*}
-};
+use geopad_core_lib::{events::*, resources::Viewport, components::{screen_shapes::*, styles::*, markers::*}};
 
 use crate::{events::*, resources::*};
 use super::{event_handling::*, rendering::*};
@@ -16,6 +13,7 @@ impl<'a> System<'a> for WindowSystem {
   type SystemData = (
 
     // Resources
+    Read<'a, Viewport>,
     Write<'a, ExitEventChannel>,
     Write<'a, MouseEventChannel>,
     Write<'a, ViewportEventChannel>,
@@ -36,6 +34,7 @@ impl<'a> System<'a> for WindowSystem {
   );
 
   fn run(&mut self, (
+    viewport,
     mut exit_event_channel,
     mut mouse_event_channel,
     mut viewport_event_channel,
@@ -60,7 +59,7 @@ impl<'a> System<'a> for WindowSystem {
           PistonEvent::Loop(lp) => match lp {
             Loop::Update(UpdateArgs { dt }) => handle_dt_update(dt, &mut delta_time),
             Loop::Render(_) => {
-              render(&mut self.window, &event,
+              render(&mut self.window, &event, &*viewport,
                 &scrn_points, &scrn_lines, &scrn_circles, &scrn_rects,
                 &point_styles, &line_styles, &circle_styles, &rect_styles,
                 &selecteds, &hiddens

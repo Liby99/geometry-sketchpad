@@ -1,5 +1,5 @@
 use specs::prelude::*;
-use crate::{math::*, events::*, resources::*, components::{virtual_shapes::*, screen_shapes::*}};
+use crate::{events::*, resources::*, components::{virtual_shapes::*, screen_shapes::*}};
 
 pub struct ScreenShapeSolver {
   geometry_event_reader: Option<GeometryEventReader>,
@@ -72,14 +72,7 @@ fn calc_scrn_shape<'a>(
   if let Some(virt_point) = virt_points.get(ent) {
     if let Err(err) = scrn_points.insert(ent, virt_point.to_screen(&*viewport)) { panic!(err) }
   } else if let Some(virt_line) = virt_lines.get(ent) {
-    let scrn_line : Line = virt_line.to_screen(&*viewport).into();
-    if let Some((from, to)) = scrn_line.intersect(viewport.screen_aabb()) {
-      if let Err(err) = scrn_lines.insert(ent, ScreenLine {
-        from: from.into(),
-        to: to.into(),
-        line_type: LineType::Straight,
-      }) { panic!(err) }
-    }
+    if let Err(err) = scrn_lines.insert(ent, virt_line.to_screen(&*viewport)) { panic!(err) }
   } else if let Some(virt_circle) = virt_circles.get(ent) {
     if let Err(err) = scrn_circles.insert(ent, virt_circle.to_screen(&*viewport)) { panic!(err) }
   }
