@@ -65,7 +65,7 @@ impl<'a> System<'a> for CreatePointViaMouse {
                 SnapPointType::SnapOnPoint(_) => None,
               };
               if let Some(sym_point) = maybe_sym_point {
-                command_event_channel.single_write(CommandEvent::InsertPoint(sym_point));
+                command_event_channel.single_write(CommandEvent::PointInsert(InsertPointEvent::InsertPoint(sym_point)));
               }
             }
           },

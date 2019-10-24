@@ -35,25 +35,35 @@ impl<'a> System<'a> for HideHandler {
     if let Some(reader) = &mut self.command_event_reader {
       for event in command_event_channel.read(reader) {
         match event {
-          CommandEvent::Hide(ent) => {
-            if let Err(err) = hiddens.insert(*ent, Hidden) { panic!(err) }
-            marker_event_channel.single_write(MarkerEvent::hide(*ent));
-          },
-          CommandEvent::Unhide(ent) => {
-            hiddens.remove(*ent);
-            marker_event_channel.single_write(MarkerEvent::unhide(*ent));
-          },
-          CommandEvent::HideSelected => {
-            for (ent, _) in (&entities, &selecteds).join() {
-              if let Err(err) = hiddens.insert(ent, Hidden) { panic!(err) }
-              marker_event_channel.single_write(MarkerEvent::hide(ent));
-            }
-          },
-          CommandEvent::UnhideAll => {
-            for (ent, _) in (&entities, &hiddens).join() {
-              marker_event_channel.single_write(MarkerEvent::unhide(ent));
-            }
-            hiddens.clear();
+          CommandEvent::Hide(hide_event) => match hide_event {
+            HideEvent::Hide(ent) => {
+              if let Err(err) = hiddens.insert(*ent, Hidden) { panic!(err) }
+              marker_event_channel.single_write(MarkerEvent::hide(*ent));
+            },
+            HideEvent::HideByHistory(ent) => {
+              if let Err(err) = hiddens.insert(*ent, Hidden) { panic!(err) }
+              marker_event_channel.single_write(MarkerEvent::hide_by_history(*ent));
+            },
+            HideEvent::Unhide(ent) => {
+              hiddens.remove(*ent);
+              marker_event_channel.single_write(MarkerEvent::unhide(*ent));
+            },
+            HideEvent::UnhideByHistory(ent) => {
+              hiddens.remove(*ent);
+              marker_event_channel.single_write(MarkerEvent::unhide_by_history(*ent));
+            },
+            HideEvent::HideSelected => {
+              for (ent, _) in (&entities, &selecteds).join() {
+                if let Err(err) = hiddens.insert(ent, Hidden) { panic!(err) }
+                marker_event_channel.single_write(MarkerEvent::hide(ent));
+              }
+            },
+            HideEvent::UnhideAll => {
+              for (ent, _) in (&entities, &hiddens).join() {
+                marker_event_channel.single_write(MarkerEvent::unhide(ent));
+              }
+              hiddens.clear();
+            },
           },
           _ => (),
         }

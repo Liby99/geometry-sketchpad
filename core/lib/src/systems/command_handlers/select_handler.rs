@@ -35,25 +35,27 @@ impl<'a> System<'a> for SelectHandler {
     if let Some(reader) = &mut self.command_event_reader {
       for event in command_event_channel.read(reader) {
         match event {
-          CommandEvent::Select(ent) => {
-            if let Err(err) = selecteds.insert(*ent, Selected) { panic!(err) }
-            marker_event_channel.single_write(MarkerEvent::Select(*ent));
-          },
-          CommandEvent::Deselect(ent) => {
-            selecteds.remove(*ent);
-            marker_event_channel.single_write(MarkerEvent::Deselect(*ent));
-          },
-          CommandEvent::SelectAll => {
-            for (ent, _) in (&entities, &elements).join() {
-              if let Err(err) = selecteds.insert(ent, Selected) { panic!(err) }
-              marker_event_channel.single_write(MarkerEvent::Select(ent));
-            }
-          },
-          CommandEvent::DeselectAll => {
-            for (ent, _) in (&entities, &selecteds).join() {
-              marker_event_channel.single_write(MarkerEvent::Deselect(ent));
-            }
-            selecteds.clear();
+          CommandEvent::Select(select_event) => match select_event {
+            SelectEvent::Select(ent) => {
+              if let Err(err) = selecteds.insert(*ent, Selected) { panic!(err) }
+              marker_event_channel.single_write(MarkerEvent::Select(*ent));
+            },
+            SelectEvent::Deselect(ent) => {
+              selecteds.remove(*ent);
+              marker_event_channel.single_write(MarkerEvent::Deselect(*ent));
+            },
+            SelectEvent::SelectAll => {
+              for (ent, _) in (&entities, &elements).join() {
+                if let Err(err) = selecteds.insert(ent, Selected) { panic!(err) }
+                marker_event_channel.single_write(MarkerEvent::Select(ent));
+              }
+            },
+            SelectEvent::DeselectAll => {
+              for (ent, _) in (&entities, &selecteds).join() {
+                marker_event_channel.single_write(MarkerEvent::Deselect(ent));
+              }
+              selecteds.clear();
+            },
           },
           _ => (),
         }

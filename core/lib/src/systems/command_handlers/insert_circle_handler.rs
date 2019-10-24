@@ -46,20 +46,22 @@ impl<'a> System<'a> for InsertCircleHandler {
     if let Some(reader) = &mut self.command_event_reader {
       for event in command_event_channel.read(reader) {
         match event {
-          CommandEvent::InsertCircle(sym_circle) => {
-            let ent = entities.create();
-            let circle_style = default_circle_style.get();
-            let (ent, geom) = insert(ent, *sym_circle, circle_style, &mut sym_circles, &mut circle_styles, &mut selecteds, &mut elements);
-            geometry_event_channel.single_write(GeometryEvent::inserted(ent, geom));
-          },
-          CommandEvent::InsertCircleWithStyle(sym_circle, circle_style) => {
-            let ent = entities.create();
-            let (ent, geom) = insert(ent, *sym_circle, *circle_style, &mut sym_circles, &mut circle_styles, &mut selecteds, &mut elements);
-            geometry_event_channel.single_write(GeometryEvent::inserted(ent, geom));
-          },
-          CommandEvent::InsertCircleByHistory(ent, sym_circle, circle_style) => {
-            let (ent, geom) = insert(*ent, *sym_circle, *circle_style, &mut sym_circles, &mut circle_styles, &mut selecteds, &mut elements);
-            geometry_event_channel.single_write(GeometryEvent::inserted_by_history(ent, geom));
+          CommandEvent::CircleInsert(insert_circle_event) => match insert_circle_event {
+            InsertCircleEvent::InsertCircle(sym_circle) => {
+              let ent = entities.create();
+              let circle_style = default_circle_style.get();
+              let (ent, geom) = insert(ent, *sym_circle, circle_style, &mut sym_circles, &mut circle_styles, &mut selecteds, &mut elements);
+              geometry_event_channel.single_write(GeometryEvent::inserted(ent, geom));
+            },
+            InsertCircleEvent::InsertCircleWithStyle(sym_circle, circle_style) => {
+              let ent = entities.create();
+              let (ent, geom) = insert(ent, *sym_circle, *circle_style, &mut sym_circles, &mut circle_styles, &mut selecteds, &mut elements);
+              geometry_event_channel.single_write(GeometryEvent::inserted(ent, geom));
+            },
+            InsertCircleEvent::InsertCircleByHistory(ent, sym_circle, circle_style) => {
+              let (ent, geom) = insert(*ent, *sym_circle, *circle_style, &mut sym_circles, &mut circle_styles, &mut selecteds, &mut elements);
+              geometry_event_channel.single_write(GeometryEvent::inserted_by_history(ent, geom));
+            },
           },
           _ => (),
         }

@@ -74,33 +74,35 @@ impl<'a> System<'a> for RemoveHandler {
     if let Some(reader) = &mut self.command_event_reader {
       for event in command_event_channel.read(reader) {
         match event {
-          CommandEvent::Remove(ent) => {
-            let geom = remove_element(ent, &mut sym_points, &mut point_styles, &mut virt_points, &mut scrn_points, &mut sym_lines, &mut line_styles, &mut virt_lines, &mut scrn_lines, &mut sym_circles, &mut circle_styles, &mut virt_circles, &mut scrn_circles, &mut elements, &mut selecteds, &mut hiddens);
-            geometry_event_channel.single_write(GeometryEvent::removed(*ent, geom));
-          },
-          CommandEvent::RemoveByHistory(ent) => {
-            let geom = remove_element(ent, &mut sym_points, &mut point_styles, &mut virt_points, &mut scrn_points, &mut sym_lines, &mut line_styles, &mut virt_lines, &mut scrn_lines, &mut sym_circles, &mut circle_styles, &mut virt_circles, &mut scrn_circles, &mut elements, &mut selecteds, &mut hiddens);
-            geometry_event_channel.single_write(GeometryEvent::removed_by_history(*ent, geom));
-          },
-          CommandEvent::RemoveSelected => {
-            let mut set = HashSet::new();
-            for (ent, _) in (&entities, &selecteds).join() {
-              set.insert(ent);
-            }
-            for ent in set {
-              let geom = remove_element(&ent, &mut sym_points, &mut point_styles, &mut virt_points, &mut scrn_points, &mut sym_lines, &mut line_styles, &mut virt_lines, &mut scrn_lines, &mut sym_circles, &mut circle_styles, &mut virt_circles, &mut scrn_circles, &mut elements, &mut selecteds, &mut hiddens);
-              geometry_event_channel.single_write(GeometryEvent::removed(ent, geom));
-            }
-          },
-          CommandEvent::RemoveAll => {
-            let mut set = HashSet::new();
-            for (ent, _) in (&entities, &elements).join() {
-              set.insert(ent);
-            }
-            for ent in set {
-              let geom = remove_element(&ent, &mut sym_points, &mut point_styles, &mut virt_points, &mut scrn_points, &mut sym_lines, &mut line_styles, &mut virt_lines, &mut scrn_lines, &mut sym_circles, &mut circle_styles, &mut virt_circles, &mut scrn_circles, &mut elements, &mut selecteds, &mut hiddens);
-              geometry_event_channel.single_write(GeometryEvent::removed(ent, geom));
-            }
+          CommandEvent::Remove(remove_event) => match remove_event {
+            RemoveEvent::Remove(ent) => {
+              let geom = remove_element(ent, &mut sym_points, &mut point_styles, &mut virt_points, &mut scrn_points, &mut sym_lines, &mut line_styles, &mut virt_lines, &mut scrn_lines, &mut sym_circles, &mut circle_styles, &mut virt_circles, &mut scrn_circles, &mut elements, &mut selecteds, &mut hiddens);
+              geometry_event_channel.single_write(GeometryEvent::removed(*ent, geom));
+            },
+            RemoveEvent::RemoveByHistory(ent) => {
+              let geom = remove_element(ent, &mut sym_points, &mut point_styles, &mut virt_points, &mut scrn_points, &mut sym_lines, &mut line_styles, &mut virt_lines, &mut scrn_lines, &mut sym_circles, &mut circle_styles, &mut virt_circles, &mut scrn_circles, &mut elements, &mut selecteds, &mut hiddens);
+              geometry_event_channel.single_write(GeometryEvent::removed_by_history(*ent, geom));
+            },
+            RemoveEvent::RemoveSelected => {
+              let mut set = HashSet::new();
+              for (ent, _) in (&entities, &selecteds).join() {
+                set.insert(ent);
+              }
+              for ent in set {
+                let geom = remove_element(&ent, &mut sym_points, &mut point_styles, &mut virt_points, &mut scrn_points, &mut sym_lines, &mut line_styles, &mut virt_lines, &mut scrn_lines, &mut sym_circles, &mut circle_styles, &mut virt_circles, &mut scrn_circles, &mut elements, &mut selecteds, &mut hiddens);
+                geometry_event_channel.single_write(GeometryEvent::removed(ent, geom));
+              }
+            },
+            RemoveEvent::RemoveAll => {
+              let mut set = HashSet::new();
+              for (ent, _) in (&entities, &elements).join() {
+                set.insert(ent);
+              }
+              for ent in set {
+                let geom = remove_element(&ent, &mut sym_points, &mut point_styles, &mut virt_points, &mut scrn_points, &mut sym_lines, &mut line_styles, &mut virt_lines, &mut scrn_lines, &mut sym_circles, &mut circle_styles, &mut virt_circles, &mut scrn_circles, &mut elements, &mut selecteds, &mut hiddens);
+                geometry_event_channel.single_write(GeometryEvent::removed(ent, geom));
+              }
+            },
           },
           _ => (), // Don't care others
         }
