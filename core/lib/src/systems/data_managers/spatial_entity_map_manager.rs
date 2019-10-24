@@ -66,7 +66,8 @@ impl<'a> System<'a> for SpatialEntityMapManager {
       for event in viewport_event_channel.read(reader) {
         match event {
           ViewportEvent::Move(_) => spatial_entity_map.clear(),
-          ViewportEvent::Scale(Vector2 { x, y }) => spatial_entity_map.set_size(*x, *y),
+          ViewportEvent::Scale(_) => spatial_entity_map.clear(),
+          ViewportEvent::Resize(Vector2 { x, y }) => spatial_entity_map.set_size(*x, *y),
         }
         need_add_all = true;
       }

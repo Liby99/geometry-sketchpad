@@ -26,11 +26,15 @@ impl<'a> System<'a> for ViewportEventHandler {
     if let Some(reader) = &mut self.viewport_event_reader {
       for event in viewport_event_channel.read(reader) {
         match event {
-          ViewportEvent::Move(new_center) => {
-            viewport.virtual_center = *new_center;
+          ViewportEvent::Move(movement) => {
+            viewport.virtual_center = viewport.virtual_center + *movement;
           },
-          ViewportEvent::Scale(new_size) => {
-            viewport.set_screen_size(*new_size);
+          ViewportEvent::Scale(rel_diff) => {
+            let new_x = viewport.virtual_size.x + rel_diff;
+            viewport.set_virtual_size_x(new_x);
+          },
+          ViewportEvent::Resize(scrn_size) => {
+            viewport.set_screen_size(*scrn_size);
           },
         }
       }

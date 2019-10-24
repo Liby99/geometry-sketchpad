@@ -54,6 +54,10 @@ impl Color {
   pub fn blue() -> Self {
     rgb!(0.0, 0.0, 1.0)
   }
+
+  pub fn magenta() -> Self {
+    rgb!(1.0, 0.0, 1.0)
+  }
 }
 
 impl Into<[f32; 4]> for Color {

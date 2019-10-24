@@ -35,6 +35,16 @@ impl Viewport {
     self.half_virtual_size = self.virtual_size / 2.0;
   }
 
+  pub fn set_virtual_size_x(&mut self, virtual_size_x: f64) {
+    self.virtual_size.x = virtual_size_x;
+    self.virtual_size.y = virtual_size_x / self.screen_size.x * self.screen_size.y;
+    self.half_virtual_size = self.virtual_size / 2.0;
+  }
+
+  pub fn aspect_ratio(&self) -> f64 {
+    self.screen_size.y / self.screen_size.x
+  }
+
   pub fn virtual_to_screen_scale(&self) -> f64 {
     self.virtual_size.x / self.screen_size.x
   }

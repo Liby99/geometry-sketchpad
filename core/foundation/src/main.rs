@@ -1,4 +1,4 @@
-extern crate geopad_core_lib;
+#[macro_use] extern crate geopad_core_lib;
 extern crate piston_window;
 extern crate specs;
 
