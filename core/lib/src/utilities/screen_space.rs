@@ -173,3 +173,50 @@ impl Project<ScreenCircle> for ScreenPosition {
     self.0.project(c).into()
   }
 }
+
+#[derive(Debug, Clone, Copy)]
+pub enum ScreenCircleIntersect {
+  TwoPoints(ScreenPosition, ScreenPosition),
+  OnePoint(ScreenPosition),
+  None,
+}
+
+impl From<CircleIntersect> for ScreenCircleIntersect {
+  fn from(itsct: CircleIntersect) -> Self {
+    match itsct {
+      CircleIntersect::TwoPoints(p1, p2) => ScreenCircleIntersect::TwoPoints(p1.into(), p2.into()),
+      CircleIntersect::OnePoint(p) => ScreenCircleIntersect::OnePoint(p.into()),
+      CircleIntersect::None => ScreenCircleIntersect::None,
+    }
+  }
+}
+
+impl Intersect<ScreenCircle> for ScreenCircle {
+  type Output = ScreenCircleIntersect;
+
+  fn intersect(self, other: Self) -> Self::Output {
+    let c1 : Circle = self.into();
+    let c2 : Circle = other.into();
+    c1.intersect(c2).into()
+  }
+}
+
+impl Intersect<ScreenLine> for ScreenCircle {
+  type Output = ScreenCircleIntersect;
+
+  fn intersect(self, other: ScreenLine) -> Self::Output {
+    let c : Circle = self.into();
+    let l : Line = other.into();
+    c.intersect(l).into()
+  }
+}
+
+impl Intersect<ScreenCircle> for ScreenLine {
+  type Output = ScreenCircleIntersect;
+
+  fn intersect(self, other: ScreenCircle) -> Self::Output {
+    let l : Line = self.into();
+    let c : Circle = other.into();
+    c.intersect(l).into()
+  }
+}

@@ -1,6 +1,6 @@
 use itertools::Itertools;
 use specs::prelude::*;
-use geopad_core_lib::{math::*, utilities::*, components::screen_shapes::*, resources::*};
+use geopad_core_lib::{math::*, utilities::*, components::{symbolics::*, screen_shapes::*}, resources::*};
 use crate::{resources::*};
 
 // In actual space
@@ -146,23 +146,23 @@ impl<'a> System<'a> for SnapPointViaMouse {
           }
         }
 
-      //   if !has_line_line_itsct {
-      //     let mut has_circle_line_itsct = false;
+        if !has_line_line_itsct {
+          let mut has_circle_line_itsct = false;
 
-      //     for ((line_ent, line), (circle_ent, circle)) in closest_lines.iter().cartesian_product(&closest_circles) {
-      //       let ci = line.intersect(*circle);
-      //       check_circle_intersection(&mouse_pos, &virtual_mouse_pos, &*vp, ci, maybe_smallest_dist.clone(), &mut |m| match m {
-      //         Some((p, norm_dist, ty)) => {
-      //           maybe_smallest_dist = Some(norm_dist);
-      //           maybe_snap_point.set(SnapPoint {
-      //             position: p,
-      //             symbo: SnapPointType::SnapOnCircleLineIntersection(*circle_ent, *line_ent, ty),
-      //           });
-      //           has_circle_line_itsct = true;
-      //         },
-      //         None => (),
-      //       });
-      //     }
+          for ((line_ent, line), (circle_ent, circle)) in closest_lines.iter().cartesian_product(&closest_circles) {
+            let ci = line.intersect(*circle);
+            check_circle_intersection(mouse_pos, ci, maybe_smallest_dist.clone(), &mut |m| match m {
+              Some((p, norm_dist, ty)) => {
+                maybe_smallest_dist = Some(norm_dist);
+                maybe_snap_point.set(SnapPoint {
+                  position: p,
+                  symbol: SnapPointType::SnapOnCircleLineIntersection(*circle_ent, *line_ent, ty),
+                });
+                has_circle_line_itsct = true;
+              },
+              None => (),
+            });
+          }
 
       //     if !has_circle_line_itsct {
       //       for comb in closest_circles.iter().combinations(2) {
@@ -180,7 +180,7 @@ impl<'a> System<'a> for SnapPointViaMouse {
       //         }
       //       }
       //     }
-      //   }
+        }
       }
     } else {
       maybe_snap_point.clear();
@@ -188,39 +188,35 @@ impl<'a> System<'a> for SnapPointViaMouse {
   }
 }
 
-// fn check_circle_intersection<F>(
-//   mouse_pos: &Vector2,
-//   virtual_mouse_pos: &Vector2,
-//   viewport: &Viewport,
-//   ci: CircleIntersect,
-//   maybe_smallest_dist: Option<f64>,
-//   callback: &mut F,
-// ) where F : FnMut(Option<(Vector2, f64, CircleIntersectionType)>) -> () {
-//   match ci {
-//     CircleIntersect::TwoPoints(p1, p2) => {
-//       let (dist_1, dist_2) = ((p1 - *virtual_mouse_pos).magnitude(), (p2 - *virtual_mouse_pos).magnitude());
-//       let (ty, p) = if dist_1 < dist_2 {
-//         (CircleIntersectionType::First, p1)
-//       } else {
-//         (CircleIntersectionType::Second, p2)
-//       };
-//       let actual = p.to_actual(viewport);
-//       let norm_dist = (*mouse_pos - actual).magnitude() / SNAP_TO_INTERSECTION_THRES;
-//       if norm_dist < 1.0 {
-//         if maybe_smallest_dist.is_none() || norm_dist < maybe_smallest_dist.unwrap() {
-//           callback(Some((p, norm_dist, ty)));
-//         }
-//       }
-//     },
-//     CircleIntersect::OnePoint(p) => {
-//       let actual = p.to_actual(viewport);
-//       let norm_dist = (*mouse_pos - actual).magnitude() / SNAP_TO_INTERSECTION_THRES;
-//       if norm_dist < 1.0 {
-//         if maybe_smallest_dist.is_none() || norm_dist < maybe_smallest_dist.unwrap() {
-//           callback(Some((p, norm_dist, CircleIntersectionType::First)));
-//         }
-//       }
-//     },
-//     CircleIntersect::None => ()
-//   }
-// }
+fn check_circle_intersection<F>(
+  mouse_pos: ScreenPosition,
+  ci: ScreenCircleIntersect,
+  maybe_smallest_dist: Option<f64>,
+  callback: &mut F,
+) where F : FnMut(Option<(ScreenPosition, f64, CircleIntersectId)>) -> () {
+  match ci {
+    ScreenCircleIntersect::TwoPoints(p1, p2) => {
+      let (dist_1, dist_2) = ((p1 - mouse_pos).magnitude(), (p2 - mouse_pos).magnitude());
+      let (ty, p) = if dist_1 < dist_2 {
+        (CircleIntersectId::First, p1)
+      } else {
+        (CircleIntersectId::Second, p2)
+      };
+      let norm_dist = (mouse_pos - p).magnitude() / SNAP_TO_INTERSECTION_THRES;
+      if norm_dist < 1.0 {
+        if maybe_smallest_dist.is_none() || norm_dist < maybe_smallest_dist.unwrap() {
+          callback(Some((p, norm_dist, ty)));
+        }
+      }
+    },
+    ScreenCircleIntersect::OnePoint(p) => {
+      let norm_dist = (mouse_pos - p).magnitude() / SNAP_TO_INTERSECTION_THRES;
+      if norm_dist < 1.0 {
+        if maybe_smallest_dist.is_none() || norm_dist < maybe_smallest_dist.unwrap() {
+          callback(Some((p, norm_dist, CircleIntersectId::First)));
+        }
+      }
+    },
+    ScreenCircleIntersect::None => ()
+  }
+}
