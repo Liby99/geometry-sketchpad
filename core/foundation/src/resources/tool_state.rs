@@ -9,6 +9,15 @@ pub enum Tool {
   Circle,
 }
 
+impl Tool {
+  pub fn need_snap_point(&self) -> bool {
+    match self {
+      Tool::Point | Tool::Line(_) | Tool::Circle => true,
+      _ => false
+    }
+  }
+}
+
 pub struct ToolState(Tool);
 
 impl Default for ToolState {
@@ -27,9 +36,6 @@ impl ToolState {
   }
 
   pub fn need_snap_point(&self) -> bool {
-    match self.0 {
-      Tool::Point | Tool::Line(_) | Tool::Circle => true,
-      _ => false
-    }
+    self.0.need_snap_point()
   }
 }

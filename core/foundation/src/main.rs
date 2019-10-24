@@ -28,6 +28,9 @@ fn main() {
   builder.add(interactions::tool::ChangeLineToolViaKeyboard::default(), "change_line_tool_via_keyboard", &[]);
   builder.add(interactions::geometry::point::SnapPointViaMouse::default(), "snap_point_via_mouse", &[]);
 
+  // Geometry creation will depend on snap point
+  builder.add(interactions::geometry::point::CreatePointViaMouse::default(), "create_point_via_mouse", &["snap_point_via_mouse"]);
+
   // State managers
   builder.add(state_managers::ExitStateManager::default(), "exit_state_manager", &["exit_via_keyboard"]);
   builder.add(state_managers::ToolStateManager::default(), "tool_state_manager", &["change_tool_via_keyboard", "change_line_tool_via_keyboard"]);
