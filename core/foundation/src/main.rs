@@ -21,7 +21,12 @@ fn main() {
 
   // Start the builder
   let mut builder = DispatcherBuilder::new();
-  builder.add(state_managers::ExitStateManager::default(), "exit_state_manager", &[]);
+
+  // Interaction related systems
+  builder.add(interactions::exit::ExitViaKeyboard::default(), "exit_via_keyboard", &[]);
+
+  // State managers
+  builder.add(state_managers::ExitStateManager::default(), "exit_state_manager", &["exit_via_keyboard"]);
 
   // Setup the core library
   setup_core_lib(&mut builder);

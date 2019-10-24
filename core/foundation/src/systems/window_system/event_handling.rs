@@ -12,7 +12,6 @@ pub fn handle_input<'a>(
   mouse_event_channel: &mut Write<'a, MouseEventChannel>,
   viewport_event_channel: &mut Write<'a, ViewportEventChannel>,
 ) {
-  input_state.reset_relative_data();
   match input {
     Input::Button(ButtonArgs { state, button, scancode }) => {
       let is_pressed = state == ButtonState::Press;

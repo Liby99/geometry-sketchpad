@@ -52,6 +52,7 @@ impl<'a> System<'a> for WindowSystem {
     selecteds,
     hiddens,
   ): Self::SystemData) {
+    input_state.reset_relative_data();
     loop {
       if let Some(event) = self.window.next() {
         match event {
