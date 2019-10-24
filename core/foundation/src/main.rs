@@ -1,6 +1,7 @@
 #[macro_use] extern crate geopad_core_lib;
 extern crate piston_window;
 extern crate specs;
+extern crate itertools;
 
 use piston_window::*;
 use specs::prelude::*;

@@ -131,6 +131,16 @@ impl From<Line> for ScreenLine {
   }
 }
 
+impl Intersect<ScreenLine> for ScreenLine {
+  type Output = Option<ScreenPosition>;
+
+  fn intersect(self, other: Self) -> Self::Output {
+    let l1 : Line = self.into();
+    let l2 : Line = other.into();
+    l1.intersect(l2).map(ScreenPosition)
+  }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct ScreenCircle {
   pub center: ScreenPosition,

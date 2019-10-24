@@ -49,7 +49,7 @@ impl<'a> System<'a> for SnapPointRenderer {
         SnapPointType::NotSnapped => default_point_style.get().apply_alpha(0.6),
 
         // For snapped, we want it to be bigger than the default
-        _ => default_point_style.get().resize(2.0),
+        _ => default_point_style.get().resize(1.0),
       };
 
       // Then insert the components

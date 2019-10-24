@@ -58,6 +58,7 @@ impl<'a> System<'a> for CreatePointViaMouse {
               let maybe_sym_point = match symbol {
                 SnapPointType::NotSnapped => Some(SymbolicPoint::Free(position.to_virtual(&*viewport))),
                 SnapPointType::SnapOnLine(l_ent, t) => Some(SymbolicPoint::OnLine(l_ent, t.into())),
+                SnapPointType::SnapOnLineLineIntersection(l1_ent, l2_ent) => Some(SymbolicPoint::LineLineIntersect(l1_ent, l2_ent)),
                 SnapPointType::SnapOnPoint(_) => None,
               };
               if let Some(sym_point) = maybe_sym_point {

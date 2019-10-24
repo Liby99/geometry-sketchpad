@@ -1,5 +1,6 @@
+use itertools::Itertools;
 use specs::prelude::*;
-use geopad_core_lib::{utilities::*, components::screen_shapes::*, resources::*};
+use geopad_core_lib::{math::*, utilities::*, components::screen_shapes::*, resources::*};
 use crate::{resources::*};
 
 // In actual space
@@ -117,34 +118,34 @@ impl<'a> System<'a> for SnapPointViaMouse {
         maybe_snap_point.set(snap_point)
       }
 
-      // // Check if snapping to an intersection
-      // if !is_snapping_to_point {
-      //   let mut maybe_smallest_dist = None;
-      //   let mut has_line_line_itsct = false;
+      // Check if snapping to an intersection
+      if !is_snapping_to_point {
+        let mut maybe_smallest_dist = None;
+        let mut has_line_line_itsct = false;
 
-      //   // Line line intersection first
-      //   for comb in closest_lines.iter().combinations(2) {
-      //     if let &[(l1_ent, l1), (l2_ent, l2)] = &*comb {
-      //       if let Some(itsct) = l1.intersect(*l2) {
-      //         let actual : Vector2 = itsct.to_actual(&*vp);
-      //         let norm_dist = (mouse_pos - actual).magnitude() / SNAP_TO_INTERSECTION_THRES;
-      //         if norm_dist < 1.0 {
-      //           if maybe_smallest_dist.is_none() || norm_dist < maybe_smallest_dist.unwrap() {
-      //             maybe_smallest_dist = Some(norm_dist);
+        // Line line intersection first
+        for comb in closest_lines.iter().combinations(2) {
+          if let &[(l1_ent, l1), (l2_ent, l2)] = &*comb {
+            let l1 = *l1;
+            let l2 = *l2;
+            if let Some(itsct) = l1.intersect(l2) {
+              let norm_dist = (mouse_pos - itsct).magnitude() / SNAP_TO_INTERSECTION_THRES;
+              if norm_dist < 1.0 {
+                if maybe_smallest_dist.is_none() || norm_dist < maybe_smallest_dist.unwrap() {
+                  maybe_smallest_dist = Some(norm_dist);
 
-      //             // Set the snap point to intersection
-      //             maybe_snap_point.set(SnapPoint {
-      //               position: itsct,
-      //               symbo: SnapPointType::SnapOnLineLineIntersection(*l1_ent, *l2_ent),
-      //             });
+                  // Set the snap point to intersection
+                  maybe_snap_point.set(SnapPoint {
+                    position: itsct,
+                    symbol: SnapPointType::SnapOnLineLineIntersection(*l1_ent, *l2_ent),
+                  });
 
-      //             //
-      //             has_line_line_itsct = true;
-      //           }
-      //         }
-      //       }
-      //     }
-      //   }
+                  has_line_line_itsct = true;
+                }
+              }
+            }
+          }
+        }
 
       //   if !has_line_line_itsct {
       //     let mut has_circle_line_itsct = false;
@@ -181,7 +182,7 @@ impl<'a> System<'a> for SnapPointViaMouse {
       //       }
       //     }
       //   }
-      // }
+      }
     } else {
       maybe_snap_point.clear();
     }

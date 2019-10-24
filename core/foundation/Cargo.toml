@@ -8,4 +8,5 @@ edition = "2018"
 geopad-core-lib = { path = "../lib" }
 specs = "0.15"
 shrev = "1.1"
+itertools = "0.8"
 piston_window = "0.98"
