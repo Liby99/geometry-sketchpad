@@ -13,6 +13,16 @@ impl AABB {
     Self { x, y, width, height }
   }
 
+  pub fn two_points(p1: Vector2, p2: Vector2) -> Self {
+    let diff = p2 - p1;
+    Self {
+      x: p1.x.min(p2.x),
+      y: p1.y.min(p2.y),
+      width: diff.x.abs(),
+      height: diff.y.abs(),
+    }
+  }
+
   pub fn min(&self) -> Vector2 {
     vec2![self.x, self.y]
   }

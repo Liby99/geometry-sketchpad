@@ -10,6 +10,7 @@ use geopad_core_lib::setup_core_lib;
 mod events;
 mod resources;
 mod systems;
+mod utilities;
 
 use systems::*;
 
@@ -29,6 +30,9 @@ fn main() {
   builder.add(interactions::tool::ChangeLineToolViaKeyboard::default(), "change_line_tool_via_keyboard", &[]);
   builder.add(interactions::geometry::point::SnapPointViaMouse::default(), "snap_point_via_mouse", &[]);
 
+  // Geometry interactions (not depend on snap point)
+  builder.add(interactions::marker::SeldeViaMouse::default(), "selde_via_mouse", &[]);
+
   // Geometry creation (will depend on snap point)
   builder.add(interactions::geometry::point::CreatePointViaMouse::default(), "create_point_via_mouse", &["snap_point_via_mouse"]);
   builder.add(interactions::geometry::point::EmitActivePointEvent::default(), "emit_active_point_event", &[]);
@@ -47,6 +51,7 @@ fn main() {
   builder.add(renderers::SnapPointRenderer::default(), "snap_point_renderer", &[]);
   builder.add(renderers::SnapLineRenderer::default(), "snap_line_renderer", &[]);
   builder.add(renderers::SnapCircleRenderer::default(), "snap_circle_renderer", &[]);
+  builder.add(renderers::SelectRectangleRenderer::default(), "select_rectangle_renderer", &[]);
 
   // Lastly, add the window system and build the dispatcher
   builder.add_thread_local(window_system);

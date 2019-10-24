@@ -1,5 +1,4 @@
-use crate::math::*;
-use crate::components::styles::*;
+use geopad_core_lib::{math::*, components::styles::*};
 
 #[derive(Debug, Copy, Clone)]
 pub struct DefaultSelectRectangleStyle(RectangleStyle);
