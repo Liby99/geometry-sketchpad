@@ -26,6 +26,7 @@ fn main() {
   builder.add(interactions::exit::ExitViaKeyboard::default(), "exit_via_keyboard", &[]);
   builder.add(interactions::tool::ChangeToolViaKeyboard::default(), "change_tool_via_keyboard", &[]);
   builder.add(interactions::tool::ChangeLineToolViaKeyboard::default(), "change_line_tool_via_keyboard", &[]);
+  builder.add(interactions::geometry::point::SnapPointViaMouse::default(), "snap_point_via_mouse", &[]);
 
   // State managers
   builder.add(state_managers::ExitStateManager::default(), "exit_state_manager", &["exit_via_keyboard"]);
@@ -34,7 +35,10 @@ fn main() {
   // Setup the core library
   setup_core_lib(&mut builder);
 
-  // Add the window system and build the dispatcher
+  // Renderers
+  builder.add(renderers::SnapPointRenderer::default(), "snap_point_renderer", &[]);
+
+  // Lastly, add the window system and build the dispatcher
   builder.add_thread_local(window_system);
   let mut dispatcher = builder.build();
 

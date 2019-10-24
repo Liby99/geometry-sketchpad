@@ -77,7 +77,7 @@ fn calc_scrn_shape<'a>(
       if let Err(err) = scrn_lines.insert(ent, ScreenLine {
         from: from.into(),
         to: to.into(),
-        line_type: LineType::Segment,
+        line_type: LineType::Straight,
       }) { panic!(err) }
     }
   } else if let Some(virt_circle) = virt_circles.get(ent) {

@@ -134,6 +134,7 @@ impl Intersect<AABB> for Circle {
   }
 }
 
+#[derive(Debug, Clone, Copy)]
 pub enum CircleIntersect {
   TwoPoints(Vector2, Vector2),
   OnePoint(Vector2),

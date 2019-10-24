@@ -31,6 +31,15 @@ impl Color {
     Self { r, g, b, a }
   }
 
+  pub fn apply_alpha(self, a: f32) -> Self {
+    Self {
+      r: self.r,
+      g: self.g,
+      b: self.b,
+      a: self.a * a,
+    }
+  }
+
   pub fn transparent() -> Self {
     rgba!(0.0, 0.0, 0.0, 0.0)
   }

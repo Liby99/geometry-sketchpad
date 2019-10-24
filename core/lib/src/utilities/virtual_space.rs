@@ -140,6 +140,7 @@ impl From<Circle> for VirtualCircle {
   }
 }
 
+#[derive(Debug, Clone, Copy)]
 pub enum VirtualCircleIntersect {
   TwoPoints(VirtualPosition, VirtualPosition),
   OnePoint(VirtualPosition),
