@@ -10,3 +10,12 @@ pub struct LineStyle {
 impl Component for LineStyle {
   type Storage = VecStorage<Self>;
 }
+
+impl LineStyle {
+  pub fn apply_alpha(self, a: f32) -> Self {
+    Self {
+      color: self.color.apply_alpha(a),
+      width: self.width,
+    }
+  }
+}
