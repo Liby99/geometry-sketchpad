@@ -1,9 +1,9 @@
 #[derive(Debug, Copy, Clone)]
 pub struct Color {
-  pub r: f64,
-  pub g: f64,
-  pub b: f64,
-  pub a: f64,
+  pub r: f32,
+  pub g: f32,
+  pub b: f32,
+  pub a: f32,
 }
 
 #[macro_export]
@@ -23,16 +23,20 @@ impl Default for Color {
 }
 
 impl Color {
-  pub fn rgb(r: f64, g: f64, b: f64) -> Self {
+  pub fn rgb(r: f32, g: f32, b: f32) -> Self {
     Self { r, g, b, a: 1.0 }
   }
 
-  pub fn rgba(r: f64, g: f64, b: f64, a: f64) -> Self {
+  pub fn rgba(r: f32, g: f32, b: f32, a: f32) -> Self {
     Self { r, g, b, a }
   }
 
   pub fn transparent() -> Self {
     rgba!(0.0, 0.0, 0.0, 0.0)
+  }
+
+  pub fn white() -> Self {
+    rgb!(1.0, 1.0, 1.0)
   }
 
   pub fn black() -> Self {
@@ -49,5 +53,11 @@ impl Color {
 
   pub fn blue() -> Self {
     rgb!(0.0, 0.0, 1.0)
+  }
+}
+
+impl Into<[f32; 4]> for Color {
+  fn into(self) -> [f32; 4] {
+    [self.r, self.g, self.b, self.a]
   }
 }
