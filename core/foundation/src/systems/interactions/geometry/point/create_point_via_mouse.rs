@@ -61,6 +61,7 @@ impl<'a> System<'a> for CreatePointViaMouse {
                 SnapPointType::SnapOnLineLineIntersection(l1_ent, l2_ent) => Some(SymbolicPoint::LineLineIntersect(l1_ent, l2_ent)),
                 SnapPointType::SnapOnCircle(c_ent, theta) => Some(SymbolicPoint::OnCircle(c_ent, theta)),
                 SnapPointType::SnapOnCircleLineIntersection(c_ent, l_ent, id) => Some(SymbolicPoint::CircleLineIntersect(c_ent, l_ent, id)),
+                SnapPointType::SnapOnCircleCircleIntersection(c1_ent, c2_ent, id) => Some(SymbolicPoint::CircleCircleIntersect(c1_ent, c2_ent, id)),
                 SnapPointType::SnapOnPoint(_) => None,
               };
               if let Some(sym_point) = maybe_sym_point {

@@ -181,6 +181,15 @@ pub enum ScreenCircleIntersect {
   None,
 }
 
+impl ScreenCircleIntersect {
+  pub fn reverse(self) -> Self {
+    match self {
+      ScreenCircleIntersect::TwoPoints(p1, p2) => ScreenCircleIntersect::TwoPoints(p2, p1),
+      _ => self
+    }
+  }
+}
+
 impl From<CircleIntersect> for ScreenCircleIntersect {
   fn from(itsct: CircleIntersect) -> Self {
     match itsct {

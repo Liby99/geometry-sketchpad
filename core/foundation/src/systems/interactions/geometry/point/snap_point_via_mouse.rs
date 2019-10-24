@@ -164,22 +164,27 @@ impl<'a> System<'a> for SnapPointViaMouse {
             });
           }
 
-      //     if !has_circle_line_itsct {
-      //       for comb in closest_circles.iter().combinations(2) {
-      //         if let &[(c1_ent, c1), (c2_ent, c2)] = &*comb {
-      //           check_circle_intersection(&mouse_pos, &virtual_mouse_pos, &*vp, c1.intersect(*c2), maybe_smallest_dist.clone(), &mut |m| match m {
-      //             Some((p, norm_dist, ty)) => {
-      //               maybe_smallest_dist = Some(norm_dist);
-      //               maybe_snap_point.set(SnapPoint {
-      //                 position: p,
-      //                 symbo: SnapPointType::SnapOnCircleCircleIntersection(*c1_ent, *c2_ent, ty),
-      //               });
-      //             },
-      //             None => (),
-      //           });
-      //         }
-      //       }
-      //     }
+          if !has_circle_line_itsct {
+            for comb in closest_circles.iter().combinations(2) {
+              if let &[(c1_ent, c1), (c2_ent, c2)] = &*comb {
+
+                // Note: here we use `c1.intersect(c2).reverse` because we are doing computation in
+                // screen space. For circle intersection we have to order circle sequentially, and the order
+                // is reversed between screen space and virtual space. So in order to get a correct virtual
+                // space answer, we reverse the result
+                check_circle_intersection(mouse_pos, c1.intersect(*c2).reverse(), maybe_smallest_dist.clone(), &mut |m| match m {
+                  Some((p, norm_dist, ty)) => {
+                    maybe_smallest_dist = Some(norm_dist);
+                    maybe_snap_point.set(SnapPoint {
+                      position: p,
+                      symbol: SnapPointType::SnapOnCircleCircleIntersection(*c1_ent, *c2_ent, ty),
+                    });
+                  },
+                  None => (),
+                });
+              }
+            }
+          }
         }
       }
     } else {
