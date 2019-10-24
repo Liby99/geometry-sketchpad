@@ -25,6 +25,7 @@ impl<'a> System<'a> for InsertLineHandler {
     WriteStorage<'a, SymbolicLine>,
     WriteStorage<'a, LineStyle>,
     WriteStorage<'a, Selected>,
+    WriteStorage<'a, Element>,
   );
 
   fn setup(&mut self, world: &mut World) {
@@ -40,6 +41,7 @@ impl<'a> System<'a> for InsertLineHandler {
     mut sym_lines,
     mut line_styles,
     mut selecteds,
+    mut elements,
   ): Self::SystemData) {
     if let Some(reader) = &mut self.command_event_reader {
       for event in command_event_channel.read(reader) {
@@ -47,16 +49,16 @@ impl<'a> System<'a> for InsertLineHandler {
           CommandEvent::InsertLine(sym_line) => {
             let ent = entities.create();
             let line_style = default_line_style.get();
-            let (ent, geom) = insert(ent, *sym_line, line_style, &mut sym_lines, &mut line_styles, &mut selecteds);
+            let (ent, geom) = insert(ent, *sym_line, line_style, &mut sym_lines, &mut line_styles, &mut selecteds, &mut elements);
             geometry_event_channel.single_write(GeometryEvent::inserted(ent, geom));
           },
           CommandEvent::InsertLineWithStyle(sym_line, line_style) => {
             let ent = entities.create();
-            let (ent, geom) = insert(ent, *sym_line, *line_style, &mut sym_lines, &mut line_styles, &mut selecteds);
+            let (ent, geom) = insert(ent, *sym_line, *line_style, &mut sym_lines, &mut line_styles, &mut selecteds, &mut elements);
             geometry_event_channel.single_write(GeometryEvent::inserted(ent, geom));
           },
           CommandEvent::InsertLineByHistory(ent, sym_line, line_style) => {
-            let (ent, geom) = insert(*ent, *sym_line, *line_style, &mut sym_lines, &mut line_styles, &mut selecteds);
+            let (ent, geom) = insert(*ent, *sym_line, *line_style, &mut sym_lines, &mut line_styles, &mut selecteds, &mut elements);
             geometry_event_channel.single_write(GeometryEvent::inserted_by_history(ent, geom));
           },
           _ => (),
@@ -73,9 +75,11 @@ fn insert<'a>(
   sym_lines: &mut WriteStorage<'a, SymbolicLine>,
   line_styles: &mut WriteStorage<'a, LineStyle>,
   selecteds: &mut WriteStorage<'a, Selected>,
+  elements: &mut WriteStorage<'a, Element>,
 ) -> (Entity, Geometry) {
   if let Err(err) = sym_lines.insert(ent, sym_line) { panic!(err) }
   if let Err(err) = line_styles.insert(ent, line_style) { panic!(err) }
   if let Err(err) = selecteds.insert(ent, Selected) { panic!(err) }
+  if let Err(err) = elements.insert(ent, Element) { panic!(err) }
   (ent, Geometry::Line(sym_line, line_style))
 }

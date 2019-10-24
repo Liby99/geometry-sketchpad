@@ -25,6 +25,7 @@ impl<'a> System<'a> for InsertCircleHandler {
     WriteStorage<'a, SymbolicCircle>,
     WriteStorage<'a, CircleStyle>,
     WriteStorage<'a, Selected>,
+    WriteStorage<'a, Element>,
   );
 
   fn setup(&mut self, world: &mut World) {
@@ -40,6 +41,7 @@ impl<'a> System<'a> for InsertCircleHandler {
     mut sym_circles,
     mut circle_styles,
     mut selecteds,
+    mut elements,
   ): Self::SystemData) {
     if let Some(reader) = &mut self.command_event_reader {
       for event in command_event_channel.read(reader) {
@@ -47,16 +49,16 @@ impl<'a> System<'a> for InsertCircleHandler {
           CommandEvent::InsertCircle(sym_circle) => {
             let ent = entities.create();
             let circle_style = default_circle_style.get();
-            let (ent, geom) = insert(ent, *sym_circle, circle_style, &mut sym_circles, &mut circle_styles, &mut selecteds);
+            let (ent, geom) = insert(ent, *sym_circle, circle_style, &mut sym_circles, &mut circle_styles, &mut selecteds, &mut elements);
             geometry_event_channel.single_write(GeometryEvent::inserted(ent, geom));
           },
           CommandEvent::InsertCircleWithStyle(sym_circle, circle_style) => {
             let ent = entities.create();
-            let (ent, geom) = insert(ent, *sym_circle, *circle_style, &mut sym_circles, &mut circle_styles, &mut selecteds);
+            let (ent, geom) = insert(ent, *sym_circle, *circle_style, &mut sym_circles, &mut circle_styles, &mut selecteds, &mut elements);
             geometry_event_channel.single_write(GeometryEvent::inserted(ent, geom));
           },
           CommandEvent::InsertCircleByHistory(ent, sym_circle, circle_style) => {
-            let (ent, geom) = insert(*ent, *sym_circle, *circle_style, &mut sym_circles, &mut circle_styles, &mut selecteds);
+            let (ent, geom) = insert(*ent, *sym_circle, *circle_style, &mut sym_circles, &mut circle_styles, &mut selecteds, &mut elements);
             geometry_event_channel.single_write(GeometryEvent::inserted_by_history(ent, geom));
           },
           _ => (),
@@ -73,9 +75,11 @@ fn insert<'a>(
   sym_circles: &mut WriteStorage<'a, SymbolicCircle>,
   circle_styles: &mut WriteStorage<'a, CircleStyle>,
   selecteds: &mut WriteStorage<'a, Selected>,
+  elements: &mut WriteStorage<'a, Element>,
 ) -> (Entity, Geometry) {
   if let Err(err) = sym_circles.insert(ent, sym_circle) { panic!(err) }
   if let Err(err) = circle_styles.insert(ent, circle_style) { panic!(err) }
   if let Err(err) = selecteds.insert(ent, Selected) { panic!(err) }
+  if let Err(err) = elements.insert(ent, Element) { panic!(err) }
   (ent, Geometry::Circle(sym_circle, circle_style))
 }
