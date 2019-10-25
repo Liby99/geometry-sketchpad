@@ -1,0 +1,11 @@
+[package]
+name = "geopad-win"
+version = "0.0.1"
+authors = ["Liby Lee <liby99@icloud.com>"]
+edition = "2018"
+
+[dependencies]
+core-lib = { path = "../../core/lib" }
+core-ui = { path = "../../core/ui" }
+core-piston = { path = "../../core/piston" }
+specs = "0.15"

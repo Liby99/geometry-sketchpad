@@ -1,0 +1,11 @@
+[package]
+name = "core-ui"
+version = "0.0.1"
+authors = ["Liby Lee <liby99@icloud.com>"]
+edition = "2018"
+
+[dependencies]
+core-lib = { path = "../lib" }
+specs = "0.15"
+shrev = "1.1"
+itertools = "0.8"

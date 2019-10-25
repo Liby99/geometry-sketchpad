@@ -1,0 +1,7 @@
+use specs::prelude::*;
+
+pub use crate::utilities::ScreenLine;
+
+impl Component for ScreenLine {
+  type Storage = VecStorage<Self>;
+}
