@@ -140,15 +140,13 @@ impl<T: Clone + Eq + Hash> SpatialHashTable<T> {
   pub fn insert_circle(&mut self, ent: T, c: Circle) {
     let (left, top) = self.get_tile(vec2![c.center.x - c.radius, c.center.y - c.radius]);
     let (right, bottom) = self.get_tile(vec2![c.center.x + c.radius, c.center.y + c.radius]);
-    for j in top.max(0)..(bottom.min(self.x_tiles as i64) + 1) {
-      for i in left.max(0)..(right.min(self.y_tiles as i64) + 1) {
-        if 0 <= i && i < self.x_tiles as i64 && 0 <= j && j < self.y_tiles as i64 {
-          let tile_aabb = self.tile_to_aabb((i, j));
-          let closest_dist = (tile_aabb.get_closest_point_to(c.center) - c.center).magnitude();
-          let furthest_dist = (tile_aabb.get_furthest_point_to(c.center) - c.center).magnitude();
-          if closest_dist <= c.radius && closest_dist <= furthest_dist {
-            self.insert(ent.clone(), (i, j));
-          }
+    for j in top.max(0)..(bottom.min(self.y_tiles as i64) + 1) {
+      for i in left.max(0)..(right.min(self.x_tiles as i64) + 1) {
+        let tile_aabb = self.tile_to_aabb((i, j));
+        let closest_dist = (tile_aabb.get_closest_point_to(c.center) - c.center).magnitude();
+        let furthest_dist = (tile_aabb.get_furthest_point_to(c.center) - c.center).magnitude();
+        if closest_dist <= c.radius && c.radius <= furthest_dist {
+          self.insert(ent.clone(), (i, j));
         }
       }
     }
@@ -177,8 +175,8 @@ impl<T: Clone + Eq + Hash> SpatialHashTable<T> {
     if let Some(itsct) = self.aabb().intersect(aabb) {
       let (i_min, j_min) = self.get_tile(itsct.min());
       let (i_max, j_max) = self.get_tile(itsct.max());
-      for j in j_min..(j_max + 1) {
-        for i in i_min..(i_max + 1) {
+      for j in (j_min - 1)..(j_max + 2) {
+        for i in (i_min - 1)..(i_max + 2) {
           if let Some(tile_ents) = self.get_entities_in_tile((i, j)) {
             for ent in tile_ents {
               entities.insert(ent.clone());

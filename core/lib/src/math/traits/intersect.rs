@@ -92,8 +92,8 @@ impl Intersect<AABB> for Line {
         _ => return None
       }
     };
-    let d1 = self.t_of_point(p1) >= 0.0;
-    let d2 = self.t_of_point(p2) >= 0.0;
+    let d1 = self.point_is_on_line(p1);
+    let d2 = self.point_is_on_line(p2);
     match line_type {
       LineType::Straight => Some((p1, p2)),
       LineType::Ray => {
@@ -117,7 +117,11 @@ impl Intersect<AABB> for Line {
         } else if cb {
           if d1 { Some((p1, b)) } else if d2 { Some((p2, b)) } else { None }
         } else {
-          Some((p1, p2))
+          if d1 && d2 {
+            Some((p1, p2))
+          } else {
+            None
+          }
         }
       }
     }

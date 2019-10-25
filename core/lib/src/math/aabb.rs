@@ -44,7 +44,7 @@ impl AABB {
   }
 
   pub fn y_max(&self) -> f64 {
-    self.y + self.width
+    self.y + self.height
   }
 
   pub fn contains(&self, p: Vector2) -> bool {

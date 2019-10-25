@@ -96,8 +96,10 @@ impl<'a> System<'a> for SpatialEntityMapManager {
           },
           GeometryEvent::PointUpdated(ent, _, _, _) => {
             for dep in dependency_graph.get_all_dependents(ent) {
-              spatial_entity_map.remove_from_all(dep);
-              insert(&dep, &mut spatial_entity_map, &screen_points, &screen_lines, &screen_circles);
+              if hiddens.get(dep).is_none() {
+                spatial_entity_map.remove_from_all(dep);
+                insert(&dep, &mut spatial_entity_map, &screen_points, &screen_lines, &screen_circles);
+              }
             }
           },
           _ => (),
