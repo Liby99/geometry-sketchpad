@@ -18,7 +18,7 @@ impl Default for ViewportDragTool {
 
 impl<'a> System<'a> for ViewportDragTool {
   type SystemData = (
-    // Read<'a, InputState>,
+    Read<'a, InputState>,
     Read<'a, Viewport>,
     Read<'a, ToolChangeEventChannel>,
     Write<'a, MouseEventChannel>,
@@ -31,7 +31,7 @@ impl<'a> System<'a> for ViewportDragTool {
   }
 
   fn run(&mut self, (
-    // input_state,
+    input_state,
     viewport,
     tool_change_event_channel,
     mut mouse_event_channel,
@@ -72,20 +72,15 @@ impl<'a> System<'a> for ViewportDragTool {
         }
       }
 
-      // TODO: Then handle
-      // if input_state.rel_scroll.y != 0.0 {
-      //   let virt_mouse_pos : Vector2 = input_state.mouse_abs_pos.to_virtual(&viewport).into();
-      //   let mouse_to_center = viewport.virtual_center - virt_mouse_pos;
-
-      //   let delta = input_state.rel_scroll.y * 0.01;
-      //   let sign = delta.signum();
-
-      //   let new_mouse_to_center = mouse_to_center + mouse_to_center.normalized() * delta;
-      //   let diff = mouse_to_center - new_mouse_to_center;
-
-      //   viewport_event_channel.single_write(ViewportEvent::Scale(diff.magnitude() * -sign));
-      //   viewport_event_channel.single_write(ViewportEvent::Move(diff));
-      // }
+      // Then handle scroll. Note that this scale is mouse position dependent
+      if input_state.rel_scroll.y != 0.0 {
+        let m : Vector2 = input_state.mouse_abs_pos.into();
+        let delta = input_state.rel_scroll.y * 0.01;
+        let dcx = (m.x - viewport.half_screen_width()) * -delta / viewport.screen_width();
+        let dcy = (viewport.half_screen_height() - m.y) * -delta / viewport.screen_width();
+        viewport_event_channel.single_write(ViewportEvent::Scale(delta));
+        viewport_event_channel.single_write(ViewportEvent::Move(vec2![dcx, dcy]));
+      }
     }
   }
 }
