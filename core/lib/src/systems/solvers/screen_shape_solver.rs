@@ -48,7 +48,7 @@ impl<'a> System<'a> for ScreenShapeSolver {
           },
           GeometryEvent::Removed(_, _, _) => (),
           GeometryEvent::PointUpdated(ent, _, _, _) => {
-            for dep in dependency_graph.get_all_dependents(&ent) {
+            for dep in dependency_graph.get_all_dependents(ent) {
               calc_scrn_shape(dep, &viewport, &virt_points, &virt_lines, &virt_circles, &mut scrn_points, &mut scrn_lines, &mut scrn_circles);
             }
           },

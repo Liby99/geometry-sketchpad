@@ -63,7 +63,7 @@ impl<'a> System<'a> for VirtualShapeSolver {
           GeometryEvent::Removed(_, _, _) => (),
           GeometryEvent::PointUpdated(ent, _, _, _) => {
             for dep in dependency_graph.get_all_dependents(ent) {
-              to_process.push(ToCompute(*ent, get_symbol(dep, &sym_points, &sym_lines, &sym_circles)));
+              to_process.push(ToCompute(dep, get_symbol(dep, &sym_points, &sym_lines, &sym_circles)));
             }
           },
           GeometryEvent::PointUpdateFinished(_, _, _, _) => (),
@@ -87,14 +87,14 @@ impl<'a> System<'a> for VirtualShapeSolver {
       let sym = to_comp.1.clone();
       match solve(ent, sym, &virt_points, &virt_lines, &virt_circles) {
         SolveResult::AlreadyComputed => (),
-        SolveResult::Undefined => { cannot_compute.insert(ent); }
-        SolveResult::SolvedPoint(vp) => if let Err(err) = virt_points.insert(ent, vp) { panic!(err) }
-        SolveResult::SolvedLine(vl) => if let Err(err) = virt_lines.insert(ent, vl) { panic!(err) }
-        SolveResult::SolvedCircle(vc) => if let Err(err) = virt_circles.insert(ent, vc) { panic!(err) }
+        SolveResult::Undefined => { cannot_compute.insert(ent); },
+        SolveResult::SolvedPoint(vp) => if let Err(err) = virt_points.insert(ent, vp) { panic!(err) },
+        SolveResult::SolvedLine(vl) => if let Err(err) = virt_lines.insert(ent, vl) { panic!(err) },
+        SolveResult::SolvedCircle(vc) => if let Err(err) = virt_circles.insert(ent, vc) { panic!(err) },
         SolveResult::Request(req_ent) => {
           if !cannot_compute.contains(&req_ent) {
             to_process.push(to_comp);
-            to_process.push(ToCompute(req_ent, get_symbol(ent, &sym_points, &sym_lines, &sym_circles)));
+            to_process.push(ToCompute(req_ent, get_symbol(req_ent, &sym_points, &sym_lines, &sym_circles)));
           }
         }
       }

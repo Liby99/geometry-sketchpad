@@ -131,6 +131,15 @@ impl From<Line> for ScreenLine {
   }
 }
 
+impl Project<ScreenLine> for ScreenPosition {
+  type Output = Self;
+
+  fn project(self, target: ScreenLine) -> Self {
+    let l : Line = target.into();
+    self.0.project(l).into()
+  }
+}
+
 impl Intersect<ScreenLine> for ScreenLine {
   type Output = Option<ScreenPosition>;
 

@@ -32,6 +32,7 @@ fn main() {
 
   // Geometry interactions (not depend on snap point)
   builder.add(interactions::marker::SeldeViaMouse::default(), "selde_via_mouse", &[]);
+  builder.add(interactions::geometry::point::MovePointViaDrag::default(), "move_point_via_drag", &[]);
 
   // Geometry creation (will depend on snap point)
   builder.add(interactions::geometry::point::CreatePointViaMouse::default(), "create_point_via_mouse", &["snap_point_via_mouse"]);
