@@ -133,7 +133,7 @@ fn get_update<'a>(
     SymbolicPoint::OnLine(l_ent, _) => {
       if let Some(line) = scrn_lines.get(l_ent) {
         let closest_point = line.get_closest_point(curr_position);
-        let new_t : f64 = line.t_of_point(closest_point).into();
+        let new_t = line.rel_t_of_point(closest_point);
         Some(SymbolicPoint::OnLine(l_ent, new_t.into()))
       } else {
         None

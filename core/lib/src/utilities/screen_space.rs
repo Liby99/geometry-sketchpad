@@ -109,6 +109,11 @@ impl ScreenLine {
     let l : Line = self.into();
     l.t_of_point(p.into()).into()
   }
+
+  pub fn rel_t_of_point(self, p: ScreenPosition) -> f64 {
+    let l : Line = self.into();
+    l.rel_t_of_point(p.into()).into()
+  }
 }
 
 impl Into<Line> for ScreenLine {

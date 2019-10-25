@@ -27,6 +27,10 @@ impl Line {
     (p - self.from).dot(self.direction())
   }
 
+  pub fn rel_t_of_point(&self, p: Vector2) -> f64 {
+    self.t_of_point(p) / self.from_to_length()
+  }
+
   pub fn point_at_t(&self, t: f64) -> Vector2 {
     self.from + self.direction() * t
   }

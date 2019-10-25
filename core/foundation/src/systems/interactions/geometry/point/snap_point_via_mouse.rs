@@ -79,7 +79,7 @@ impl<'a> System<'a> for SnapPointViaMouse {
           }
           let norm_dist = dist / SNAP_TO_LINE_THRES;
           if norm_dist < 1.0 && !is_snapping_to_point {
-            let t = l.t_of_point(closest_point) / l.from_to_length();
+            let t = l.rel_t_of_point(closest_point);
             if maybe_smallest_dist_to_line.is_none() || norm_dist < maybe_smallest_dist_to_line.unwrap() {
               maybe_smallest_dist_to_line = Some(norm_dist);
 
