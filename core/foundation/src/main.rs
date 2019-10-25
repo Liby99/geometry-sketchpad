@@ -35,6 +35,9 @@ fn main() {
   // Geometry interactions (not depend on snap point)
   builder.add(interactions::marker::SeldeViaMouse::default(), "selde_via_mouse", &[]);
   builder.add(interactions::geometry::point::MovePointViaDrag::default(), "move_point_via_drag", &[]);
+  builder.add(interactions::geometry::point::CreateMidpointViaKeyboard::default(), "create_midpoint_via_keyboard", &[]);
+  builder.add(interactions::geometry::line::CreateParallelViaKeyboard::default(), "create_parallel_via_keyboard", &[]);
+  builder.add(interactions::geometry::line::CreatePerpendicularViaKeyboard::default(), "create_perpendicular_via_keyboard", &[]);
 
   // Geometry creation (will depend on snap point)
   builder.add(interactions::geometry::point::CreatePointViaMouse::default(), "create_point_via_mouse", &["snap_point_via_mouse"]);
