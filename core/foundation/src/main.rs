@@ -30,14 +30,17 @@ fn main() {
   builder.add(interactions::tool::ChangeLineToolViaKeyboard::default(), "change_line_tool_via_keyboard", &[]);
   builder.add(interactions::viewport::ViewportDragTool::default(), "viewport_drag_tool", &[]);
   builder.add(interactions::viewport::MoveViewportViaScroll::default(), "move_viewport_via_scroll", &[]);
+  builder.add(interactions::history::UndoRedoViaKeyboard::default(), "undo_redo_via_keyboard", &[]);
   builder.add(interactions::geometry::point::SnapPointViaMouse::default(), "snap_point_via_mouse", &[]);
+  builder.add(interactions::marker::SeldeViaMouse::default(), "selde_via_mouse", &[]);
+  builder.add(interactions::marker::SeldeAllViaKeyboard::default(), "selde_all_via_keyboard", &[]);
 
   // Geometry interactions (not depend on snap point)
-  builder.add(interactions::marker::SeldeViaMouse::default(), "selde_via_mouse", &[]);
   builder.add(interactions::geometry::point::MovePointViaDrag::default(), "move_point_via_drag", &[]);
   builder.add(interactions::geometry::point::CreateMidpointViaKeyboard::default(), "create_midpoint_via_keyboard", &[]);
   builder.add(interactions::geometry::line::CreateParallelViaKeyboard::default(), "create_parallel_via_keyboard", &[]);
   builder.add(interactions::geometry::line::CreatePerpendicularViaKeyboard::default(), "create_perpendicular_via_keyboard", &[]);
+  builder.add(interactions::geometry::RemoveSelectedViaKeyboard::default(), "remove_selected_via_keyboard", &[]);
 
   // Geometry creation (will depend on snap point)
   builder.add(interactions::geometry::point::CreatePointViaMouse::default(), "create_point_via_mouse", &["snap_point_via_mouse"]);
