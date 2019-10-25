@@ -18,6 +18,10 @@ impl DependencyGraph {
     self.0.remove(parent);
   }
 
+  pub fn remove_dependent(&mut self, parent: &Entity, child: &Entity) {
+    self.0.entry(*parent).and_modify(|set| { set.remove(child); });
+  }
+
   pub fn get_direct_dependents(&self, parent: &Entity) -> Option<&HashSet<Entity>> {
     self.0.get(parent)
   }

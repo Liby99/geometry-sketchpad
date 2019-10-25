@@ -34,6 +34,7 @@ fn main() {
   builder.add(interactions::geometry::point::SnapPointViaMouse::default(), "snap_point_via_mouse", &[]);
   builder.add(interactions::marker::SeldeViaMouse::default(), "selde_via_mouse", &[]);
   builder.add(interactions::marker::SeldeAllViaKeyboard::default(), "selde_all_via_keyboard", &[]);
+  builder.add(interactions::marker::HideViaKeyboard::default(), "hide_via_keyboard", &[]);
 
   // Geometry interactions (not depend on snap point)
   builder.add(interactions::geometry::point::MovePointViaDrag::default(), "move_point_via_drag", &[]);

@@ -3,6 +3,7 @@ use specs::prelude::*;
 use crate::{
   events::*,
   utilities::*,
+  resources::*,
   components::{symbolics::*, styles::*, virtual_shapes::*, screen_shapes::*, markers::*},
 };
 
@@ -19,6 +20,7 @@ impl Default for RemoveHandler {
 impl<'a> System<'a> for RemoveHandler {
   type SystemData = (
     Entities<'a>,
+    Read<'a, DependencyGraph>,
     Read<'a, CommandEventChannel>,
     Write<'a, GeometryEventChannel>,
 
@@ -49,6 +51,7 @@ impl<'a> System<'a> for RemoveHandler {
 
   fn run(&mut self, (
     entities,
+    dependency_graph,
     command_event_channel,
     mut geometry_event_channel,
 
@@ -73,34 +76,54 @@ impl<'a> System<'a> for RemoveHandler {
   ): Self::SystemData) {
     if let Some(reader) = &mut self.command_event_reader {
       for event in command_event_channel.read(reader) {
+        macro_rules! remove {
+          ($ent:expr) => (remove_element($ent,
+            &mut sym_points, &mut point_styles, &mut virt_points, &mut scrn_points,
+            &mut sym_lines, &mut line_styles, &mut virt_lines, &mut scrn_lines,
+            &mut sym_circles, &mut circle_styles, &mut virt_circles, &mut scrn_circles,
+            &mut elements, &mut selecteds, &mut hiddens)
+          );
+        }
         match event {
           CommandEvent::Remove(remove_event) => match remove_event {
             RemoveEvent::Remove(ent) => {
-              let geom = remove_element(ent, &mut sym_points, &mut point_styles, &mut virt_points, &mut scrn_points, &mut sym_lines, &mut line_styles, &mut virt_lines, &mut scrn_lines, &mut sym_circles, &mut circle_styles, &mut virt_circles, &mut scrn_circles, &mut elements, &mut selecteds, &mut hiddens);
-              geometry_event_channel.single_write(GeometryEvent::removed(*ent, geom));
+              for dep in dependency_graph.get_all_dependents(ent) {
+                if let Some(geom) = remove!(&dep) {
+                  geometry_event_channel.single_write(GeometryEvent::removed(dep, geom));
+                }
+              }
             },
             RemoveEvent::RemoveByHistory(ent) => {
-              let geom = remove_element(ent, &mut sym_points, &mut point_styles, &mut virt_points, &mut scrn_points, &mut sym_lines, &mut line_styles, &mut virt_lines, &mut scrn_lines, &mut sym_circles, &mut circle_styles, &mut virt_circles, &mut scrn_circles, &mut elements, &mut selecteds, &mut hiddens);
-              geometry_event_channel.single_write(GeometryEvent::removed_by_history(*ent, geom));
+              for dep in dependency_graph.get_all_dependents(ent) {
+                if let Some(geom) = remove!(&dep) {
+                  geometry_event_channel.single_write(GeometryEvent::removed_by_history(dep, geom));
+                }
+              }
             },
             RemoveEvent::RemoveSelected => {
               let mut set = HashSet::new();
               for (ent, _) in (&entities, &selecteds).join() {
-                set.insert(ent);
+                for dep in dependency_graph.get_all_dependents(&ent) {
+                  set.insert(dep);
+                }
               }
               for ent in set {
-                let geom = remove_element(&ent, &mut sym_points, &mut point_styles, &mut virt_points, &mut scrn_points, &mut sym_lines, &mut line_styles, &mut virt_lines, &mut scrn_lines, &mut sym_circles, &mut circle_styles, &mut virt_circles, &mut scrn_circles, &mut elements, &mut selecteds, &mut hiddens);
-                geometry_event_channel.single_write(GeometryEvent::removed(ent, geom));
+                if let Some(geom) = remove!(&ent) {
+                  geometry_event_channel.single_write(GeometryEvent::removed(ent, geom));
+                }
               }
             },
             RemoveEvent::RemoveAll => {
               let mut set = HashSet::new();
               for (ent, _) in (&entities, &elements).join() {
-                set.insert(ent);
+                for dep in dependency_graph.get_all_dependents(&ent) {
+                  set.insert(dep);
+                }
               }
               for ent in set {
-                let geom = remove_element(&ent, &mut sym_points, &mut point_styles, &mut virt_points, &mut scrn_points, &mut sym_lines, &mut line_styles, &mut virt_lines, &mut scrn_lines, &mut sym_circles, &mut circle_styles, &mut virt_circles, &mut scrn_circles, &mut elements, &mut selecteds, &mut hiddens);
-                geometry_event_channel.single_write(GeometryEvent::removed(ent, geom));
+                if let Some(geom) = remove!(&ent) {
+                  geometry_event_channel.single_write(GeometryEvent::removed(ent, geom));
+                }
               }
             },
           },
@@ -132,7 +155,7 @@ fn remove_element<'a>(
   elements: &mut WriteStorage<'a, Element>,
   selecteds: &mut WriteStorage<'a, Selected>,
   hiddens: &mut WriteStorage<'a, Hidden>,
-) -> Geometry {
+) -> Option<Geometry> {
 
   // Remove from markers
   elements.remove(*ent);
@@ -144,27 +167,27 @@ fn remove_element<'a>(
     if let Some(point_style) = point_styles.remove(*ent) {
       virt_points.remove(*ent);
       scrn_points.remove(*ent);
-      Geometry::Point(sym_point, point_style)
+      Some(Geometry::Point(sym_point, point_style))
     } else {
-      panic!("Entity to remove does not exist: {:?}", ent);
+      None
     }
   } else if let Some(sym_line) = sym_lines.remove(*ent) {
     if let Some(line_style) = line_styles.remove(*ent) {
       virt_lines.remove(*ent);
       scrn_lines.remove(*ent);
-      Geometry::Line(sym_line, line_style)
+      Some(Geometry::Line(sym_line, line_style))
     } else {
-      panic!("Entity to remove does not exist: {:?}", ent);
+      None
     }
   } else if let Some(sym_circle) = sym_circles.remove(*ent) {
     if let Some(circle_style) = circle_styles.remove(*ent) {
       virt_circles.remove(*ent);
       scrn_circles.remove(*ent);
-      Geometry::Circle(sym_circle, circle_style)
+      Some(Geometry::Circle(sym_circle, circle_style))
     } else {
-      panic!("Entity to remove does not exist: {:?}", ent);
+      None
     }
   } else {
-    panic!("Entity to remove does not exist: {:?}", ent);
+    None
   }
 }

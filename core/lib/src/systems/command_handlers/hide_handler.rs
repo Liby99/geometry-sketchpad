@@ -40,21 +40,25 @@ impl<'a> System<'a> for HideHandler {
               if let Err(err) = hiddens.insert(*ent, Hidden) { panic!(err) }
               selecteds.remove(*ent);
               marker_event_channel.single_write(MarkerEvent::hide(*ent));
+              marker_event_channel.single_write(MarkerEvent::Deselect(*ent));
             },
             HideEvent::HideByHistory(ent) => {
               if let Err(err) = hiddens.insert(*ent, Hidden) { panic!(err) }
               selecteds.remove(*ent);
               marker_event_channel.single_write(MarkerEvent::hide_by_history(*ent));
+              marker_event_channel.single_write(MarkerEvent::Deselect(*ent));
             },
             HideEvent::Unhide(ent) => {
               hiddens.remove(*ent);
               if let Err(err) = selecteds.insert(*ent, Selected) { panic!(err) }
               marker_event_channel.single_write(MarkerEvent::unhide(*ent));
+              marker_event_channel.single_write(MarkerEvent::Select(*ent));
             },
             HideEvent::UnhideByHistory(ent) => {
               hiddens.remove(*ent);
               if let Err(err) = selecteds.insert(*ent, Selected) { panic!(err) }
               marker_event_channel.single_write(MarkerEvent::unhide_by_history(*ent));
+              marker_event_channel.single_write(MarkerEvent::Select(*ent));
             },
             HideEvent::HideSelected => {
               let mut to_hide = Vec::new();
@@ -63,12 +67,14 @@ impl<'a> System<'a> for HideHandler {
                 selecteds.remove(ent);
                 if let Err(err) = hiddens.insert(ent, Hidden) { panic!(err) }
                 marker_event_channel.single_write(MarkerEvent::hide(ent));
+                marker_event_channel.single_write(MarkerEvent::Deselect(ent));
               }
             },
             HideEvent::UnhideAll => {
               for (ent, _) in (&entities, &hiddens).join() {
                 if let Err(err) = selecteds.insert(ent, Selected) { panic!(err) }
                 marker_event_channel.single_write(MarkerEvent::unhide(ent));
+                marker_event_channel.single_write(MarkerEvent::Select(ent));
               }
               hiddens.clear();
             },

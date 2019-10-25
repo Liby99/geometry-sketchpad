@@ -35,6 +35,7 @@ impl<'a> System<'a> for HistoryManager {
   fn setup(&mut self, world: &mut World) {
     Self::SystemData::setup(world);
     self.geometry_event_reader = Some(world.fetch_mut::<GeometryEventChannel>().register_reader());
+    self.marker_event_reader = Some(world.fetch_mut::<MarkerEventChannel>().register_reader());
   }
 
   fn run(&mut self, (
@@ -42,6 +43,9 @@ impl<'a> System<'a> for HistoryManager {
     marker_event_channel,
     mut history,
   ): Self::SystemData) {
+
+    assert!(self.geometry_event_reader.is_some());
+    assert!(self.marker_event_reader.is_some());
 
     // First do geometry events
     if let Some(reader_id) = &mut self.geometry_event_reader {

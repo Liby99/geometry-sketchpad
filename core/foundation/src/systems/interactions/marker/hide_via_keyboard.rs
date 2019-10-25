@@ -2,6 +2,7 @@ use specs::prelude::*;
 use geopad_core_lib::events::*;
 use crate::resources::*;
 
+#[derive(Default)]
 pub struct HideViaKeyboard;
 
 impl<'a> System<'a> for HideViaKeyboard {
@@ -14,9 +15,9 @@ impl<'a> System<'a> for HideViaKeyboard {
     if input_state.keyboard.is_command_activated() {
       if input_state.keyboard.just_activated(Key::H) {
         let hide_event = if input_state.keyboard.is_shift_activated() {
-          HideEvent::UnhideAll,
+          HideEvent::UnhideAll
         } else {
-          HideEvent::HideSelected,
+          HideEvent::HideSelected
         };
         command_event_channel.single_write(CommandEvent::Hide(hide_event));
       }
