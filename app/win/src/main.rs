@@ -3,6 +3,8 @@ extern crate core_ui;
 extern crate core_piston;
 extern crate specs;
 
+mod win_gui;
+
 use specs::prelude::*;
 use core_ui::{resources::*, setup_core_ui};
 use core_piston::new_piston_window;
@@ -15,6 +17,7 @@ fn main() {
   setup_core_ui(&mut builder);
 
   // Add the window system and build the dispatcher
+  builder.add(win_gui::GuiSystem, "gui_system", &[]);
   builder.add_thread_local(new_piston_window());
 
   // Build the dispatcher

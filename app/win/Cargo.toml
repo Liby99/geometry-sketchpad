@@ -1,5 +1,5 @@
 [package]
-name = "geopad-foundation"
+name = "geopad-win"
 version = "0.0.1"
 authors = ["Liby Lee <liby99@icloud.com>"]
 edition = "2018"
