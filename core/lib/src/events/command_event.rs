@@ -16,6 +16,7 @@ pub enum CommandEvent {
 #[derive(Debug, Clone, Copy)]
 pub enum InsertPointEvent {
   InsertPoint(SymbolicPoint),
+  InsertMidPointFromSelection,
   InsertPointWithStyle(SymbolicPoint, PointStyle),
   InsertPointByHistory(Entity, SymbolicPoint, PointStyle),
 }
@@ -23,6 +24,8 @@ pub enum InsertPointEvent {
 #[derive(Debug, Clone, Copy)]
 pub enum InsertLineEvent {
   InsertLine(SymbolicLine),
+  InsertParallelFromSelection,
+  InsertPerpendicularFromSelection,
   InsertLineWithStyle(SymbolicLine, LineStyle),
   InsertLineByHistory(Entity, SymbolicLine, LineStyle),
 }

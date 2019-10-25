@@ -22,6 +22,7 @@ impl<'a> System<'a> for InsertLineHandler {
     Read<'a, CommandEventChannel>,
     Write<'a, GeometryEventChannel>,
     Read<'a, DefaultLineStyle>,
+    ReadStorage<'a, SymbolicPoint>,
     WriteStorage<'a, SymbolicLine>,
     WriteStorage<'a, LineStyle>,
     WriteStorage<'a, Selected>,
@@ -38,6 +39,7 @@ impl<'a> System<'a> for InsertLineHandler {
     command_event_channel,
     mut geometry_event_channel,
     default_line_style,
+    sym_points,
     mut sym_lines,
     mut line_styles,
     mut selecteds,
@@ -52,6 +54,28 @@ impl<'a> System<'a> for InsertLineHandler {
               let line_style = default_line_style.get();
               let (ent, geom) = insert(ent, *sym_line, line_style, &mut sym_lines, &mut line_styles, &mut selecteds, &mut elements);
               geometry_event_channel.single_write(GeometryEvent::inserted(ent, geom));
+            },
+            InsertLineEvent::InsertParallelFromSelection => {
+              if let Some((l_ent, p_ents)) = check_perp_para_selection(&entities, &sym_points, &sym_lines, &selecteds) {
+                for p_ent in p_ents {
+                  let sym_line = SymbolicLine::Parallel(l_ent, p_ent);
+                  let ent = entities.create();
+                  let line_style = default_line_style.get();
+                  let (ent, geom) = insert(ent, sym_line, line_style, &mut sym_lines, &mut line_styles, &mut selecteds, &mut elements);
+                  geometry_event_channel.single_write(GeometryEvent::inserted(ent, geom));
+                }
+              }
+            },
+            InsertLineEvent::InsertPerpendicularFromSelection => {
+              if let Some((l_ent, p_ents)) = check_perp_para_selection(&entities, &sym_points, &sym_lines, &selecteds) {
+                for p_ent in p_ents {
+                  let sym_line = SymbolicLine::Perpendicular(l_ent, p_ent);
+                  let ent = entities.create();
+                  let line_style = default_line_style.get();
+                  let (ent, geom) = insert(ent, sym_line, line_style, &mut sym_lines, &mut line_styles, &mut selecteds, &mut elements);
+                  geometry_event_channel.single_write(GeometryEvent::inserted(ent, geom));
+                }
+              }
             },
             InsertLineEvent::InsertLineWithStyle(sym_line, line_style) => {
               let ent = entities.create();
@@ -84,4 +108,35 @@ fn insert<'a>(
   if let Err(err) = selecteds.insert(ent, Selected) { panic!(err) }
   if let Err(err) = elements.insert(ent, Element) { panic!(err) }
   (ent, Geometry::Line(sym_line, line_style))
+}
+
+/// We can have, in selection, a single line, and lots of points
+pub fn check_perp_para_selection<'a>(
+  entities: &Entities<'a>,
+  sym_points: &ReadStorage<'a, SymbolicPoint>,
+  sym_lines: &WriteStorage<'a, SymbolicLine>,
+  selecteds: &WriteStorage<'a, Selected>,
+) -> Option<(Entity, Vec<Entity>)> {
+  let mut maybe_line_ent = None;
+  let mut point_ents = Vec::new();
+  for (entity, _) in (entities, selecteds).join() {
+    if sym_lines.get(entity).is_some() {
+      if maybe_line_ent.is_none() {
+        maybe_line_ent = Some(entity);
+      } else {
+        return None;
+      }
+    } else if sym_points.get(entity).is_some() {
+      point_ents.push(entity);
+    }
+  }
+  if let Some(line_ent) = maybe_line_ent {
+    if !point_ents.is_empty() {
+      Some((line_ent, point_ents))
+    } else {
+      None
+    }
+  } else {
+    None
+  }
 }
