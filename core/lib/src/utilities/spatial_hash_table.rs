@@ -51,7 +51,7 @@ impl<T: Clone + Eq + Hash> SpatialHashTable<T> {
   }
 
   fn tile_to_id(&self, tile: Tile) -> Option<TileId> {
-    if 0 <= tile.0 && tile.0 < self.x_tiles as i64 && 0 <= tile.1 && tile.1 <= self.y_tiles as i64 {
+    if 0 <= tile.0 && tile.0 < self.x_tiles as i64 && 0 <= tile.1 && tile.1 < self.y_tiles as i64 {
       Some(tile.1 as usize * self.x_tiles + tile.0 as usize)
     } else {
       None

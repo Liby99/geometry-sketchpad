@@ -26,7 +26,7 @@ pub fn setup_core_lib<'a, 'b>(builder: &mut DispatcherBuilder<'a, 'b>) {
   builder.add(data_managers::HistoryManager::default(), "history_manager", &["remove_handler", "insert_point_handler", "insert_line_handler", "insert_circle_handler", "update_point_handler", "hide_handler"]);
   builder.add(data_managers::DependencyGraphManager::default(), "dependency_graph_manager", &["remove_handler", "insert_point_handler", "insert_line_handler", "insert_circle_handler", "update_point_handler"]);
   builder.add(solvers::VirtualShapeSolver::default(), "virtual_shape_solver", &["dependency_graph_manager"]);
-  builder.add(solvers::ScreenShapeSolver::default(), "screen_shape_solver", &["virtual_shape_solver"]);
+  builder.add(solvers::ScreenShapeSolver::default(), "screen_shape_solver", &["virtual_shape_solver", "viewport_event_handler"]);
   builder.add(data_managers::SpatialEntityMapManager::default(), "spatial_entity_map_manager", &["screen_shape_solver", "hide_handler"]);
   builder.add_barrier();
 }

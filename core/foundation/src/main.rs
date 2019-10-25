@@ -28,6 +28,7 @@ fn main() {
   builder.add(interactions::exit::ExitViaKeyboard::default(), "exit_via_keyboard", &[]);
   builder.add(interactions::tool::ChangeToolViaKeyboard::default(), "change_tool_via_keyboard", &[]);
   builder.add(interactions::tool::ChangeLineToolViaKeyboard::default(), "change_line_tool_via_keyboard", &[]);
+  builder.add(interactions::viewport::ViewportDragTool::default(), "viewport_drag_tool", &[]);
   builder.add(interactions::geometry::point::SnapPointViaMouse::default(), "snap_point_via_mouse", &[]);
 
   // Geometry interactions (not depend on snap point)
