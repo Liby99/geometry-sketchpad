@@ -2,7 +2,7 @@ use specs::prelude::*;
 use geopad_core_lib::{math::*, events::*};
 use crate::{events::*, resources::*};
 
-static SPEED : f64 = 0.03;
+static SPEED : f64 = 1.0;
 
 pub struct MoveViewportViaScroll {
   tool_change_event_reader: Option<ToolChangeEventReader>,
@@ -21,6 +21,7 @@ impl Default for MoveViewportViaScroll {
 impl<'a> System<'a> for MoveViewportViaScroll {
   type SystemData = (
     Read<'a, InputState>,
+    Read<'a, DeltaTime>,
     Read<'a, ToolChangeEventChannel>,
     Write<'a, ViewportEventChannel>,
   );
@@ -32,6 +33,7 @@ impl<'a> System<'a> for MoveViewportViaScroll {
 
   fn run(&mut self, (
     input_state,
+    delta_time,
     tool_change_event_channel,
     mut viewport_event_channel,
   ): Self::SystemData) {
@@ -46,7 +48,7 @@ impl<'a> System<'a> for MoveViewportViaScroll {
 
     if self.can_scroll {
       if !input_state.rel_scroll.is_zero() {
-        let raw_movement = input_state.rel_scroll * SPEED;
+        let raw_movement = input_state.rel_scroll * delta_time.get() * SPEED;
         let movement = if cfg!(target_os = "macos") {
           vec2![-raw_movement.x, raw_movement.y]
         } else {

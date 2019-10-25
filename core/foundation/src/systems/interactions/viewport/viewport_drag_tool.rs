@@ -2,6 +2,8 @@ use specs::prelude::*;
 use geopad_core_lib::{math::*, events::*, resources::*};
 use crate::{events::*, resources::*};
 
+static SPEED : f64 = 1.0;
+
 pub struct ViewportDragTool {
   tool_change_event_reader: Option<ToolChangeEventReader>,
   mouse_event_reader: Option<MouseEventReader>,
@@ -19,6 +21,7 @@ impl Default for ViewportDragTool {
 impl<'a> System<'a> for ViewportDragTool {
   type SystemData = (
     Read<'a, InputState>,
+    Read<'a, DeltaTime>,
     Read<'a, Viewport>,
     Read<'a, ToolChangeEventChannel>,
     Write<'a, MouseEventChannel>,
@@ -32,6 +35,7 @@ impl<'a> System<'a> for ViewportDragTool {
 
   fn run(&mut self, (
     input_state,
+    delta_time,
     viewport,
     tool_change_event_channel,
     mut mouse_event_channel,
@@ -75,7 +79,7 @@ impl<'a> System<'a> for ViewportDragTool {
       // Then handle scroll. Note that this scale is mouse position dependent
       if input_state.rel_scroll.y != 0.0 {
         let m : Vector2 = input_state.mouse_abs_pos.into();
-        let delta = input_state.rel_scroll.y * 0.01;
+        let delta = input_state.rel_scroll.y * delta_time.get() * SPEED;
         let dcx = (m.x - viewport.half_screen_width()) * -delta / viewport.screen_width();
         let dcy = (viewport.half_screen_height() - m.y) * -delta / viewport.screen_width();
         viewport_event_channel.single_write(ViewportEvent::Scale(delta));
