@@ -3,6 +3,12 @@ name = "geopad-electron"
 version = "0.0.1"
 authors = ["Liby Lee <liby99@icloud.com>"]
 edition = "2018"
+build = "build.rs"
+exclude = ["artifacts.json", "index.node"]
+
+[lib]
+name = "geopad_electron"
+crate-type = ["dylib"]
 
 [dependencies]
 core-lib = { path = "../../../core/lib" }

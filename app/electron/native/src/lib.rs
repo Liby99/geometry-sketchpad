@@ -1,7 +1,8 @@
 extern crate core_lib;
 extern crate core_ui;
+extern crate specs;
 
-use std::sync::mpsc::{self, RecvTimeoutError, TryRecvError};
+use std::sync::mpsc::{self, RecvTimeoutError};
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
@@ -11,14 +12,20 @@ use neon::object::Object;
 use neon::result::JsResult;
 use neon::task::Task;
 use neon::types::{JsFunction, JsUndefined, JsValue};
-use neon::{class_definition, declare_types, impl_managed, register_module};
+use neon::{declare_types, register_module};
 
-/// Represents the data that will be received by the `poll` method. It may
-/// include different types of data or be replaced with a more simple type,
-/// e.g., `Vec<u8>`.
-pub enum Event {
-  Tick { count: f64 },
-}
+use specs::prelude::*;
+use core_ui::{resources::ExitState, setup_core_ui};
+
+pub mod output;
+pub mod input;
+pub mod sender_system;
+pub mod receiver_system;
+
+use output::RenderUpdateEvent;
+use input::UserEvent;
+use sender_system::SenderSystem;
+use receiver_system::ReceiverSystem;
 
 /// Placeholder to represent work being done on a Rust thread. It could be
 /// reading from a socket or any other long running task.
@@ -34,37 +41,32 @@ pub enum Event {
 ///
 /// It's also useful to note that the `tx` channel created may be cloned if
 /// there are multiple threads that produce data to be consumed by Neon.
-fn event_thread(shutdown_rx: mpsc::Receiver<()>) -> mpsc::Receiver<Event> {
+fn event_thread(user_event_rx: mpsc::Receiver<UserEvent>) -> mpsc::Receiver<RenderUpdateEvent> {
+
   // Create sending and receiving channels for the event data
   let (tx, events_rx) = mpsc::channel();
 
   // Spawn a thead to continue running after this method has returned.
   thread::spawn(move || {
-    let mut count = 0.0;
 
-    // This loop represents the work being performed
-    loop {
-      thread::sleep(Duration::from_millis(500));
+    // Generate a new world
+    let mut world = World::new();
+    let mut builder = DispatcherBuilder::new();
 
-      // Check to see if the thread should be shutdown. `try_recv()`
-      // does not block waiting on data.
-      match shutdown_rx.try_recv() {
-        // Shutdown if we have received a command or if there is
-        // nothing to send it.
-        Ok(_) | Err(TryRecvError::Disconnected) => {
-          break;
-        }
-        // No shutdown command, continue
-        Err(TryRecvError::Empty) => {}
-      }
+    // Setup the core ui
+    setup_core_ui(&mut builder);
 
-      // Send the event data on the channel. Failure may only occur if
-      // there is no receiver. I.e., if the receiver was destroyed
-      // without shutdown. This should only occur if the shutdown
-      // channel outlives the event channel.
-      tx.send(Event::Tick { count }).expect("Send failed");
+    // Add the sender and receiver system
+    builder.add_thread_local(SenderSystem { sender: tx });
+    builder.add_thread_local(ReceiverSystem { receiver: user_event_rx });
 
-      count += 1.0;
+    // Build the dispatcher
+    let mut dispatcher = builder.build();
+    dispatcher.setup(&mut world);
+
+    // Enter game loop
+    while !world.fetch::<ExitState>().is_exiting() {
+      dispatcher.dispatch(&mut world);
     }
   });
 
@@ -74,12 +76,12 @@ fn event_thread(shutdown_rx: mpsc::Receiver<()>) -> mpsc::Receiver<Event> {
 /// Reading from a channel `Receiver` is a blocking operation. This struct
 /// wraps the data required to perform a read asynchronously from a libuv
 /// thread.
-pub struct EventEmitterTask(Arc<Mutex<mpsc::Receiver<Event>>>);
+pub struct EventEmitterTask(Arc<Mutex<mpsc::Receiver<RenderUpdateEvent>>>);
 
 /// Implementation of a neon `Task` for `EventEmitterTask`. This task reads
 /// from the events channel and calls a JS callback with the data.
 impl Task for EventEmitterTask {
-  type Output = Option<Event>;
+  type Output = Option<RenderUpdateEvent>;
   type Error = String;
   type JsEvent = JsValue;
 
@@ -121,12 +123,11 @@ impl Task for EventEmitterTask {
 
     // Creates an object of the shape `{ "event": string, ...data }`
     match event {
-      Event::Tick { count } => {
-        let event_name = cx.string("tick");
-        let event_count = cx.number(count);
+      RenderUpdateEvent::None => {
+        let event_name = cx.string("none");
         o.set(&mut cx, "event", event_name)?;
-        o.set(&mut cx, "count", event_count)?;
-      }
+      },
+      _ => (), // TODO
     }
     Ok(o.upcast())
   }
@@ -139,10 +140,10 @@ pub struct EventEmitter {
   // `Send + Sync`. Since, correct usage of the `poll` interface should
   // only have a single concurrent consume, we guard the channel with a
   // `Mutex`.
-  events: Arc<Mutex<mpsc::Receiver<Event>>>,
+  emitter: Arc<Mutex<mpsc::Receiver<RenderUpdateEvent>>>,
 
   // Channel used to perform a controlled shutdown of the work thread.
-  shutdown: mpsc::Sender<()>,
+  receiver: mpsc::Sender<UserEvent>,
 }
 
 // Implementation of the `JsEventEmitter` class. This is the only public
@@ -153,15 +154,15 @@ declare_types! {
 
     // Called by the `JsEventEmitter` constructor
     init(_) {
-      let (shutdown, shutdown_rx) = mpsc::channel();
+      let (receiver, shutdown_rx) = mpsc::channel();
 
       // Start work in a separate thread
       let rx = event_thread(shutdown_rx);
 
       // Construct a new `EventEmitter` to be wrapped by the class.
       Ok(EventEmitter {
-        events: Arc::new(Mutex::new(rx)),
-        shutdown,
+        emitter: Arc::new(Mutex::new(rx)),
+        receiver: receiver,
       })
     }
 
@@ -174,7 +175,7 @@ declare_types! {
       let this = cx.this();
 
       // Create an asynchronously `EventEmitterTask` to receive data
-      let events = cx.borrow(&this, |emitter| Arc::clone(&emitter.events));
+      let events = cx.borrow(&this, |emitter| Arc::clone(&emitter.emitter));
       let emitter = EventEmitterTask(events);
 
       // Schedule the task on the `libuv` thread pool
@@ -186,13 +187,15 @@ declare_types! {
 
     // The shutdown method may be called to stop the Rust thread. It
     // will error if the thread has already been destroyed.
+    method step(mut cx) {
+      let this = cx.this();
+      cx.borrow(&this, |emitter| emitter.receiver.send(UserEvent::Loop(1.0))).or_else(|err| cx.throw_error(&err.to_string()))?;
+      Ok(JsUndefined::new().upcast())
+    }
+
     method shutdown(mut cx) {
       let this = cx.this();
-
-      // Unwrap the shutdown channel and send a shutdown command
-      cx.borrow(&this, |emitter| emitter.shutdown.send(()))
-        .or_else(|err| cx.throw_error(&err.to_string()))?;
-
+      cx.borrow(&this, |emitter| emitter.receiver.send(UserEvent::Shutdown)).or_else(|err| cx.throw_error(&err.to_string()))?;
       Ok(JsUndefined::new().upcast())
     }
   }
@@ -201,7 +204,6 @@ declare_types! {
 // Expose the neon objects as a node module
 register_module!(mut cx, {
   // Expose the `JsEventEmitter` class as `EventEmitter`.
-  cx.export_class::<JsEventEmitter>("EventEmitter")?;
-
+  cx.export_class::<JsEventEmitter>("GeopadWorld")?;
   Ok(())
 });
