@@ -9,3 +9,9 @@ core-lib = { path = "../../core/lib" }
 core-ui = { path = "../../core/ui" }
 core-piston = { path = "../../core/piston" }
 specs = "0.15"
+shrev = "1.1"
+native-windows-gui = { git = "https://github.com/tonnylyz/native-windows-gui" }
+user32-sys = "0.2.0"
+winapi = "0.2.8"
+lazy_static = "1.4.0"
+open = "1.3.2"

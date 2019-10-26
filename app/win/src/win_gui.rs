@@ -1,13 +1,16 @@
 use specs::prelude::*;
 use nwg::{Event, Ui};
 use std::sync::Mutex;
-use crate::resources::{InputState, Tool, LineTool, events::*};
+use crate::core_lib::events::*;
+use crate::core_lib::math::{LineType};
+use crate::core_ui::resources::{InputState, Tool};
+use crate::core_ui::events::{ToolChangeEventChannel, ToolChangeEvent, ExitEventChannel, ExitEvent};
 use shrev::{EventChannel, ReaderId};
 
 enum GuiSystemAction {
   ToolChange(Tool),
-  History(HistoryAction),
-  Geometry(GeometryAction),
+  History(HistoryEvent),
+  Command(CommandEvent),
   Resize,
   Exit,
 }
@@ -85,7 +88,7 @@ lazy_static! {
   static ref GUI_ACTION_CHANNEL : Mutex<GuiSystemActionChannel> = Mutex::new(GuiSystemActionChannel::with_capacity(16));
 }
 
-use AppId::*; // Shortcut
+use AppId::*;
 
 const WINDOW_WIDTH : i32 = 960;
 const WINDOW_HEIGHT : i32 = 720;
@@ -237,33 +240,33 @@ nwg_template!(
           (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Exit);
         }),
         (MenuEditUndo, EditUndoEvent, Event::Triggered, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::History(HistoryAction::Undo));
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::History(HistoryEvent::Undo));
         }),
         (MenuEditRedo, EditRedoEvent, Event::Triggered, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::History(HistoryAction::Redo));
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::History(HistoryEvent::Redo));
         }),
 
 
         (MenuSelectAll, SelectAllEvent, Event::Triggered, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Geometry(GeometryAction::SelectAll));
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Command(CommandEvent::Select(SelectEvent::SelectAll)));
         }),
         (MenuSelectDeselect, SelectDeselectEvent, Event::Triggered, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Geometry(GeometryAction::DeselectAll));
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Command(CommandEvent::Select(SelectEvent::DeselectAll)));
         }),
         (MenuCreateMid, CreateMidEvent, Event::Triggered, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Geometry(GeometryAction::DrawMidpointOnSelected));
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Command(CommandEvent::PointInsert(InsertPointEvent::InsertMidPointFromSelection)));
         }),
         (MenuCreateParallel, CreateParallelEvent, Event::Triggered, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Geometry(GeometryAction::DrawParallelOnSelected));
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Command(CommandEvent::LineInsert(InsertLineEvent::InsertParallelFromSelection)));
         }),
         (MenuCreatePerpendicular, CreatePerpendicularEvent, Event::Triggered, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Geometry(GeometryAction::DrawPerpendicularOnSelected));
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Command(CommandEvent::LineInsert(InsertLineEvent::InsertPerpendicularFromSelection)));
         }),
         (MenuDisplayHide, DisplayHideEvent, Event::Triggered, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Geometry(GeometryAction::HideSelected));
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Command(CommandEvent::Hide(HideEvent::HideSelected)));
         }),
         (MenuDisplayUnhiddenAll, DisplayUnhiddenAllEvent, Event::Triggered, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Geometry(GeometryAction::UnhideAll));
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Command(CommandEvent::Hide(HideEvent::UnhideAll)));
         }),
 
         (MenuHelpIssue, HelpIssueEvent, Event::Triggered, |_ui,_,_,_| {
@@ -279,19 +282,19 @@ nwg_template!(
           (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::ToolChange(Tool::Point));
         }),
         (LineToolBtn, LineToolEvent, Event::Click, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::ToolChange(Tool::Line(LineTool::Line)));
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::ToolChange(Tool::Line(LineType::Straight)));
         }),
         (LineRayToolBtn, LineRayToolEvent, Event::Click, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::ToolChange(Tool::Line(LineTool::Ray)));
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::ToolChange(Tool::Line(LineType::Ray)));
         }),
         (LineSegmentToolBtn, LineSegmentToolEvent, Event::Click, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::ToolChange(Tool::Line(LineTool::Segment)));
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::ToolChange(Tool::Line(LineType::Segment)));
         }),
         (CircleToolBtn, CircleToolEvent, Event::Click, |_ui,_,_,_| {
           (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::ToolChange(Tool::Circle));
         }),
         (ViewportDragToolBtn, ViewportDragToolEvent, Event::Click, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::ToolChange(Tool::ViewportDrag));
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::ToolChange(Tool::Viewport));
         }),
 
 
@@ -332,10 +335,10 @@ impl Default for GuiSystem {
           handle = h;
         } else { panic!() }
       } else { panic!() }
-      handle_piston = FindWindowW(std::ptr::null_mut(), OsStr::new("canvas").encode_wide().chain(Some(0)).collect::<Vec<_>>().as_ptr());
+      handle_piston = FindWindowW(std::ptr::null_mut(), OsStr::new("Geometry Sketchpad").encode_wide().chain(Some(0)).collect::<Vec<_>>().as_ptr());
       SetParent(handle_piston, handle);
       SetWindowLongPtrW(handle_piston, GWL_STYLE, (WS_POPUP | WS_VISIBLE) as i64);
-      let mut rect: winapi::RECT = std::mem::uninitialized();
+      let mut rect: winapi::RECT = std::mem::zeroed();
       if GetClientRect(handle, &mut rect) != 0 {
         let width = rect.right - rect.left - 1;
         let height = rect.bottom - rect.top - 1;
@@ -357,8 +360,8 @@ impl<'a> System<'a> for GuiSystem {
     Read<'a, InputState>,
     Write<'a, ToolChangeEventChannel>,
     Write<'a, ExitEventChannel>,
-    Write<'a, HistoryActionChannel>,
-    Write<'a, GeometryActionChannel>,
+    Write<'a, HistoryEventChannel>,
+    Write<'a, CommandEventChannel>,
   );
 
   fn setup(&mut self, world: &mut World) {
@@ -370,12 +373,12 @@ impl<'a> System<'a> for GuiSystem {
          (_input_state,
            mut tool_change_events,
            mut exit_events,
-           mut history_action_channel,
-           mut geometry_action_channel
+           mut history_events,
+           mut command_events,
          ): Self::SystemData) {
     unsafe {
       use user32::{PeekMessageW, TranslateMessage, DispatchMessageW, SendMessageW, GetCursorPos, WindowFromPoint, BringWindowToTop};
-      let mut msg: winapi::winuser::MSG = std::mem::uninitialized();
+      let mut msg: winapi::winuser::MSG = std::mem::zeroed();
       if PeekMessageW(&mut msg, std::ptr::null_mut(), 0, 0, 1) != 0 {
         use winapi::{WM_KEYDOWN, WM_KEYUP, WM_SYSKEYDOWN, WM_SYSKEYUP};
         if msg.message == WM_KEYDOWN || msg.message == WM_KEYUP || msg.message == WM_SYSKEYDOWN || msg.message == WM_SYSKEYUP {
@@ -385,7 +388,7 @@ impl<'a> System<'a> for GuiSystem {
         TranslateMessage(&msg);
         DispatchMessageW(&msg);
       }
-      let mut cursor: winapi::POINT = std::mem::uninitialized();
+      let mut cursor: winapi::POINT = std::mem::zeroed();
       GetCursorPos(&mut cursor);
       if WindowFromPoint(cursor) == self.piston {
         BringWindowToTop(self.piston);
@@ -401,13 +404,13 @@ impl<'a> System<'a> for GuiSystem {
             exit_events.single_write(ExitEvent);
           }
           GuiSystemAction::History(action) => {
-            history_action_channel.single_write(*action);
+            history_events.single_write(*action);
           }
           GuiSystemAction::Resize => {
             unsafe {
               use user32::{GetClientRect, SetWindowPos};
               use winapi::{SWP_NOACTIVATE, SWP_NOZORDER, SWP_NOOWNERZORDER, SWP_FRAMECHANGED};
-              let mut rect: winapi::RECT = std::mem::uninitialized();
+              let mut rect: winapi::RECT = std::mem::zeroed();
               if GetClientRect(self.handle, &mut rect) != 0 {
                 let width = rect.right - rect.left - 1;
                 let height = rect.bottom - rect.top - 1;
@@ -415,8 +418,8 @@ impl<'a> System<'a> for GuiSystem {
               }
             }
           }
-          GuiSystemAction::Geometry(action) => {
-            geometry_action_channel.single_write(*action);
+          GuiSystemAction::Command(event) => {
+            command_events.single_write(*event);
           }
         }
       }
