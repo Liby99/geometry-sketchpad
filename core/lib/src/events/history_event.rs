@@ -1,5 +1,6 @@
 use shrev::*;
 
+#[derive(Clone,Copy)]
 pub enum HistoryEvent {
   Redo,
   Undo,
