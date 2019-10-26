@@ -6,8 +6,10 @@ use shrev::{EventChannel, ReaderId};
 
 enum GuiSystemAction {
   ToolChange(Tool),
-  Exit,
   History(HistoryAction),
+  Geometry(GeometryAction),
+  Resize,
+  Exit,
 }
 
 type GuiSystemActionChannel = EventChannel<GuiSystemAction>;
@@ -21,21 +23,33 @@ pub enum AppId {
 
   // menu
   MenuFile,
-    MenuFileOpen,
-    MenuFileSave,
-    MenuFileExit,
+  MenuFileOpen,
+  MenuFileSave,
+  MenuFileExit,
   MenuEdit,
-    MenuEditUndo,
-    MenuEditRedo,
+  MenuEditUndo,
+  MenuEditRedo,
+  MenuSelect,
+  MenuSelectAll,
+  MenuSelectDeselect,
+  MenuCreate,
+  MenuCreateMid,
+  MenuCreateParallel,
+  MenuCreatePerpendicular,
+  MenuDisplay,
+  MenuDisplayHide,
+  MenuDisplayUnhiddenAll,
   MenuHelp,
-    MenuHelpIssue,
-    MenuHelpAbout,
+  MenuHelpIssue,
+  MenuHelpAbout,
   OpenFileDialog,
 
   // tool buttons
   SelectToolBtn,
   PointToolBtn,
   LineToolBtn,
+  LineRayToolBtn,
+  LineSegmentToolBtn,
   CircleToolBtn,
   ViewportDragToolBtn,
 
@@ -44,18 +58,27 @@ pub enum AppId {
   FileExitEvent,
   EditUndoEvent,
   EditRedoEvent,
-
+  SelectAllEvent,
+  SelectDeselectEvent,
+  CreateMidEvent,
+  CreateParallelEvent,
+  CreatePerpendicularEvent,
+  DisplayHideEvent,
+  DisplayUnhiddenAllEvent,
   HelpIssueEvent,
   HelpAboutEvent,
 
   SelectToolEvent,
   PointToolEvent,
   LineToolEvent,
+  LineRayToolEvent,
+  LineSegmentToolEvent,
   CircleToolEvent,
   ViewportDragToolEvent,
 
-  // resources
-  TextFont,
+  WindowCloseEvent,
+  WindowResizedEvent,
+
 }
 
 lazy_static! {
@@ -64,17 +87,22 @@ lazy_static! {
 
 use AppId::*; // Shortcut
 
+const WINDOW_WIDTH : i32 = 960;
+const WINDOW_HEIGHT : i32 = 720;
+const WINDOW_TOOLBAR_HEIGHT : i32 = 42;
+
 nwg_template!(
     head: setup_ui<AppId>,
     controls: [
-        (MainWindow, nwg_window!( title="Rust Geometry Sketchpad"; size=(250, 60); resizable=false )),
+        (MainWindow, nwg_window!( title="Rust Geometry Sketchpad"; size=(WINDOW_WIDTH as u32, WINDOW_HEIGHT as u32); resizable=true )),
         (MenuFile, nwg_menu!(
              parent=MainWindow;
              text="File"
         )),
             (MenuFileOpen, nwg_menuitem!(
                   parent=MenuFile;
-                  text="&Open...\tCtrl+O"
+                  text="&Open...\tCtrl+O";
+                  disabled=true
             )),
             (MenuFileSave, nwg_menuitem!(
                   parent=MenuFile;
@@ -97,6 +125,50 @@ nwg_template!(
                   parent=MenuEdit;
                   text="&Redo\tCtrl+Shift+Z"
             )),
+
+        (MenuSelect, nwg_menu!(
+             parent=MainWindow;
+             text="Select"
+        )),
+            (MenuSelectAll, nwg_menuitem!(
+                  parent=MenuSelect;
+                  text="&Select All\tCtrl+A"
+            )),
+            (MenuSelectDeselect, nwg_menuitem!(
+                  parent=MenuSelect;
+                  text="&Deselect\tCtrl+D"
+            )),
+
+        (MenuCreate, nwg_menu!(
+             parent=MainWindow;
+             text="Create"
+        )),
+            (MenuCreateMid, nwg_menuitem!(
+                  parent=MenuCreate;
+                  text="&Mid Point\tCtrl+M"
+            )),
+            (MenuCreateParallel, nwg_menuitem!(
+                  parent=MenuCreate;
+                  text="&Parallel Line\tCtrl+Shift+_"
+            )),
+            (MenuCreatePerpendicular, nwg_menuitem!(
+                  parent=MenuCreate;
+                  text="&Perpendicular Line\tCtrl+Shift+\\"
+            )),
+
+        (MenuDisplay, nwg_menu!(
+             parent=MainWindow;
+             text="Display"
+        )),
+            (MenuDisplayHide, nwg_menuitem!(
+                  parent=MenuDisplay;
+                  text="&Hide Selection\tCtrl+H"
+            )),
+            (MenuDisplayUnhiddenAll, nwg_menuitem!(
+                  parent=MenuDisplay;
+                  text="&Unhidden All\tCtrl+Shift+H"
+            )),
+
         (MenuHelp, nwg_menu!(
              parent=MainWindow;
              text="Help"
@@ -117,29 +189,32 @@ nwg_template!(
              filters=Some("Rust Geometry Sketchpad File(*.rgsp)"))),
         (SelectToolBtn, nwg_button!(
              parent=MainWindow;
-             text="S";
-             position=(5 + 0 * (32 + 5), 5); size=(32, 32);
-             font=Some(TextFont))),
+             text="icon/select.bmp";
+             position=(5 + 0 * (32 + 5), 5); size=(32, 32))),
         (PointToolBtn, nwg_button!(
              parent=MainWindow;
-             text="P";
-             position=(5 + 1 * (32 + 5), 5); size=(32, 32);
-             font=Some(TextFont))),
+             text="icon/point.bmp";
+             position=(5 + 1 * (32 + 5), 5); size=(32, 32))),
         (LineToolBtn, nwg_button!(
              parent=MainWindow;
-             text="L";
-             position=(5 + 2 * (32 + 5), 5); size=(32, 32);
-             font=Some(TextFont))),
+             text="icon/line.bmp";
+             position=(5 + 2 * (32 + 5), 5); size=(32, 32))),
+        (LineRayToolBtn, nwg_button!(
+             parent=MainWindow;
+             text="icon/line.ray.bmp";
+             position=(5 + 3 * (32 + 5), 5); size=(32, 32))),
+        (LineSegmentToolBtn, nwg_button!(
+             parent=MainWindow;
+             text="icon/line.segment.bmp";
+             position=(5 + 4 * (32 + 5), 5); size=(32, 32))),
         (CircleToolBtn, nwg_button!(
              parent=MainWindow;
-             text="C";
-             position=(5 + 3 * (32 + 5), 5); size=(32, 32);
-             font=Some(TextFont))),
+             text="icon/circle.bmp";
+             position=(5 + 5 * (32 + 5), 5); size=(32, 32))),
         (ViewportDragToolBtn, nwg_button!(
              parent=MainWindow;
-             text="V";
-             position=(5 + 4 * (32 + 5), 5); size=(32, 32);
-             font=Some(TextFont)))
+             text="icon/viewport.drag.bmp";
+             position=(5 + 6 * (32 + 5), 5); size=(32, 32)))
     ];
     events: [
         (MenuFileOpen, FileOpenEvent, Event::Triggered, |ui,_,_,_| {
@@ -157,6 +232,40 @@ nwg_template!(
             panic!()
           }
         }),
+
+        (MenuFileExit, FileExitEvent, Event::Triggered, |_ui,_,_,_| {
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Exit);
+        }),
+        (MenuEditUndo, EditUndoEvent, Event::Triggered, |_ui,_,_,_| {
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::History(HistoryAction::Undo));
+        }),
+        (MenuEditRedo, EditRedoEvent, Event::Triggered, |_ui,_,_,_| {
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::History(HistoryAction::Redo));
+        }),
+
+
+        (MenuSelectAll, SelectAllEvent, Event::Triggered, |_ui,_,_,_| {
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Geometry(GeometryAction::SelectAll));
+        }),
+        (MenuSelectDeselect, SelectDeselectEvent, Event::Triggered, |_ui,_,_,_| {
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Geometry(GeometryAction::DeselectAll));
+        }),
+        (MenuCreateMid, CreateMidEvent, Event::Triggered, |_ui,_,_,_| {
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Geometry(GeometryAction::DrawMidpointOnSelected));
+        }),
+        (MenuCreateParallel, CreateParallelEvent, Event::Triggered, |_ui,_,_,_| {
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Geometry(GeometryAction::DrawParallelOnSelected));
+        }),
+        (MenuCreatePerpendicular, CreatePerpendicularEvent, Event::Triggered, |_ui,_,_,_| {
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Geometry(GeometryAction::DrawPerpendicularOnSelected));
+        }),
+        (MenuDisplayHide, DisplayHideEvent, Event::Triggered, |_ui,_,_,_| {
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Geometry(GeometryAction::HideSelected));
+        }),
+        (MenuDisplayUnhiddenAll, DisplayUnhiddenAllEvent, Event::Triggered, |_ui,_,_,_| {
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Geometry(GeometryAction::UnhideAll));
+        }),
+
         (MenuHelpIssue, HelpIssueEvent, Event::Triggered, |_ui,_,_,_| {
           let _ = open::that("https://github.com/Liby99/geometry-sketchpad/issues/new");
         }),
@@ -172,6 +281,12 @@ nwg_template!(
         (LineToolBtn, LineToolEvent, Event::Click, |_ui,_,_,_| {
           (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::ToolChange(Tool::Line(LineTool::Line)));
         }),
+        (LineRayToolBtn, LineRayToolEvent, Event::Click, |_ui,_,_,_| {
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::ToolChange(Tool::Line(LineTool::Ray)));
+        }),
+        (LineSegmentToolBtn, LineSegmentToolEvent, Event::Click, |_ui,_,_,_| {
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::ToolChange(Tool::Line(LineTool::Segment)));
+        }),
         (CircleToolBtn, CircleToolEvent, Event::Click, |_ui,_,_,_| {
           (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::ToolChange(Tool::Circle));
         }),
@@ -179,19 +294,15 @@ nwg_template!(
           (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::ToolChange(Tool::ViewportDrag));
         }),
 
-        (MenuFileExit, FileExitEvent, Event::Triggered, |_ui,_,_,_| {
+
+        (MainWindow, WindowCloseEvent, Event::Closed, |_ui,_,_,_| {
           (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Exit);
         }),
-        (MenuEditUndo, EditUndoEvent, Event::Triggered, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::History(HistoryAction::Undo));
-        }),
-        (MenuEditRedo, EditRedoEvent, Event::Triggered, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::History(HistoryAction::Redo));
+        (MainWindow, WindowResizedEvent, Event::Resized, |_ui,_,_,_| {
+          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Resize);
         })
     ];
-    resources: [
-        (TextFont, nwg_font!(family="Arial"; size=17))
-    ];
+    resources: [];
     values: []
 );
 
@@ -199,13 +310,44 @@ nwg_template!(
 pub struct GuiSystem {
   gui_action_reader: Option<GuiSystemActionReader>,
   ui: Option<Ui<AppId>>,
+  handle: winapi::HWND,
+  piston: winapi::HWND,
 }
 
 impl Default for GuiSystem {
   fn default() -> Self {
+    let ui = Ui::new().unwrap();
+    setup_ui(&ui).unwrap();
+
+    let mut handle : winapi::HWND = 0 as winapi::HWND;
+    let mut handle_piston : winapi::HWND = 0 as winapi::HWND;
+    unsafe {
+      use user32::{FindWindowW, SetParent, SetWindowLongPtrW, SetWindowPos, GetClientRect};
+      use winapi::{WS_POPUP, WS_VISIBLE, SWP_NOACTIVATE, SWP_NOZORDER, SWP_NOOWNERZORDER, SWP_FRAMECHANGED, GWL_STYLE};
+      use std::ffi::OsStr;
+      use std::os::windows::ffi::OsStrExt;
+      if let Ok(window) = ui.get::<nwg::Window>(&MainWindow) {
+        use crate::nwg::custom::*;
+        if let AnyHandle::HWND(h) = window.handle() {
+          handle = h;
+        } else { panic!() }
+      } else { panic!() }
+      handle_piston = FindWindowW(std::ptr::null_mut(), OsStr::new("canvas").encode_wide().chain(Some(0)).collect::<Vec<_>>().as_ptr());
+      SetParent(handle_piston, handle);
+      SetWindowLongPtrW(handle_piston, GWL_STYLE, (WS_POPUP | WS_VISIBLE) as i64);
+      let mut rect: winapi::RECT = std::mem::uninitialized();
+      if GetClientRect(handle, &mut rect) != 0 {
+        let width = rect.right - rect.left - 1;
+        let height = rect.bottom - rect.top - 1;
+        SetWindowPos(handle_piston, 0 as winapi::HWND, 0, WINDOW_TOOLBAR_HEIGHT, width, height - WINDOW_TOOLBAR_HEIGHT, SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+      }
+    }
+
     Self {
       gui_action_reader: None,
-      ui: None,
+      ui: Some(ui),
+      handle: handle,
+      piston: handle_piston,
     }
   }
 }
@@ -216,23 +358,37 @@ impl<'a> System<'a> for GuiSystem {
     Write<'a, ToolChangeEventChannel>,
     Write<'a, ExitEventChannel>,
     Write<'a, HistoryActionChannel>,
+    Write<'a, GeometryActionChannel>,
   );
 
   fn setup(&mut self, world: &mut World) {
     Self::SystemData::setup(world);
     self.gui_action_reader = Some((*GUI_ACTION_CHANNEL).lock().unwrap().register_reader());
-    let ui = Ui::new().unwrap();
-    setup_ui(&ui).unwrap();
-    self.ui = Some(ui);
   }
 
-  fn run(&mut self, (_input_state, mut tool_change_events, mut exit_events, mut history_action_channel): Self::SystemData) {
-    use user32::{PeekMessageW, TranslateMessage, DispatchMessageW};
+  fn run(&mut self,
+         (_input_state,
+           mut tool_change_events,
+           mut exit_events,
+           mut history_action_channel,
+           mut geometry_action_channel
+         ): Self::SystemData) {
     unsafe {
+      use user32::{PeekMessageW, TranslateMessage, DispatchMessageW, SendMessageW, GetCursorPos, WindowFromPoint, BringWindowToTop};
       let mut msg: winapi::winuser::MSG = std::mem::uninitialized();
       if PeekMessageW(&mut msg, std::ptr::null_mut(), 0, 0, 1) != 0 {
+        use winapi::{WM_KEYDOWN, WM_KEYUP, WM_SYSKEYDOWN, WM_SYSKEYUP};
+        if msg.message == WM_KEYDOWN || msg.message == WM_KEYUP || msg.message == WM_SYSKEYDOWN || msg.message == WM_SYSKEYUP {
+          /* Forward keyboard message to piston window */
+          SendMessageW(self.piston, msg.message, msg.wParam, msg.lParam);
+        }
         TranslateMessage(&msg);
         DispatchMessageW(&msg);
+      }
+      let mut cursor: winapi::POINT = std::mem::uninitialized();
+      GetCursorPos(&mut cursor);
+      if WindowFromPoint(cursor) == self.piston {
+        BringWindowToTop(self.piston);
       }
     }
     if let Some(reader_id) = &mut self.gui_action_reader {
@@ -246,6 +402,21 @@ impl<'a> System<'a> for GuiSystem {
           }
           GuiSystemAction::History(action) => {
             history_action_channel.single_write(*action);
+          }
+          GuiSystemAction::Resize => {
+            unsafe {
+              use user32::{GetClientRect, SetWindowPos};
+              use winapi::{SWP_NOACTIVATE, SWP_NOZORDER, SWP_NOOWNERZORDER, SWP_FRAMECHANGED};
+              let mut rect: winapi::RECT = std::mem::uninitialized();
+              if GetClientRect(self.handle, &mut rect) != 0 {
+                let width = rect.right - rect.left - 1;
+                let height = rect.bottom - rect.top - 1;
+                SetWindowPos(self.piston, 0 as winapi::HWND, 0, WINDOW_TOOLBAR_HEIGHT, width, height - WINDOW_TOOLBAR_HEIGHT, SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+              }
+            }
+          }
+          GuiSystemAction::Geometry(action) => {
+            geometry_action_channel.single_write(*action);
           }
         }
       }
