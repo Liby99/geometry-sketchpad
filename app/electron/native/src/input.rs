@@ -1,7 +1,8 @@
 use core_lib::math::*;
+use core_ui::resources::*;
 
 pub enum UserEvent {
-  Loop(f64), // dt
+  Loop,
   Input(InputEvent),
   Shutdown,
 }
@@ -11,6 +12,7 @@ pub enum InputEvent {
   Motion(MotionEvent)
 }
 
+#[derive(PartialEq)]
 pub enum ButtonState {
   Press,
   Release,
@@ -21,17 +23,9 @@ pub enum Button {
   Mouse(MouseButton),
 }
 
-pub enum Key {
-  A,
-  B,
-  C,
-  D,
-}
-
 pub enum MouseButton {
   Left,
   Right,
-  Middle,
 }
 
 pub enum MotionEvent {
