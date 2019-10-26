@@ -1,7 +1,3 @@
 target
 **/*.rs.bk
 Cargo.lock
-
-# Temporary
-/temp
-/temp_2

@@ -1,0 +1,14 @@
+[package]
+name = "geopad-electron"
+version = "0.0.1"
+authors = ["Liby Lee <liby99@icloud.com>"]
+edition = "2018"
+
+[dependencies]
+core-lib = { path = "../../../core/lib" }
+core-ui = { path = "../../../core/ui" }
+specs = "0.15"
+neon = "0.3"
+
+[build-dependencies]
+neon-build = "0.3"

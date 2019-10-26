@@ -4,5 +4,6 @@ members = [
   "core/ui",
   "core/piston",
   "app/foundation",
+  "app/electron/native",
   # "app/win"
 ]
