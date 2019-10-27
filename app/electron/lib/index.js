@@ -164,6 +164,12 @@ class GeopadWorld {
           this.app.stage.addChild(point.graphics);
         }
       } break;
+      case EVENT_TYPE_REMOVE_ENTITY: {
+        if (event.entity in this.points) {
+          this.app.stage.removeChild(this.points[event.entity].graphics);
+          delete this.points[event.entity];
+        }
+      } break;
     }
   }
 

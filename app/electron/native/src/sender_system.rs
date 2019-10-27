@@ -58,8 +58,14 @@ impl<'a> System<'a> for SenderSystem {
       }
     }
 
+    // Do all the updates
     for (ent, scrn_point, point_style, _) in (&entities, &scrn_points, &point_styles, &dirty).join() {
       if let Err(err) = self.sender.send(RenderUpdateEvent::UpdatedPoint(ent, *scrn_point, *point_style)) { panic!(err) }
+    }
+
+    // Do all the removals
+    for (ent, _) in (&entities, &to_remove).join() {
+      if let Err(err) = self.sender.send(RenderUpdateEvent::RemovedEntity(ent)) { panic!(err) }
     }
 
     // Then deal with select update

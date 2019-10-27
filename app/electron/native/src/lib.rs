@@ -11,7 +11,7 @@ use neon::context::{Context, TaskContext};
 use neon::object::Object;
 use neon::result::JsResult;
 use neon::task::Task;
-use neon::types::{JsFunction, JsUndefined, JsValue, JsNumber, JsString};
+use neon::types::{JsFunction, JsUndefined, JsValue, JsNumber};
 use neon::{declare_types, register_module};
 
 use specs::prelude::*;
@@ -101,13 +101,16 @@ impl Task for EventEmitterTask {
     match event {
       RenderUpdateEvent::None => (),
       RenderUpdateEvent::SelectedEntity(ent) => {
-        // TODO
+        let event_entity = cx.string(format!("{}_{}", ent.id(), ent.gen().id()));
+        o.set(&mut cx, "entity", event_entity)?;
       },
       RenderUpdateEvent::DeselectedEntity(ent) => {
-        // TODO
+        let event_entity = cx.string(format!("{}_{}", ent.id(), ent.gen().id()));
+        o.set(&mut cx, "entity", event_entity)?;
       },
       RenderUpdateEvent::RemovedEntity(ent) => {
-        // TODO
+        let event_entity = cx.string(format!("{}_{}", ent.id(), ent.gen().id()));
+        o.set(&mut cx, "entity", event_entity)?;
       },
       RenderUpdateEvent::UpdatedPoint(ent, ScreenPosition(Vector2 { x, y }), PointStyle { color, radius, border_color, border_width }) => {
         let event_entity = cx.string(format!("{}_{}", ent.id(), ent.gen().id()));

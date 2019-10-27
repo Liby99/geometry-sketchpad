@@ -1,5 +1,5 @@
 use specs::prelude::*;
-use core_lib::{utilities::*, components::{screen_shapes::*, styles::*}};
+use core_lib::components::{screen_shapes::*, styles::*};
 
 pub enum RenderUpdateEvent {
   UpdatedPoint(Entity, ScreenPoint, PointStyle),
