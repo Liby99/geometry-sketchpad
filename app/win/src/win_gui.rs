@@ -95,218 +95,218 @@ const WINDOW_HEIGHT : i32 = 720;
 const WINDOW_TOOLBAR_HEIGHT : i32 = 42;
 
 nwg_template!(
-    head: setup_ui<AppId>,
-    controls: [
-        (MainWindow, nwg_window!( title="Rust Geometry Sketchpad"; size=(WINDOW_WIDTH as u32, WINDOW_HEIGHT as u32); resizable=true )),
-        (MenuFile, nwg_menu!(
-             parent=MainWindow;
-             text="File"
+  head: setup_ui<AppId>,
+  controls: [
+    (MainWindow, nwg_window!( title="Rust Geometry Sketchpad"; size=(WINDOW_WIDTH as u32, WINDOW_HEIGHT as u32); resizable=true )),
+    (MenuFile, nwg_menu!(
+          parent=MainWindow;
+          text="File"
+    )),
+        (MenuFileOpen, nwg_menuitem!(
+              parent=MenuFile;
+              text="&Open...\tCtrl+O";
+              disabled=true
         )),
-            (MenuFileOpen, nwg_menuitem!(
-                  parent=MenuFile;
-                  text="&Open...\tCtrl+O";
-                  disabled=true
-            )),
-            (MenuFileSave, nwg_menuitem!(
-                  parent=MenuFile;
-                  text="&Save\tCtrl+S";
-                  disabled=true
-            )),
-            (MenuFileExit, nwg_menuitem!(
-                  parent=MenuFile;
-                  text="&Exit\tCtrl+Q/W"
-            )),
-        (MenuEdit, nwg_menu!(
-             parent=MainWindow;
-             text="Edit"
+        (MenuFileSave, nwg_menuitem!(
+              parent=MenuFile;
+              text="&Save\tCtrl+S";
+              disabled=true
         )),
-            (MenuEditUndo, nwg_menuitem!(
-                  parent=MenuEdit;
-                  text="&Undo\tCtrl+Z"
-            )),
-            (MenuEditRedo, nwg_menuitem!(
-                  parent=MenuEdit;
-                  text="&Redo\tCtrl+Shift+Z"
-            )),
+        (MenuFileExit, nwg_menuitem!(
+              parent=MenuFile;
+              text="&Exit\tCtrl+Q/W"
+        )),
+    (MenuEdit, nwg_menu!(
+          parent=MainWindow;
+          text="Edit"
+    )),
+        (MenuEditUndo, nwg_menuitem!(
+              parent=MenuEdit;
+              text="&Undo\tCtrl+Z"
+        )),
+        (MenuEditRedo, nwg_menuitem!(
+              parent=MenuEdit;
+              text="&Redo\tCtrl+Shift+Z"
+        )),
 
-        (MenuSelect, nwg_menu!(
-             parent=MainWindow;
-             text="Select"
+    (MenuSelect, nwg_menu!(
+          parent=MainWindow;
+          text="Select"
+    )),
+        (MenuSelectAll, nwg_menuitem!(
+              parent=MenuSelect;
+              text="&Select All\tCtrl+A"
         )),
-            (MenuSelectAll, nwg_menuitem!(
-                  parent=MenuSelect;
-                  text="&Select All\tCtrl+A"
-            )),
-            (MenuSelectDeselect, nwg_menuitem!(
-                  parent=MenuSelect;
-                  text="&Deselect\tCtrl+D"
-            )),
+        (MenuSelectDeselect, nwg_menuitem!(
+              parent=MenuSelect;
+              text="&Deselect\tCtrl+D"
+        )),
 
-        (MenuCreate, nwg_menu!(
-             parent=MainWindow;
-             text="Create"
+    (MenuCreate, nwg_menu!(
+          parent=MainWindow;
+          text="Create"
+    )),
+        (MenuCreateMid, nwg_menuitem!(
+              parent=MenuCreate;
+              text="&Mid Point\tCtrl+M"
         )),
-            (MenuCreateMid, nwg_menuitem!(
-                  parent=MenuCreate;
-                  text="&Mid Point\tCtrl+M"
-            )),
-            (MenuCreateParallel, nwg_menuitem!(
-                  parent=MenuCreate;
-                  text="&Parallel Line\tCtrl+Shift+_"
-            )),
-            (MenuCreatePerpendicular, nwg_menuitem!(
-                  parent=MenuCreate;
-                  text="&Perpendicular Line\tCtrl+Shift+\\"
-            )),
+        (MenuCreateParallel, nwg_menuitem!(
+              parent=MenuCreate;
+              text="&Parallel Line\tCtrl+Shift+_"
+        )),
+        (MenuCreatePerpendicular, nwg_menuitem!(
+              parent=MenuCreate;
+              text="&Perpendicular Line\tCtrl+Shift+\\"
+        )),
 
-        (MenuDisplay, nwg_menu!(
-             parent=MainWindow;
-             text="Display"
+    (MenuDisplay, nwg_menu!(
+          parent=MainWindow;
+          text="Display"
+    )),
+        (MenuDisplayHide, nwg_menuitem!(
+              parent=MenuDisplay;
+              text="&Hide Selection\tCtrl+H"
         )),
-            (MenuDisplayHide, nwg_menuitem!(
-                  parent=MenuDisplay;
-                  text="&Hide Selection\tCtrl+H"
-            )),
-            (MenuDisplayUnhiddenAll, nwg_menuitem!(
-                  parent=MenuDisplay;
-                  text="&Unhidden All\tCtrl+Shift+H"
-            )),
+        (MenuDisplayUnhiddenAll, nwg_menuitem!(
+              parent=MenuDisplay;
+              text="&Unhidden All\tCtrl+Shift+H"
+        )),
 
-        (MenuHelp, nwg_menu!(
-             parent=MainWindow;
-             text="Help"
+    (MenuHelp, nwg_menu!(
+          parent=MainWindow;
+          text="Help"
+    )),
+        (MenuHelpIssue, nwg_menuitem!(
+              parent=MenuHelp;
+              text="Report an issue"
         )),
-            (MenuHelpIssue, nwg_menuitem!(
-                  parent=MenuHelp;
-                  text="Report an issue"
-            )),
-            (MenuHelpAbout, nwg_menuitem!(
-                  parent=MenuHelp;
-                  text="About"
-            )),
-        (OpenFileDialog, nwg_filedialog!(
-             parent=Some(MainWindow);
-             action=nwg::constants::FileDialogAction::Open;
-             title="Open...";
-             multiselect=false;
-             filters=Some("Rust Geometry Sketchpad File(*.rgsp)"))),
-        (SelectToolBtn, nwg_button!(
-             parent=MainWindow;
-             text="select";
-             position=(5 + 0 * (32 + 5), 5); size=(32, 32))),
-        (PointToolBtn, nwg_button!(
-             parent=MainWindow;
-             text="point";
-             position=(5 + 1 * (32 + 5), 5); size=(32, 32))),
-        (LineToolBtn, nwg_button!(
-             parent=MainWindow;
-             text="line";
-             position=(5 + 2 * (32 + 5), 5); size=(32, 32))),
-        (LineRayToolBtn, nwg_button!(
-             parent=MainWindow;
-             text="line.ray";
-             position=(5 + 3 * (32 + 5), 5); size=(32, 32))),
-        (LineSegmentToolBtn, nwg_button!(
-             parent=MainWindow;
-             text="line.segment";
-             position=(5 + 4 * (32 + 5), 5); size=(32, 32))),
-        (CircleToolBtn, nwg_button!(
-             parent=MainWindow;
-             text="circle";
-             position=(5 + 5 * (32 + 5), 5); size=(32, 32))),
-        (ViewportDragToolBtn, nwg_button!(
-             parent=MainWindow;
-             text="viewport.drag";
-             position=(5 + 6 * (32 + 5), 5); size=(32, 32)))
-    ];
-    events: [
-        (MenuFileOpen, FileOpenEvent, Event::Triggered, |ui,_,_,_| {
-          if let Ok(file_dialog) = ui.get::<nwg::FileDialog>(&OpenFileDialog) {
-            if file_dialog.run() {
-              if let Ok(filename) = file_dialog.get_selected_item() {
-                println!("File selected ok {}", filename);
-              } else {
-                panic!()
-              }
-            } else {
-              println!("File open failed");
-            }
+        (MenuHelpAbout, nwg_menuitem!(
+              parent=MenuHelp;
+              text="About"
+        )),
+    (OpenFileDialog, nwg_filedialog!(
+          parent=Some(MainWindow);
+          action=nwg::constants::FileDialogAction::Open;
+          title="Open...";
+          multiselect=false;
+          filters=Some("Rust Geometry Sketchpad File(*.rgsp)"))),
+    (SelectToolBtn, nwg_button!(
+          parent=MainWindow;
+          text="select";
+          position=(5 + 0 * (32 + 5), 5); size=(32, 32))),
+    (PointToolBtn, nwg_button!(
+          parent=MainWindow;
+          text="point";
+          position=(5 + 1 * (32 + 5), 5); size=(32, 32))),
+    (LineToolBtn, nwg_button!(
+          parent=MainWindow;
+          text="line";
+          position=(5 + 2 * (32 + 5), 5); size=(32, 32))),
+    (LineRayToolBtn, nwg_button!(
+          parent=MainWindow;
+          text="line.ray";
+          position=(5 + 3 * (32 + 5), 5); size=(32, 32))),
+    (LineSegmentToolBtn, nwg_button!(
+          parent=MainWindow;
+          text="line.segment";
+          position=(5 + 4 * (32 + 5), 5); size=(32, 32))),
+    (CircleToolBtn, nwg_button!(
+          parent=MainWindow;
+          text="circle";
+          position=(5 + 5 * (32 + 5), 5); size=(32, 32))),
+    (ViewportDragToolBtn, nwg_button!(
+          parent=MainWindow;
+          text="viewport.drag";
+          position=(5 + 6 * (32 + 5), 5); size=(32, 32)))
+  ];
+  events: [
+    (MenuFileOpen, FileOpenEvent, Event::Triggered, |ui,_,_,_| {
+      if let Ok(file_dialog) = ui.get::<nwg::FileDialog>(&OpenFileDialog) {
+        if file_dialog.run() {
+          if let Ok(filename) = file_dialog.get_selected_item() {
+            println!("File selected ok {}", filename);
           } else {
             panic!()
           }
-        }),
+        } else {
+          println!("File open failed");
+        }
+      } else {
+        panic!()
+      }
+    }),
 
-        (MenuFileExit, FileExitEvent, Event::Triggered, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Exit);
-        }),
-        (MenuEditUndo, EditUndoEvent, Event::Triggered, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::History(HistoryEvent::Undo));
-        }),
-        (MenuEditRedo, EditRedoEvent, Event::Triggered, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::History(HistoryEvent::Redo));
-        }),
-
-
-        (MenuSelectAll, SelectAllEvent, Event::Triggered, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Command(CommandEvent::Select(SelectEvent::SelectAll)));
-        }),
-        (MenuSelectDeselect, SelectDeselectEvent, Event::Triggered, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Command(CommandEvent::Select(SelectEvent::DeselectAll)));
-        }),
-        (MenuCreateMid, CreateMidEvent, Event::Triggered, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Command(CommandEvent::PointInsert(InsertPointEvent::InsertMidPointFromSelection)));
-        }),
-        (MenuCreateParallel, CreateParallelEvent, Event::Triggered, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Command(CommandEvent::LineInsert(InsertLineEvent::InsertParallelFromSelection)));
-        }),
-        (MenuCreatePerpendicular, CreatePerpendicularEvent, Event::Triggered, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Command(CommandEvent::LineInsert(InsertLineEvent::InsertPerpendicularFromSelection)));
-        }),
-        (MenuDisplayHide, DisplayHideEvent, Event::Triggered, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Command(CommandEvent::Hide(HideEvent::HideSelected)));
-        }),
-        (MenuDisplayUnhiddenAll, DisplayUnhiddenAllEvent, Event::Triggered, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Command(CommandEvent::Hide(HideEvent::UnhideAll)));
-        }),
-
-        (MenuHelpIssue, HelpIssueEvent, Event::Triggered, |_ui,_,_,_| {
-          let _ = open::that("https://github.com/Liby99/geometry-sketchpad/issues/new");
-        }),
-        (MenuHelpAbout, HelpAboutEvent, Event::Triggered, |_ui,_,_,_| {
-          let _ = open::that("https://github.com/Liby99/geometry-sketchpad");
-        }),
-        (SelectToolBtn, SelectToolEvent, Event::Click, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::ToolChange(Tool::Select));
-        }),
-        (PointToolBtn, PointToolEvent, Event::Click, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::ToolChange(Tool::Point));
-        }),
-        (LineToolBtn, LineToolEvent, Event::Click, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::ToolChange(Tool::Line(LineType::Straight)));
-        }),
-        (LineRayToolBtn, LineRayToolEvent, Event::Click, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::ToolChange(Tool::Line(LineType::Ray)));
-        }),
-        (LineSegmentToolBtn, LineSegmentToolEvent, Event::Click, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::ToolChange(Tool::Line(LineType::Segment)));
-        }),
-        (CircleToolBtn, CircleToolEvent, Event::Click, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::ToolChange(Tool::Circle));
-        }),
-        (ViewportDragToolBtn, ViewportDragToolEvent, Event::Click, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::ToolChange(Tool::Viewport));
-        }),
+    (MenuFileExit, FileExitEvent, Event::Triggered, |_ui,_,_,_| {
+      (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Exit);
+    }),
+    (MenuEditUndo, EditUndoEvent, Event::Triggered, |_ui,_,_,_| {
+      (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::History(HistoryEvent::Undo));
+    }),
+    (MenuEditRedo, EditRedoEvent, Event::Triggered, |_ui,_,_,_| {
+      (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::History(HistoryEvent::Redo));
+    }),
 
 
-        (MainWindow, WindowCloseEvent, Event::Closed, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Exit);
-        }),
-        (MainWindow, WindowResizedEvent, Event::Resized, |_ui,_,_,_| {
-          (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Resize);
-        })
-    ];
-    resources: [];
-    values: []
+    (MenuSelectAll, SelectAllEvent, Event::Triggered, |_ui,_,_,_| {
+      (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Command(CommandEvent::Select(SelectEvent::SelectAll)));
+    }),
+    (MenuSelectDeselect, SelectDeselectEvent, Event::Triggered, |_ui,_,_,_| {
+      (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Command(CommandEvent::Select(SelectEvent::DeselectAll)));
+    }),
+    (MenuCreateMid, CreateMidEvent, Event::Triggered, |_ui,_,_,_| {
+      (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Command(CommandEvent::PointInsert(InsertPointEvent::InsertMidPointFromSelection)));
+    }),
+    (MenuCreateParallel, CreateParallelEvent, Event::Triggered, |_ui,_,_,_| {
+      (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Command(CommandEvent::LineInsert(InsertLineEvent::InsertParallelFromSelection)));
+    }),
+    (MenuCreatePerpendicular, CreatePerpendicularEvent, Event::Triggered, |_ui,_,_,_| {
+      (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Command(CommandEvent::LineInsert(InsertLineEvent::InsertPerpendicularFromSelection)));
+    }),
+    (MenuDisplayHide, DisplayHideEvent, Event::Triggered, |_ui,_,_,_| {
+      (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Command(CommandEvent::Hide(HideEvent::HideSelected)));
+    }),
+    (MenuDisplayUnhiddenAll, DisplayUnhiddenAllEvent, Event::Triggered, |_ui,_,_,_| {
+      (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Command(CommandEvent::Hide(HideEvent::UnhideAll)));
+    }),
+
+    (MenuHelpIssue, HelpIssueEvent, Event::Triggered, |_ui,_,_,_| {
+      let _ = open::that("https://github.com/Liby99/geometry-sketchpad/issues/new");
+    }),
+    (MenuHelpAbout, HelpAboutEvent, Event::Triggered, |_ui,_,_,_| {
+      let _ = open::that("https://github.com/Liby99/geometry-sketchpad");
+    }),
+    (SelectToolBtn, SelectToolEvent, Event::Click, |_ui,_,_,_| {
+      (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::ToolChange(Tool::Select));
+    }),
+    (PointToolBtn, PointToolEvent, Event::Click, |_ui,_,_,_| {
+      (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::ToolChange(Tool::Point));
+    }),
+    (LineToolBtn, LineToolEvent, Event::Click, |_ui,_,_,_| {
+      (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::ToolChange(Tool::Line(LineType::Straight)));
+    }),
+    (LineRayToolBtn, LineRayToolEvent, Event::Click, |_ui,_,_,_| {
+      (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::ToolChange(Tool::Line(LineType::Ray)));
+    }),
+    (LineSegmentToolBtn, LineSegmentToolEvent, Event::Click, |_ui,_,_,_| {
+      (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::ToolChange(Tool::Line(LineType::Segment)));
+    }),
+    (CircleToolBtn, CircleToolEvent, Event::Click, |_ui,_,_,_| {
+      (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::ToolChange(Tool::Circle));
+    }),
+    (ViewportDragToolBtn, ViewportDragToolEvent, Event::Click, |_ui,_,_,_| {
+      (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::ToolChange(Tool::Viewport));
+    }),
+
+
+    (MainWindow, WindowCloseEvent, Event::Closed, |_ui,_,_,_| {
+      (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Exit);
+    }),
+    (MainWindow, WindowResizedEvent, Event::Resized, |_ui,_,_,_| {
+      (*GUI_ACTION_CHANNEL).lock().unwrap().single_write(GuiSystemAction::Resize);
+    })
+  ];
+  resources: [];
+  values: []
 );
 
 
