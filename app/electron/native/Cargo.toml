@@ -14,6 +14,7 @@ crate-type = ["dylib"]
 core-lib = { path = "../../../core/lib" }
 core-ui = { path = "../../../core/ui" }
 specs = "0.15"
+shrev = "1.1"
 neon = "0.3"
 
 [build-dependencies]

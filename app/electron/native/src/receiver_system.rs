@@ -1,3 +1,4 @@
+use std::time::SystemTime;
 use specs::prelude::*;
 use core_ui::{events::*, resources::*};
 use super::input::*;
@@ -30,11 +31,18 @@ impl<'a> System<'a> for ReceiverSystem {
           UserEvent::Input(input) => match input {
             InputEvent::Motion(motion) => match motion {
               MotionEvent::MouseCursor(abs_pos) => {
-                println!("mouse move {:?}", abs_pos);
                 input_state.mouse_abs_pos = abs_pos.into();
               },
               MotionEvent::MouseRelative(rel_mov) => {
                 input_state.mouse_rel_movement = input_state.mouse_rel_movement + rel_mov.into();
+                if input_state.is_mouse_left_button_dragging {
+                  mouse_event_channel.single_write(MouseEvent::DragMove(rel_mov.into(), input_state.mouse_abs_pos));
+                } else {
+                  if input_state.mouse_left_button.is_activated() {
+                    input_state.is_mouse_left_button_dragging = true;
+                    mouse_event_channel.single_write(MouseEvent::DragBegin(input_state.mouse_abs_pos));
+                  }
+                }
               },
               MotionEvent::MouseScroll(rel_scroll) => {
                 input_state.rel_scroll = input_state.rel_scroll + rel_scroll;
@@ -48,8 +56,23 @@ impl<'a> System<'a> for ReceiverSystem {
                 },
                 Button::Mouse(mouse_button) => match mouse_button {
                   MouseButton::Left => {
-                    println!("mouse button {}", is_pressed);
                     input_state.mouse_left_button.set(is_pressed);
+                    if is_pressed {
+                      input_state.mouse_left_button_last_pressed = Some(SystemTime::now());
+                      mouse_event_channel.single_write(MouseEvent::MouseDown(input_state.mouse_abs_pos));
+                    } else {
+                      mouse_event_channel.single_write(MouseEvent::MouseUp(input_state.mouse_abs_pos));
+                      if input_state.is_mouse_left_button_dragging {
+                        input_state.is_mouse_left_button_dragging = false;
+                        mouse_event_channel.single_write(MouseEvent::DragEnd(input_state.mouse_abs_pos));
+                      } else {
+                        if let Some(last_pressed) = input_state.mouse_left_button_last_pressed {
+                          if last_pressed.elapsed().unwrap().as_millis() < CLICK_TIME_THRESHOLD {
+                            mouse_event_channel.single_write(MouseEvent::Click(input_state.mouse_abs_pos));
+                          }
+                        }
+                      }
+                    }
                   },
                   MouseButton::Right => {
                     input_state.mouse_right_button.set(is_pressed);

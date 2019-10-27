@@ -11,12 +11,12 @@ use neon::context::{Context, TaskContext};
 use neon::object::Object;
 use neon::result::JsResult;
 use neon::task::Task;
-use neon::types::{JsFunction, JsUndefined, JsValue, JsNumber};
+use neon::types::{JsFunction, JsUndefined, JsValue, JsNumber, JsString};
 use neon::{declare_types, register_module};
 
 use specs::prelude::*;
-use core_lib::math::*;
-use core_ui::{resources::ExitState, setup_core_ui};
+use core_lib::{math::*};
+use core_ui::{resources::*, setup_core_ui};
 
 pub mod output;
 pub mod input;
@@ -44,7 +44,7 @@ fn event_thread(user_event_rx: mpsc::Receiver<UserEvent>) -> mpsc::Receiver<Rend
     setup_core_ui(&mut builder);
 
     // Add the sender and receiver system
-    builder.add_thread_local(SenderSystem { sender: render_update_tx });
+    builder.add_thread_local(SenderSystem::new(render_update_tx));
     builder.add_thread_local(ReceiverSystem { receiver: user_event_rx });
 
     // Build the dispatcher
@@ -97,13 +97,73 @@ impl Task for EventEmitterTask {
 
     // Creates an object of the shape `{ "event": string, ...data }`
     match event {
-      RenderUpdateEvent::None => {
-        let event_name = cx.string("none");
-        o.set(&mut cx, "event", event_name)?;
+      RenderUpdateEvent::None => (),
+      RenderUpdateEvent::SelectedEntity(ent) => {
+        // TODO
       },
-      _ => (), // TODO
+      RenderUpdateEvent::DeselectedEntity(ent) => {
+        // TODO
+      },
+      RenderUpdateEvent::RemovedEntity(ent) => {
+        // TODO
+      },
+      RenderUpdateEvent::UpdatedPoint(ent, sym_point, point_style) => {
+
+      },
     }
     Ok(o.upcast())
+  }
+}
+
+pub fn to_key(k: u32) -> Key {
+  match k {
+    8 => Key::Delete,
+    16 => Key::LShift,
+    17 => Key::LCtrl,
+    18 => Key::LAlt,
+    32 => Key::Space,
+    48 => Key::D0,
+    49 => Key::D1,
+    50 => Key::D2,
+    51 => Key::D3,
+    52 => Key::D4,
+    53 => Key::D5,
+    54 => Key::D6,
+    55 => Key::D7,
+    56 => Key::D8,
+    57 => Key::D9,
+    65 => Key::A,
+    66 => Key::B,
+    67 => Key::C,
+    68 => Key::D,
+    69 => Key::E,
+    70 => Key::F,
+    71 => Key::G,
+    72 => Key::H,
+    73 => Key::I,
+    74 => Key::J,
+    75 => Key::K,
+    76 => Key::L,
+    77 => Key::M,
+    78 => Key::N,
+    79 => Key::O,
+    80 => Key::P,
+    81 => Key::Q,
+    82 => Key::R,
+    83 => Key::S,
+    84 => Key::T,
+    85 => Key::U,
+    86 => Key::V,
+    87 => Key::W,
+    88 => Key::X,
+    89 => Key::Y,
+    90 => Key::Z,
+    91 => Key::LCommand,
+    93 => Key::RCommand,
+    187 => Key::Equals,
+    189 => Key::Minus,
+    220 => Key::Backslash,
+    _ => Key::Unknown,
   }
 }
 
@@ -160,6 +220,24 @@ declare_types! {
       let this = cx.this();
       cx.borrow(&this, |emitter| {
         emitter.receiver.send(UserEvent::Input(InputEvent::Button(ButtonState::Release, Button::Mouse(MouseButton::Left))))
+      }).or_else(|err| cx.throw_error(&err.to_string()))?;
+      Ok(JsUndefined::new().upcast())
+    }
+
+    method onKeyDown(mut cx) {
+      let this = cx.this();
+      let k = cx.argument::<JsNumber>(0)?.value() as u32;
+      cx.borrow(&this, |emitter| {
+        emitter.receiver.send(UserEvent::Input(InputEvent::Button(ButtonState::Press, Button::Keyboard(to_key(k)))))
+      }).or_else(|err| cx.throw_error(&err.to_string()))?;
+      Ok(JsUndefined::new().upcast())
+    }
+
+    method onKeyUp(mut cx) {
+      let this = cx.this();
+      let k = cx.argument::<JsNumber>(0)?.value() as u32;
+      cx.borrow(&this, |emitter| {
+        emitter.receiver.send(UserEvent::Input(InputEvent::Button(ButtonState::Release, Button::Keyboard(to_key(k)))))
       }).or_else(|err| cx.throw_error(&err.to_string()))?;
       Ok(JsUndefined::new().upcast())
     }

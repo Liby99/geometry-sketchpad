@@ -48,9 +48,10 @@ class Rectangle {
 }
 
 class GeopadWorld {
-  constructor(canvas) {
-    this.canvas = canvas;
-    this.context = canvas.getContext("2d");
+  constructor($canvas) {
+    this.$canvas = $canvas;
+    this.canvas = $canvas[0];
+    this.context = this.canvas.getContext("2d");
     this.channel = new RustChannel();
     this.poll = promisify(this.channel.poll.bind(this.channel));
     this.isShutdown = false;
@@ -69,8 +70,8 @@ class GeopadWorld {
     (function pollLoop() {
       if (self.isShutdown) return;
       self.channel.step();
-      self.poll().then((e) => {
-        self.update(e);
+      self.poll().then((event) => {
+        self.update(event);
       }).catch((err) => {
         console.error(err);
       }).then(() => {
@@ -82,6 +83,47 @@ class GeopadWorld {
     setInterval(() => {
       this.render();
     }, 33);
+
+    // In focus check
+    this.isInFocus = false;
+    this.$canvas.mouseover(() => {
+      this.isInFocus = true;
+    });
+    this.$canvas.mouseleave(() => {
+      this.isInFocus = false;
+    });
+
+    // Setup callbacks to canvas
+    this.$canvas.mousedown(() => {
+      this.channel.onMouseDown();
+    });
+
+    this.$canvas.mouseup(() => {
+      this.channel.onMouseUp();
+    });
+
+    let currPosition = [0, 0];
+    this.$canvas.mousemove((event) => {
+      this.isInFocus = true;
+      let x = event.screenX, y = event.screenY;
+      let relX = x - currPosition[0], relY = y - currPosition[1];
+      currPosition = [x, y];
+      if (relX !== 0 && relY !== 0) {
+        this.channel.onMouseMove(x, y, relX, relY);
+      }
+    });
+
+    $canvas.keydown((event) => {
+      if (this.isInFocus) {
+        let key = event.which;
+        this.channel.onKeyDown(key);
+      }
+    });
+
+    $canvas.keyup((event) => {
+      let key = event.which;
+      this.channel.onKeyUp(key);
+    });
   }
 
   update(event) {
@@ -107,18 +149,6 @@ class GeopadWorld {
     Object.keys(geometries).forEach((key) => {
       geometries[key].draw(this.context, selected);
     });
-  }
-
-  onMouseMove(x, y, relX, relY) {
-    this.channel.onMouseMove(x, y, relX, relY);
-  }
-
-  onMouseDown() {
-    this.channel.onMouseDown();
-  }
-
-  onMouseUp() {
-    this.channel.onMouseUp();
   }
 
   shutdown() {
