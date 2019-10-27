@@ -94,6 +94,8 @@ impl Task for EventEmitterTask {
 
     // Create an empty object `{}`
     let o = cx.empty_object();
+    let event_type = cx.number(type_to_u32(&event));
+    o.set(&mut cx, "type", event_type)?;
 
     // Creates an object of the shape `{ "event": string, ...data }`
     match event {
@@ -108,9 +110,6 @@ impl Task for EventEmitterTask {
         // TODO
       },
       RenderUpdateEvent::UpdatedPoint(ent, ScreenPosition(Vector2 { x, y }), PointStyle { color, radius, border_color, border_width }) => {
-        let event_name = cx.string("update_point");
-        o.set(&mut cx, "event", event_name)?;
-
         let event_entity = cx.string(format!("{}_{}", ent.id(), ent.gen().id()));
         o.set(&mut cx, "entity", event_entity)?;
 
@@ -122,18 +121,36 @@ impl Task for EventEmitterTask {
         o.set(&mut cx, "position", event_scrn_point)?;
 
         let event_style = cx.empty_object();
-        let event_style_color = cx.string(format!("rgba({},{},{},{})", (color.r * 255.0) as u8, (color.g * 255.0) as u8, (color.b * 255.0) as u8, color.a));
-        let event_style_border_color = cx.string(format!("rgba({},{},{},{})", (border_color.r * 255.0) as u8, (border_color.g * 255.0) as u8, (border_color.b * 255.0) as u8, border_color.a));
+        let event_style_color = cx.number(color_to_hex(color));
+        let event_style_alpha = cx.number(color.a);
+        let event_style_border_color = cx.number(color_to_hex(border_color));
+        let event_style_border_alpha = cx.number(border_color.a);
         let event_style_radius = cx.number(radius);
         let event_style_border_width = cx.number(border_width);
         event_style.set(&mut cx, "color", event_style_color)?;
+        event_style.set(&mut cx, "alpha", event_style_alpha)?;
         event_style.set(&mut cx, "borderColor", event_style_border_color)?;
+        event_style.set(&mut cx, "borderAlpha", event_style_border_alpha)?;
         event_style.set(&mut cx, "radius", event_style_radius)?;
         event_style.set(&mut cx, "borderWidth", event_style_border_width)?;
         o.set(&mut cx, "style", event_style)?;
       },
     }
     Ok(o.upcast())
+  }
+}
+
+pub fn color_to_hex(color: Color) -> u32 {
+  (((color.r * 255.0) as u32) << 16) | (((color.g * 255.0) as u32) << 8) | (color.b * 255.0) as u32
+}
+
+pub fn type_to_u32(event: &RenderUpdateEvent) -> u32 {
+  match event {
+    RenderUpdateEvent::None => 0,
+    RenderUpdateEvent::UpdatedPoint(_, _, _) => 1,
+    RenderUpdateEvent::RemovedEntity(_) => 4,
+    RenderUpdateEvent::SelectedEntity(_) => 5,
+    RenderUpdateEvent::DeselectedEntity(_) => 6,
   }
 }
 

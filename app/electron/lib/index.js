@@ -1,16 +1,40 @@
 const { promisify } = require('util');
 const { GeopadWorld: RustChannel } = require('../native');
+const PIXI = require("pixi.js");
+
+const EVENT_TYPE_UPDATE_POINT = 1;
+const EVENT_TYPE_REMOVE_ENTITY = 4;
+const EVENT_TYPE_SELECT_ENTITY = 5;
+const EVENT_TYPE_DESELECT_ENTITY = 6;
 
 class Point {
   constructor(position, style) {
+
+    // Basic information
     this.position = position;
     this.style = style;
+    this.selected = false;
+
+    // Render information
+    this.graphics = new PIXI.Graphics();
+    this.setupGraphics();
   }
 
-  draw(context, selected) {
-    context.beginPath();
-    context.arc(this.position.x, this.position.y, this.style.radius, 0, Math.PI * 2);
-    context.fill();
+  update(position, style) {
+    this.position = position;
+    this.style = style;
+
+    this.graphics.clear();
+    this.setupGraphics();
+  }
+
+  setupGraphics() {
+    this.graphics.beginFill(this.style.color, this.style.alpha);
+    this.graphics.lineStyle(this.style.borderWidth, this.style.borderColor, this.style.borderAlpha);
+    this.graphics.drawEllipse(0, 0, this.style.radius, this.style.radius);
+    this.graphics.endFill();
+    this.graphics.x = this.position.x;
+    this.graphics.y = this.position.y;
   }
 }
 
@@ -53,19 +77,27 @@ class Rectangle {
 class GeopadWorld {
   constructor($canvas) {
     this.$canvas = $canvas;
-    this.canvas = $canvas[0];
-    this.context = this.canvas.getContext("2d");
+
+    // Initialize PIXI application
+    const $window = $(window);
+    this.app = new PIXI.Application({
+      width: $window.width(),
+      height: $window.height(),
+      antialias: true,
+    });
+    this.app.renderer.backgroundColor = 0xffffff;
+    this.app.renderer.autoResize = true;
+    $canvas[0].appendChild(this.app.view);
+
+    // Initialize Backend
     this.channel = new RustChannel();
     this.poll = promisify(this.channel.poll.bind(this.channel));
     this.isShutdown = false;
 
     // Geometry storages
     this.points = {};
-    this.selectedPoints = {};
     this.lines = {};
-    this.selectedLines = {};
     this.circles = {};
-    this.selectedCircles = {};
     this.rectangles = {};
 
     // Pooling loop getting the information from rust channel
@@ -79,10 +111,6 @@ class GeopadWorld {
     setInterval(() => {
       this.channel.step();
     }, 10);
-
-    setInterval(() => {
-      this.render();
-    }, 33);
 
     // In focus check
     this.isInFocus = false;
@@ -108,9 +136,7 @@ class GeopadWorld {
       let x = event.pageX, y = event.pageY;
       let relX = x - currPosition[0], relY = y - currPosition[1];
       currPosition = [x, y];
-      if (relX !== 0 && relY !== 0) {
-        this.channel.onMouseMove(x, y, relX, relY);
-      }
+      this.channel.onMouseMove(x, y, relX, relY);
     });
 
     $(document).keydown((event) => {
@@ -128,26 +154,17 @@ class GeopadWorld {
 
   update(event) {
     if (!event) { return; }
-    switch (event.event) {
-      case "update_point": {
-        this.points[event.entity] = new Point(event.position, event.style);
+    switch (event.type) {
+      case EVENT_TYPE_UPDATE_POINT: {
+        if (event.entity in this.points) {
+          this.points[event.entity].update(event.position, event.style);
+        } else {
+          const point = new Point(event.position, event.style);
+          this.points[event.entity] = point;
+          this.app.stage.addChild(point.graphics);
+        }
       } break;
     }
-  }
-
-  render() {
-
-    // First clear the context
-    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-    // Then draw all the geometries
-    this.drawGeometries(this.circles, false);
-    this.drawGeometries(this.selectedCircles, true);
-    this.drawGeometries(this.lines, false);
-    this.drawGeometries(this.selectedLines, true);
-    this.drawGeometries(this.points, false);
-    this.drawGeometries(this.selectedPoints, true);
-    this.drawGeometries(this.rectangles);
   }
 
   drawGeometries(geometries, selected) {
