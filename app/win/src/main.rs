@@ -1,3 +1,4 @@
+#![windows_subsystem = "windows"]
 extern crate core_lib;
 extern crate core_ui;
 extern crate core_piston;
