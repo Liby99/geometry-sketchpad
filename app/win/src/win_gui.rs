@@ -192,31 +192,31 @@ nwg_template!(
              filters=Some("Rust Geometry Sketchpad File(*.rgsp)"))),
         (SelectToolBtn, nwg_button!(
              parent=MainWindow;
-             text="icon/select.bmp";
+             text="select";
              position=(5 + 0 * (32 + 5), 5); size=(32, 32))),
         (PointToolBtn, nwg_button!(
              parent=MainWindow;
-             text="icon/point.bmp";
+             text="point";
              position=(5 + 1 * (32 + 5), 5); size=(32, 32))),
         (LineToolBtn, nwg_button!(
              parent=MainWindow;
-             text="icon/line.bmp";
+             text="line";
              position=(5 + 2 * (32 + 5), 5); size=(32, 32))),
         (LineRayToolBtn, nwg_button!(
              parent=MainWindow;
-             text="icon/line.ray.bmp";
+             text="line.ray";
              position=(5 + 3 * (32 + 5), 5); size=(32, 32))),
         (LineSegmentToolBtn, nwg_button!(
              parent=MainWindow;
-             text="icon/line.segment.bmp";
+             text="line.segment";
              position=(5 + 4 * (32 + 5), 5); size=(32, 32))),
         (CircleToolBtn, nwg_button!(
              parent=MainWindow;
-             text="icon/circle.bmp";
+             text="circle";
              position=(5 + 5 * (32 + 5), 5); size=(32, 32))),
         (ViewportDragToolBtn, nwg_button!(
              parent=MainWindow;
-             text="icon/viewport.drag.bmp";
+             text="viewport.drag";
              position=(5 + 6 * (32 + 5), 5); size=(32, 32)))
     ];
     events: [

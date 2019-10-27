@@ -1,0 +1,7 @@
+circle          BITMAP "icon\circle.bmp"
+line            BITMAP "icon\line.bmp"
+line.ray        BITMAP "icon\line.ray.bmp"
+line.segment    BITMAP "icon\line.segment.bmp"
+point           BITMAP "icon\point.bmp"
+select          BITMAP "icon\select.bmp"
+viewport.drag   BITMAP "icon\viewport.drag.bmp"
