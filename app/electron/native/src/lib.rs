@@ -108,7 +108,8 @@ impl Task for EventEmitterTask {
         // TODO
       },
       RenderUpdateEvent::UpdatedPoint(ent, sym_point, point_style) => {
-
+        let name = cx.string("update-point");
+        let entity = cx.number(ent.0);
       },
     }
     Ok(o.upcast())
