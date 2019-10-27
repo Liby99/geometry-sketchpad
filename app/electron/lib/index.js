@@ -4,10 +4,13 @@ const { GeopadWorld: RustChannel } = require('../native');
 class Point {
   constructor(position, style) {
     this.position = position;
+    this.style = style;
   }
 
   draw(context, selected) {
-
+    context.beginPath();
+    context.arc(this.position.x, this.position.y, this.style.radius, 0, Math.PI * 2);
+    context.fill();
   }
 }
 
@@ -66,20 +69,17 @@ class GeopadWorld {
     this.rectangles = {};
 
     // Pooling loop getting the information from rust channel
-    const self = this;
-    (function pollLoop() {
-      if (self.isShutdown) return;
-      self.channel.step();
-      self.poll().then((event) => {
-        self.update(event);
-      }).catch((err) => {
-        console.error(err);
-      }).then(() => {
-        setImmediate(pollLoop);
-      });
-    })();
+    const pollLoop = () => {
+      if (this.isShutdown) return;
+      this.poll().then(this.update.bind(this)).catch(console.error).then(() => setImmediate(pollLoop));
+    };
+    pollLoop();
 
     // Render interval does not depend on polling loop
+    setInterval(() => {
+      this.channel.step();
+    }, 10);
+
     setInterval(() => {
       this.render();
     }, 33);
@@ -105,7 +105,7 @@ class GeopadWorld {
     let currPosition = [0, 0];
     this.$canvas.mousemove((event) => {
       this.isInFocus = true;
-      let x = event.screenX, y = event.screenY;
+      let x = event.pageX, y = event.pageY;
       let relX = x - currPosition[0], relY = y - currPosition[1];
       currPosition = [x, y];
       if (relX !== 0 && relY !== 0) {
@@ -113,21 +113,26 @@ class GeopadWorld {
       }
     });
 
-    $canvas.keydown((event) => {
+    $(document).keydown((event) => {
       if (this.isInFocus) {
         let key = event.which;
         this.channel.onKeyDown(key);
       }
     });
 
-    $canvas.keyup((event) => {
+    $(document).keyup((event) => {
       let key = event.which;
       this.channel.onKeyUp(key);
     });
   }
 
   update(event) {
-
+    if (!event) { return; }
+    switch (event.event) {
+      case "update_point": {
+        this.points[event.entity] = new Point(event.position, event.style);
+      } break;
+    }
   }
 
   render() {

@@ -15,7 +15,7 @@ use neon::types::{JsFunction, JsUndefined, JsValue, JsNumber, JsString};
 use neon::{declare_types, register_module};
 
 use specs::prelude::*;
-use core_lib::{math::*};
+use core_lib::{math::*, utilities::*, components::styles::*};
 use core_ui::{resources::*, setup_core_ui};
 
 pub mod output;
@@ -107,9 +107,30 @@ impl Task for EventEmitterTask {
       RenderUpdateEvent::RemovedEntity(ent) => {
         // TODO
       },
-      RenderUpdateEvent::UpdatedPoint(ent, sym_point, point_style) => {
-        let name = cx.string("update-point");
-        let entity = cx.number(ent.0);
+      RenderUpdateEvent::UpdatedPoint(ent, ScreenPosition(Vector2 { x, y }), PointStyle { color, radius, border_color, border_width }) => {
+        let event_name = cx.string("update_point");
+        o.set(&mut cx, "event", event_name)?;
+
+        let event_entity = cx.string(format!("{}_{}", ent.id(), ent.gen().id()));
+        o.set(&mut cx, "entity", event_entity)?;
+
+        let event_scrn_point = cx.empty_object();
+        let event_scrn_point_x = cx.number(x);
+        let event_scrn_point_y = cx.number(y);
+        event_scrn_point.set(&mut cx, "x", event_scrn_point_x)?;
+        event_scrn_point.set(&mut cx, "y", event_scrn_point_y)?;
+        o.set(&mut cx, "position", event_scrn_point)?;
+
+        let event_style = cx.empty_object();
+        let event_style_color = cx.string(format!("rgba({},{},{},{})", (color.r * 255.0) as u8, (color.g * 255.0) as u8, (color.b * 255.0) as u8, color.a));
+        let event_style_border_color = cx.string(format!("rgba({},{},{},{})", (border_color.r * 255.0) as u8, (border_color.g * 255.0) as u8, (border_color.b * 255.0) as u8, border_color.a));
+        let event_style_radius = cx.number(radius);
+        let event_style_border_width = cx.number(border_width);
+        event_style.set(&mut cx, "color", event_style_color)?;
+        event_style.set(&mut cx, "borderColor", event_style_border_color)?;
+        event_style.set(&mut cx, "radius", event_style_radius)?;
+        event_style.set(&mut cx, "borderWidth", event_style_border_width)?;
+        o.set(&mut cx, "style", event_style)?;
       },
     }
     Ok(o.upcast())

@@ -29,6 +29,12 @@ impl<'a> System<'a> for SenderSystem {
     ReadStorage<'a, PointStyle>,
   );
 
+  fn setup(&mut self, world: &mut World) {
+    Self::SystemData::setup(world);
+    self.scrn_point_update_reader = Some(WriteStorage::<ScreenPoint>::fetch(&world).register_reader());
+    self.marker_event_reader = Some(world.fetch_mut::<MarkerEventChannel>().register_reader());
+  }
+
   fn run(&mut self, (
     entities,
     marker_event_channel,
@@ -52,7 +58,7 @@ impl<'a> System<'a> for SenderSystem {
       }
     }
 
-    for (ent, scrn_point, point_style) in (&entities, &scrn_points, &point_styles).join() {
+    for (ent, scrn_point, point_style, _) in (&entities, &scrn_points, &point_styles, &dirty).join() {
       if let Err(err) = self.sender.send(RenderUpdateEvent::UpdatedPoint(ent, *scrn_point, *point_style)) { panic!(err) }
     }
 
