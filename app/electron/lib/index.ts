@@ -8,6 +8,7 @@ import "pixi-layers";
 
 import Point from "./point";
 import Line from "./line";
+import Circle from "./circle";
 
 type RustChannel = Geopad.GeopadWorld;
 const RustChannel = Geopad.GeopadWorld;
@@ -25,11 +26,12 @@ export default class GeopadWorld {
   app: PIXI.Application;
   pointGroup: PIXI.display.Group;
   lineGroup: PIXI.display.Group;
-  // circleLayer: PIXI.display.Layer;
+  circleGroup: PIXI.display.Group;
   // rectangleLayer: PIXI.display.Layer;
 
   points: Storage<Point>;
   lines: Storage<Line>;
+  circles: Storage<Circle>;
 
   constructor($canvas: JQuery<HTMLElement>) {
     this.$canvas = $canvas;
@@ -47,10 +49,16 @@ export default class GeopadWorld {
     // Create the groups
     this.pointGroup = new PIXI.display.Group(3, false);
     this.lineGroup = new PIXI.display.Group(2, false);
+    this.circleGroup = new PIXI.display.Group(1, false);
+
+    // Setup stages
     this.app.stage = new PIXI.display.Stage();
     this.app.stage.sortableChildren = true;
     this.app.stage.addChild(new PIXI.display.Layer(this.pointGroup));
     this.app.stage.addChild(new PIXI.display.Layer(this.lineGroup));
+    this.app.stage.addChild(new PIXI.display.Layer(this.circleGroup));
+
+    // Setup canvas
     $canvas[0].appendChild(this.app.view);
 
     // Initialize Backend
@@ -60,7 +68,7 @@ export default class GeopadWorld {
     // Geometry storages
     this.points = {};
     this.lines = {};
-    // this.circles = {};
+    this.circles = {};
     // this.rectangles = {};
 
     const poll = promisify(this.channel.poll.bind(this.channel));
@@ -75,7 +83,7 @@ export default class GeopadWorld {
     // Render interval does not depend on polling loop
     setInterval(() => {
       this.channel.step();
-    }, 16);
+    }, 10);
 
     // Setup callbacks to canvas
     this.$canvas.mousedown(() => {
@@ -120,6 +128,12 @@ export default class GeopadWorld {
         this.app.stage.addChild(line.graphics);
         line.graphics.parentGroup = this.lineGroup;
       } break;
+      case Geopad.EVENT_TYPE_INSERTED_CIRCLE: {
+        const circle = new Circle(event.circle, event.style);
+        this.circles[event.entity] = circle;
+        this.app.stage.addChild(circle.graphics);
+        circle.graphics.parentGroup = this.circleGroup;
+      } break;
       case Geopad.EVENT_TYPE_UPDATED_POINT: {
         if (event.entity in this.points) {
           this.points[event.entity].updatePoint(event.point);
@@ -130,11 +144,19 @@ export default class GeopadWorld {
           this.lines[event.entity].updateLine(event.line);
         }
       } break;
+      case Geopad.EVENT_TYPE_UPDATED_CIRCLE: {
+        if (event.entity in this.circles) {
+          this.circles[event.entity].updateCircle(event.circle);
+        }
+      } break;
       case Geopad.EVENT_TYPE_UPDATED_POINT_STYLE: {
         this.points[event.entity].updateStyle(event.style);
       } break;
       case Geopad.EVENT_TYPE_UPDATED_LINE_STYLE: {
         this.lines[event.entity].updateStyle(event.style);
+      } break;
+      case Geopad.EVENT_TYPE_UPDATED_CIRCLE_STYLE: {
+        this.circles[event.entity].updateStyle(event.style);
       } break;
       case Geopad.EVENT_TYPE_REMOVED_ENTITY: {
         if (event.entity in this.points) {
@@ -143,6 +165,9 @@ export default class GeopadWorld {
         } else if (event.entity in this.lines) {
           this.app.stage.removeChild(this.lines[event.entity].graphics);
           delete this.lines[event.entity];
+        } else if (event.entity in this.circles) {
+          this.app.stage.removeChild(this.circles[event.entity].graphics);
+          delete this.circles[event.entity];
         }
       } break;
       case Geopad.EVENT_TYPE_SELECTED_ENTITY: {
@@ -150,6 +175,8 @@ export default class GeopadWorld {
           this.points[event.entity].setSelected(true);
         } else if (event.entity in this.lines) {
           this.lines[event.entity].setSelected(true);
+        } else if (event.entity in this.circles) {
+          this.circles[event.entity].setSelected(true);
         }
       } break;
       case Geopad.EVENT_TYPE_DESELECTED_ENTITY: {
@@ -157,6 +184,8 @@ export default class GeopadWorld {
           this.points[event.entity].setSelected(false);
         } else if (event.entity in this.lines) {
           this.lines[event.entity].setSelected(false);
+        } else if (event.entity in this.circles) {
+          this.circles[event.entity].setSelected(false);
         }
       }
     }

@@ -115,6 +115,32 @@ impl Task for EventEmitterTask {
       }};
     }
 
+    macro_rules! circle {
+      ($circle: expr) => {{
+        let ScreenCircle { center, radius } = $circle;
+        let circle = cx.empty_object();
+        let center = position!(center);
+        let radius = cx.number(radius);
+        circle.set(&mut cx, "center", center)?;
+        circle.set(&mut cx, "radius", radius)?;
+        circle
+      }};
+    }
+
+    macro_rules! circle_style {
+      ($circle_style: expr) => {{
+        let CircleStyle { fill, border } = $circle_style;
+        let circle_style = cx.empty_object();
+        let fill_rgb = cx.number(color_to_hex(fill));
+        let fill_alpha = cx.number(fill.a);
+        let border = line_style!(border);
+        circle_style.set(&mut cx, "fill", fill_rgb)?;
+        circle_style.set(&mut cx, "fillAlpha", fill_alpha)?;
+        circle_style.set(&mut cx, "border", border)?;
+        circle_style
+      }};
+    }
+
     match event {
       RenderUpdateEvent::None => (),
       RenderUpdateEvent::InsertedPoint(ent, scrn_point, point_style) => {
@@ -133,6 +159,14 @@ impl Task for EventEmitterTask {
         let style = line_style!(line_style);
         o.set(&mut cx, "style", style)?;
       },
+      RenderUpdateEvent::InsertedCircle(ent, scrn_circle, circle_style) => {
+        let entity = entity!(ent);
+        o.set(&mut cx, "entity", entity)?;
+        let circle = circle!(scrn_circle);
+        o.set(&mut cx, "circle", circle)?;
+        let style = circle_style!(circle_style);
+        o.set(&mut cx, "style", style)?;
+      },
       RenderUpdateEvent::UpdatedPoint(ent, scrn_point) => {
         let entity = entity!(ent);
         o.set(&mut cx, "entity", entity)?;
@@ -145,6 +179,12 @@ impl Task for EventEmitterTask {
         let line = line!(scrn_line);
         o.set(&mut cx, "line", line)?;
       },
+      RenderUpdateEvent::UpdatedCircle(ent, scrn_circle) => {
+        let entity = entity!(ent);
+        o.set(&mut cx, "entity", entity)?;
+        let circle = circle!(scrn_circle);
+        o.set(&mut cx, "circle", circle)?;
+      },
       RenderUpdateEvent::UpdatedPointStyle(ent, point_style) => {
         let entity = entity!(ent);
         o.set(&mut cx, "entity", entity)?;
@@ -155,6 +195,12 @@ impl Task for EventEmitterTask {
         let entity = entity!(ent);
         o.set(&mut cx, "entity", entity)?;
         let style = line_style!(line_style);
+        o.set(&mut cx, "style", style)?;
+      },
+      RenderUpdateEvent::UpdatedCircleStyle(ent, circle_style) => {
+        let entity = entity!(ent);
+        o.set(&mut cx, "entity", entity)?;
+        let style = circle_style!(circle_style);
         o.set(&mut cx, "style", style)?;
       },
       RenderUpdateEvent::SelectedEntity(ent) => {

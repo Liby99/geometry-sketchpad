@@ -38,7 +38,6 @@ export default class Point {
   setupGraphicsStyle() {
     this.graphics.clear();
     this.graphics.lineStyle(this.style.width, this.style.color, this.style.alpha);
-    console.log(`From (${this.line.from.x}, ${this.line.from.y}), To: (${this.line.to.x}, ${this.line.to.y})`);
     this.graphics.moveTo(this.line.from.x, this.line.from.y);
     this.graphics.lineTo(this.line.to.x, this.line.to.y);
 
