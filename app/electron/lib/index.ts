@@ -83,7 +83,7 @@ export default class GeopadWorld {
     // Render interval does not depend on polling loop
     setInterval(() => {
       this.channel.step();
-    }, 10);
+    }, 16);
 
     // Setup callbacks to canvas
     this.$canvas.mousedown(() => {

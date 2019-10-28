@@ -43,11 +43,13 @@ export default class Circle {
     this.graphics.drawEllipse(this.circle.center.x, this.circle.center.y, this.circle.radius, this.circle.radius);
     this.graphics.endFill();
 
-    // if (this.selected) {
-    //   this.graphics.beginFill(0x000000, 0);
-    //   this.graphics.lineStyle(1, 0xff00ff);
-    //   this.graphics.drawEllipse(0, 0, this.style.radius + this.style.borderWidth / 2 + 3, this.style.radius + this.style.borderWidth / 2 + 3);
-    //   this.graphics.endFill();
-    // }
+    if (this.selected) {
+      let offset = this.style.border.width / 2 + 3;
+      this.graphics.beginFill(0x000000, 0);
+      this.graphics.lineStyle(1, 0xff00ff);
+      this.graphics.drawEllipse(this.circle.center.x, this.circle.center.y, this.circle.radius + offset, this.circle.radius + offset);
+      this.graphics.drawEllipse(this.circle.center.x, this.circle.center.y, this.circle.radius - offset, this.circle.radius - offset);
+      this.graphics.endFill();
+    }
   }
 }
