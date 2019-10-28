@@ -121,10 +121,14 @@ export default class GeopadWorld {
         line.graphics.parentGroup = this.lineGroup;
       } break;
       case Geopad.EVENT_TYPE_UPDATED_POINT: {
-        this.points[event.entity].updatePoint(event.point);
+        if (event.entity in this.points) {
+          this.points[event.entity].updatePoint(event.point);
+        }
       } break;
       case Geopad.EVENT_TYPE_UPDATED_LINE: {
-        this.lines[event.entity].updateLine(event.line);
+        if (event.entity in this.lines) {
+          this.lines[event.entity].updateLine(event.line);
+        }
       } break;
       case Geopad.EVENT_TYPE_UPDATED_POINT_STYLE: {
         this.points[event.entity].updateStyle(event.style);

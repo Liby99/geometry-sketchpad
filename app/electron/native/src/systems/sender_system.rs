@@ -114,6 +114,8 @@ impl<'a> System<'a> for SenderSystem {
     for (ent, scrn_line, line_style, _) in (&entities, &scrn_lines, &line_styles, &inserted_lines).join() {
       if let Some((from, to)) = scrn_line.intersect(viewport.screen_aabb()) {
         if let Err(err) = self.sender.send(RenderUpdateEvent::InsertedLine(ent, ScreenLine { from, to, line_type: LineType::Segment }, *line_style)) { panic!(err) }
+      } else {
+        if let Err(err) = self.sender.send(RenderUpdateEvent::InsertedLine(ent, *scrn_line, *line_style)) { panic!(err) }
       }
     }
 
@@ -127,6 +129,8 @@ impl<'a> System<'a> for SenderSystem {
     for (ent, scrn_line, _) in (&entities, &scrn_lines, &modified_lines).join() {
       if let Some((from, to)) = scrn_line.intersect(viewport.screen_aabb()) {
         if let Err(err) = self.sender.send(RenderUpdateEvent::UpdatedLine(ent, ScreenLine { from, to, line_type: LineType::Segment })) { panic!(err) }
+      } else {
+        if let Err(err) = self.sender.send(RenderUpdateEvent::UpdatedLine(ent, *scrn_line)) { panic!(err) }
       }
     }
     for (ent, line_style, _) in (&entities, &line_styles, &modified_line_styles).join() {

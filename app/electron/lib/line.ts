@@ -38,14 +38,20 @@ export default class Point {
   setupGraphicsStyle() {
     this.graphics.clear();
     this.graphics.lineStyle(this.style.width, this.style.color, this.style.alpha);
+    console.log(`From (${this.line.from.x}, ${this.line.from.y}), To: (${this.line.to.x}, ${this.line.to.y})`);
     this.graphics.moveTo(this.line.from.x, this.line.from.y);
     this.graphics.lineTo(this.line.to.x, this.line.to.y);
 
-    // if (this.selected) {
-    //   this.graphics.beginFill(0x000000, 0);
-    //   this.graphics.lineStyle(1, 0xff00ff);
-    //   this.graphics.drawEllipse(0, 0, this.style.radius + this.style.borderWidth / 2 + 3, this.style.radius + this.style.borderWidth / 2 + 3);
-    //   this.graphics.endFill();
-    // }
+    if (this.selected) {
+      let offset = this.style.width / 2 + 3;
+      let dir = { x: this.line.to.x - this.line.from.x, y: this.line.to.y - this.line.from.y };
+      let magnitude = Math.sqrt(dir.x * dir.x + dir.y * dir.y);
+      let perpDir = { x: -dir.y / magnitude * offset, y: dir.x / magnitude * offset };
+      this.graphics.lineStyle(1, 0xff00ff);
+      this.graphics.moveTo(this.line.from.x + perpDir.x, this.line.from.y + perpDir.y);
+      this.graphics.lineTo(this.line.to.x + perpDir.x, this.line.to.y + perpDir.y);
+      this.graphics.moveTo(this.line.from.x - perpDir.x, this.line.from.y - perpDir.y);
+      this.graphics.lineTo(this.line.to.x - perpDir.x, this.line.to.y - perpDir.y);
+    }
   }
 }

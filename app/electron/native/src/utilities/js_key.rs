@@ -6,6 +6,7 @@ pub fn u32_to_key(k: u32) -> Key {
     16 => Key::LShift,
     17 => Key::LCtrl,
     18 => Key::LAlt,
+    27 => Key::Escape,
     32 => Key::Space,
     48 => Key::D0,
     49 => Key::D1,
