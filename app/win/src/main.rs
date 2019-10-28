@@ -1,7 +1,7 @@
 #![windows_subsystem = "windows"]
 extern crate core_lib;
 extern crate core_ui;
-extern crate core_piston;
+extern crate geopad_foundation;
 extern crate specs;
 extern crate shrev;
 #[macro_use] extern crate lazy_static;
@@ -14,7 +14,7 @@ mod win_gui;
 
 use specs::prelude::*;
 use core_ui::{resources::*, setup_core_ui};
-use core_piston::new_piston_window;
+use geopad_foundation::new_piston_window;
 
 fn main() {
   let mut world = World::new();
