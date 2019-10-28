@@ -1,7 +1,7 @@
 use std::time::SystemTime;
 use specs::prelude::*;
 use core_ui::{events::*, resources::*};
-use super::input::*;
+use crate::events::*;
 
 static CLICK_TIME_THRESHOLD : u128 = 100; // 0.1 second
 

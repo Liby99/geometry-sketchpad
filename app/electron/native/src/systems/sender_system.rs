@@ -3,7 +3,7 @@ use core_lib::{
   components::{screen_shapes::*, styles::*},
   events::*,
 };
-use super::output::RenderUpdateEvent;
+use crate::events::*;
 
 pub struct SenderSystem {
   pub sender: std::sync::mpsc::Sender<RenderUpdateEvent>,
