@@ -9,6 +9,7 @@ import "pixi-layers";
 import Point from "./point";
 import Line from "./line";
 import Circle from "./circle";
+import Rectangle from "./rectangle";
 
 type RustChannel = Geopad.GeopadWorld;
 const RustChannel = Geopad.GeopadWorld;
@@ -27,11 +28,12 @@ export default class GeopadWorld {
   pointGroup: PIXI.display.Group;
   lineGroup: PIXI.display.Group;
   circleGroup: PIXI.display.Group;
-  // rectangleLayer: PIXI.display.Layer;
+  rectangleGroup: PIXI.display.Group;
 
   points: Storage<Point>;
   lines: Storage<Line>;
   circles: Storage<Circle>;
+  rectangles: Storage<Rectangle>;
 
   constructor($canvas: JQuery<HTMLElement>) {
     this.$canvas = $canvas;
@@ -47,6 +49,7 @@ export default class GeopadWorld {
     this.app.renderer.autoResize = true;
 
     // Create the groups
+    this.rectangleGroup = new PIXI.display.Group(4, false);
     this.pointGroup = new PIXI.display.Group(3, false);
     this.lineGroup = new PIXI.display.Group(2, false);
     this.circleGroup = new PIXI.display.Group(1, false);
@@ -54,6 +57,7 @@ export default class GeopadWorld {
     // Setup stages
     this.app.stage = new PIXI.display.Stage();
     this.app.stage.sortableChildren = true;
+    this.app.stage.addChild(new PIXI.display.Layer(this.rectangleGroup));
     this.app.stage.addChild(new PIXI.display.Layer(this.pointGroup));
     this.app.stage.addChild(new PIXI.display.Layer(this.lineGroup));
     this.app.stage.addChild(new PIXI.display.Layer(this.circleGroup));
@@ -69,7 +73,7 @@ export default class GeopadWorld {
     this.points = {};
     this.lines = {};
     this.circles = {};
-    // this.rectangles = {};
+    this.rectangles = {};
 
     const poll = promisify(this.channel.poll.bind(this.channel));
 
@@ -134,20 +138,23 @@ export default class GeopadWorld {
         this.app.stage.addChild(circle.graphics);
         circle.graphics.parentGroup = this.circleGroup;
       } break;
+      case Geopad.EVENT_TYPE_INSERTED_RECTANGLE: {
+        const rect = new Rectangle(event.rect, event.style);
+        this.rectangles[event.entity] = rect;
+        this.app.stage.addChild(rect.graphics);
+        rect.graphics.parentGroup = this.rectangleGroup;
+      } break;
       case Geopad.EVENT_TYPE_UPDATED_POINT: {
-        if (event.entity in this.points) {
-          this.points[event.entity].updatePoint(event.point);
-        }
+        this.points[event.entity].updatePoint(event.point);
       } break;
       case Geopad.EVENT_TYPE_UPDATED_LINE: {
-        if (event.entity in this.lines) {
-          this.lines[event.entity].updateLine(event.line);
-        }
+        this.lines[event.entity].updateLine(event.line);
       } break;
       case Geopad.EVENT_TYPE_UPDATED_CIRCLE: {
-        if (event.entity in this.circles) {
-          this.circles[event.entity].updateCircle(event.circle);
-        }
+        this.circles[event.entity].updateCircle(event.circle);
+      } break;
+      case Geopad.EVENT_TYPE_UPDATED_RECTANGLE: {
+        this.rectangles[event.entity].updateRectangle(event.rect);
       } break;
       case Geopad.EVENT_TYPE_UPDATED_POINT_STYLE: {
         this.points[event.entity].updateStyle(event.style);
@@ -157,6 +164,9 @@ export default class GeopadWorld {
       } break;
       case Geopad.EVENT_TYPE_UPDATED_CIRCLE_STYLE: {
         this.circles[event.entity].updateStyle(event.style);
+      } break;
+      case Geopad.EVENT_TYPE_UPDATED_RECTANGLE_STYLE: {
+        this.rectangles[event.entity].updateStyle(event.style);
       } break;
       case Geopad.EVENT_TYPE_REMOVED_ENTITY: {
         if (event.entity in this.points) {
@@ -168,6 +178,9 @@ export default class GeopadWorld {
         } else if (event.entity in this.circles) {
           this.app.stage.removeChild(this.circles[event.entity].graphics);
           delete this.circles[event.entity];
+        } else if (event.entity in this.rectangles) {
+          this.app.stage.removeChild(this.rectangles[event.entity].graphics);
+          delete this.rectangles[event.entity];
         }
       } break;
       case Geopad.EVENT_TYPE_SELECTED_ENTITY: {

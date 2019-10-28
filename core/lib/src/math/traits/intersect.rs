@@ -229,3 +229,15 @@ impl Intersect<AABB> for AABB {
     }
   }
 }
+
+#[cfg(test)]
+mod test {
+  use super::*;
+
+  #[test]
+  fn test_hor_line_aabb_intersect() {
+    let l = Line { from: vec2![-1.0, 0.0], to: vec2![1.0, 0.0], line_type: LineType::Straight };
+    let aabb = AABB { x: -0.5, y: -0.5, width: 1.0, height: 1.0 };
+    assert!(l.intersect(aabb) == Some((vec2![-0.5, 0.0], vec2![0.5, 0.0])));
+  }
+}

@@ -141,6 +141,36 @@ impl Task for EventEmitterTask {
       }};
     }
 
+    macro_rules! rect {
+      ($rect: expr) => {{
+        let AABB { x, y, width, height } = $rect;
+        let rect = cx.empty_object();
+        let x = cx.number(x);
+        let y = cx.number(y);
+        let width = cx.number(width);
+        let height = cx.number(height);
+        rect.set(&mut cx, "x", x)?;
+        rect.set(&mut cx, "y", y)?;
+        rect.set(&mut cx, "width", width)?;
+        rect.set(&mut cx, "height", height)?;
+        rect
+      }};
+    }
+
+    macro_rules! rect_style {
+      ($rect_style: expr) => {{
+        let RectangleStyle { fill, border } = $rect_style;
+        let rect_style = cx.empty_object();
+        let fill_rgb = cx.number(color_to_hex(fill));
+        let fill_alpha = cx.number(fill.a);
+        let border = line_style!(border);
+        rect_style.set(&mut cx, "fill", fill_rgb)?;
+        rect_style.set(&mut cx, "fillAlpha", fill_alpha)?;
+        rect_style.set(&mut cx, "border", border)?;
+        rect_style
+      }};
+    }
+
     match event {
       RenderUpdateEvent::None => (),
       RenderUpdateEvent::InsertedPoint(ent, scrn_point, point_style) => {
@@ -167,6 +197,14 @@ impl Task for EventEmitterTask {
         let style = circle_style!(circle_style);
         o.set(&mut cx, "style", style)?;
       },
+      RenderUpdateEvent::InsertedRectangle(ent, scrn_rect, rect_style) => {
+        let entity = entity!(ent);
+        o.set(&mut cx, "entity", entity)?;
+        let rect = rect!(scrn_rect);
+        o.set(&mut cx, "rect", rect)?;
+        let style = rect_style!(rect_style);
+        o.set(&mut cx, "style", style)?;
+      },
       RenderUpdateEvent::UpdatedPoint(ent, scrn_point) => {
         let entity = entity!(ent);
         o.set(&mut cx, "entity", entity)?;
@@ -185,6 +223,12 @@ impl Task for EventEmitterTask {
         let circle = circle!(scrn_circle);
         o.set(&mut cx, "circle", circle)?;
       },
+      RenderUpdateEvent::UpdatedRectangle(ent, scrn_rect) => {
+        let entity = entity!(ent);
+        o.set(&mut cx, "entity", entity)?;
+        let rect = rect!(scrn_rect);
+        o.set(&mut cx, "rect", rect)?;
+      },
       RenderUpdateEvent::UpdatedPointStyle(ent, point_style) => {
         let entity = entity!(ent);
         o.set(&mut cx, "entity", entity)?;
@@ -201,6 +245,12 @@ impl Task for EventEmitterTask {
         let entity = entity!(ent);
         o.set(&mut cx, "entity", entity)?;
         let style = circle_style!(circle_style);
+        o.set(&mut cx, "style", style)?;
+      },
+      RenderUpdateEvent::UpdatedRectangleStyle(ent, rect_style) => {
+        let entity = entity!(ent);
+        o.set(&mut cx, "entity", entity)?;
+        let style = rect_style!(rect_style);
         o.set(&mut cx, "style", style)?;
       },
       RenderUpdateEvent::SelectedEntity(ent) => {

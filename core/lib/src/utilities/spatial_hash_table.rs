@@ -109,6 +109,15 @@ impl<T: Clone + Eq + Hash> SpatialHashTable<T> {
         for j in init_y_tile..(end_y_tile + 1) {
           self.insert(ent.clone(), (init_x_tile, j));
         }
+      } if init_y_tile == end_y_tile && init_y_tile >= 0 && init_y_tile < self.y_tiles as i64 {
+        let (init_x_tile, end_x_tile) = if init_x_tile <= end_x_tile {
+          (init_x_tile, end_x_tile)
+        } else {
+          (end_x_tile, init_x_tile)
+        };
+        for i in init_x_tile..(end_x_tile + 1) {
+          self.insert(ent.clone(), (i, init_y_tile));
+        }
       } else {
 
         // Setupt the state

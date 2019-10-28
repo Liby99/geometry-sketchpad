@@ -51,8 +51,10 @@ export type CircleStyle = {
 };
 
 export type Rectangle = {
-  minCorner: Position,
-  maxCorner: Position,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
 };
 
 export type RectangleStyle = {

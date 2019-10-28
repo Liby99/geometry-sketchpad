@@ -15,6 +15,8 @@ pub struct SenderSystem {
   line_style_update_reader: Option<ReaderId<ComponentEvent>>,
   scrn_circle_update_reader: Option<ReaderId<ComponentEvent>>,
   circle_style_update_reader: Option<ReaderId<ComponentEvent>>,
+  scrn_rect_update_reader: Option<ReaderId<ComponentEvent>>,
+  rect_style_update_reader: Option<ReaderId<ComponentEvent>>,
   marker_event_reader: Option<MarkerEventReader>,
 }
 
@@ -28,6 +30,8 @@ impl SenderSystem {
       line_style_update_reader: None,
       scrn_circle_update_reader: None,
       circle_style_update_reader: None,
+      scrn_rect_update_reader: None,
+      rect_style_update_reader: None,
       marker_event_reader: None,
     }
   }
@@ -44,6 +48,8 @@ impl<'a> System<'a> for SenderSystem {
     ReadStorage<'a, LineStyle>,
     ReadStorage<'a, ScreenCircle>,
     ReadStorage<'a, CircleStyle>,
+    ReadStorage<'a, ScreenRectangle>,
+    ReadStorage<'a, RectangleStyle>,
   );
 
   fn setup(&mut self, world: &mut World) {
@@ -54,6 +60,8 @@ impl<'a> System<'a> for SenderSystem {
     self.line_style_update_reader = Some(WriteStorage::<LineStyle>::fetch(&world).register_reader());
     self.scrn_circle_update_reader = Some(WriteStorage::<ScreenCircle>::fetch(&world).register_reader());
     self.circle_style_update_reader = Some(WriteStorage::<CircleStyle>::fetch(&world).register_reader());
+    self.scrn_rect_update_reader = Some(WriteStorage::<ScreenRectangle>::fetch(&world).register_reader());
+    self.rect_style_update_reader = Some(WriteStorage::<RectangleStyle>::fetch(&world).register_reader());
     self.marker_event_reader = Some(world.fetch_mut::<MarkerEventChannel>().register_reader());
   }
 
@@ -67,6 +75,8 @@ impl<'a> System<'a> for SenderSystem {
     line_styles,
     scrn_circles,
     circle_styles,
+    scrn_rects,
+    rect_styles,
   ): Self::SystemData) {
 
     // First deal with geometry update
@@ -79,6 +89,9 @@ impl<'a> System<'a> for SenderSystem {
     let mut inserted_circles = BitSet::new();
     let mut modified_circles = BitSet::new();
     let mut modified_circle_styles = BitSet::new();
+    let mut inserted_rects = BitSet::new();
+    let mut modified_rects = BitSet::new();
+    let mut modified_rect_styles = BitSet::new();
     let mut removed : BitSet = BitSet::new();
 
     // Screen point updates
@@ -139,6 +152,25 @@ impl<'a> System<'a> for SenderSystem {
       }
     }
 
+    if let Some(reader) = &mut self.scrn_rect_update_reader {
+      for event in scrn_rects.channel().read(reader) {
+        match event {
+          ComponentEvent::Inserted(id) => { inserted_rects.add(*id); },
+          ComponentEvent::Modified(id) => { modified_rects.add(*id); },
+          ComponentEvent::Removed(id) => { removed.add(*id); },
+        }
+      }
+    }
+
+    if let Some(reader) = &mut self.rect_style_update_reader {
+      for event in rect_styles.channel().read(reader) {
+        match event {
+          ComponentEvent::Modified(id) => { modified_rect_styles.add(*id); },
+          _ => (),
+        }
+      }
+    }
+
     // Do all the insert
     for (ent, scrn_point, point_style, _) in (&entities, &scrn_points, &point_styles, &inserted_points).join() {
       if let Err(err) = self.sender.send(RenderUpdateEvent::InsertedPoint(ent, *scrn_point, *point_style)) { panic!(err) }
@@ -152,6 +184,9 @@ impl<'a> System<'a> for SenderSystem {
     }
     for (ent, scrn_circle, circle_style, _) in (&entities, &scrn_circles, &circle_styles, &inserted_circles).join() {
       if let Err(err) = self.sender.send(RenderUpdateEvent::InsertedCircle(ent, *scrn_circle, *circle_style)) { panic!(err) }
+    }
+    for (ent, scrn_rect, rect_style, _) in (&entities, &scrn_rects, &rect_styles, &inserted_rects).join() {
+      if let Err(err) = self.sender.send(RenderUpdateEvent::InsertedRectangle(ent, *scrn_rect, *rect_style)) { panic!(err) }
     }
 
     // Do all the modify
@@ -176,6 +211,12 @@ impl<'a> System<'a> for SenderSystem {
     }
     for (ent, circle_style, _) in (&entities, &circle_styles, &modified_circle_styles).join() {
       if let Err(err) = self.sender.send(RenderUpdateEvent::UpdatedCircleStyle(ent, *circle_style)) { panic!(err) }
+    }
+    for (ent, scrn_rect, _) in (&entities, &scrn_rects, &modified_rects).join() {
+      if let Err(err) = self.sender.send(RenderUpdateEvent::UpdatedRectangle(ent, *scrn_rect)) { panic!(err) }
+    }
+    for (ent, rect_style, _) in (&entities, &rect_styles, &modified_rect_styles).join() {
+      if let Err(err) = self.sender.send(RenderUpdateEvent::UpdatedRectangleStyle(ent, *rect_style)) { panic!(err) }
     }
 
     // Do all the removals
