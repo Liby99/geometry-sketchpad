@@ -2,7 +2,6 @@
 members = [
   "core/lib",
   "core/ui",
-  "core/piston",
   "app/foundation",
   "app/win"
 ]
