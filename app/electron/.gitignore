@@ -5,4 +5,5 @@ native/artifacts.json
 native/index.node
 
 # Typescript compilation related
-dist/
+*.js
+*.js.map

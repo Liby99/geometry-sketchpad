@@ -38,7 +38,7 @@ export type RenderUpdateEvent = {
   entity: string,
 };
 
-export default class GeopadWorld {
+export class GeopadWorld {
   constructor();
   poll(callback: (event: RenderUpdateEvent) => void) : void;
   step() : void;

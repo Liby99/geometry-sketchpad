@@ -1,0 +1,8 @@
+{
+  "files.exclude": {
+    "app/electron/lib/**/*.js": true,
+    "app/electron/lib/**/*.js.map": true,
+    "app/electron/web/**/*.js": true,
+    "app/electron/web/**/*.js.map": true
+  }
+}

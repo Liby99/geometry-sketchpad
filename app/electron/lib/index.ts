@@ -1,5 +1,5 @@
 import { promisify } from "util";
-import { default as RustChannel, Position, PointStyle, RenderUpdateEvent } from "../native";
+import { GeopadWorld as RustChannel, Position, PointStyle, RenderUpdateEvent } from "../native";
 import * as PIXI from "pixi.js";
 import * as $ from "jquery";
 
