@@ -4,8 +4,11 @@ version = "0.0.1"
 authors = ["Liby Lee <liby99@icloud.com>"]
 edition = "2018"
 
+[lib]
+name = "geopad_foundation"
+
 [dependencies]
 core-lib = { path = "../../core/lib" }
 core-ui = { path = "../../core/ui" }
-core-piston = { path = "../../core/piston" }
 specs = "0.15"
+piston_window = "0.98"

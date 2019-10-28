@@ -2,10 +2,8 @@
 members = [
   "core/lib",
   "core/ui",
-  "core/piston",
   "app/foundation",
-  # "app/electron/native",
-  # "app/win",
+  "app/win",
 ]
 exclude = [
   "app/electron/native",
