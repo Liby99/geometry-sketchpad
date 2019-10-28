@@ -37,10 +37,9 @@ export default class Point {
 
   setupGraphicsStyle() {
     this.graphics.clear();
-    // this.graphics.beginFill(this.style.color, this.style.alpha);
-    // this.graphics.lineStyle(this.style.borderWidth, this.style.borderColor, this.style.borderAlpha);
-    // this.graphics.drawEllipse(0, 0, this.style.radius - this.style.borderWidth / 2, this.style.radius - this.style.borderWidth / 2);
-    // this.graphics.endFill();
+    this.graphics.lineStyle(this.style.width, this.style.color, this.style.alpha);
+    this.graphics.moveTo(this.line.from.x, this.line.from.y);
+    this.graphics.lineTo(this.line.to.x, this.line.to.y);
 
     // if (this.selected) {
     //   this.graphics.beginFill(0x000000, 0);

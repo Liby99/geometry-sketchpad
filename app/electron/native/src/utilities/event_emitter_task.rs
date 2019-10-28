@@ -89,27 +89,72 @@ impl Task for EventEmitterTask {
       }};
     }
 
-    // Creates an object of the shape `{ "event": string, ...data }`
+    macro_rules! line {
+      ($line: expr) => {{
+        let ScreenLine { from, to, .. } = $line;
+        let line = cx.empty_object();
+        let from = position!(from);
+        let to = position!(to);
+        line.set(&mut cx, "from", from)?;
+        line.set(&mut cx, "to", to)?;
+        line
+      }};
+    }
+
+    macro_rules! line_style {
+      ($line_style: expr) => {{
+        let LineStyle { color, width } = $line_style;
+        let rgb = cx.number(color_to_hex(color));
+        let alpha = cx.number(color.a);
+        let width = cx.number(width);
+        let style = cx.empty_object();
+        style.set(&mut cx, "color", rgb)?;
+        style.set(&mut cx, "alpha", alpha)?;
+        style.set(&mut cx, "width", width)?;
+        style
+      }};
+    }
+
     match event {
       RenderUpdateEvent::None => (),
       RenderUpdateEvent::InsertedPoint(ent, scrn_point, point_style) => {
         let entity = entity!(ent);
         o.set(&mut cx, "entity", entity)?;
         let position = position!(scrn_point);
-        o.set(&mut cx, "position", position)?;
+        o.set(&mut cx, "point", position)?;
         let style = point_style!(point_style);
+        o.set(&mut cx, "style", style)?;
+      },
+      RenderUpdateEvent::InsertedLine(ent, scrn_line, line_style) => {
+        let entity = entity!(ent);
+        o.set(&mut cx, "entity", entity)?;
+        let line = line!(scrn_line);
+        o.set(&mut cx, "line", line)?;
+        let style = line_style!(line_style);
         o.set(&mut cx, "style", style)?;
       },
       RenderUpdateEvent::UpdatedPoint(ent, scrn_point) => {
         let entity = entity!(ent);
         o.set(&mut cx, "entity", entity)?;
         let position = position!(scrn_point);
-        o.set(&mut cx, "position", position)?;
+        o.set(&mut cx, "point", position)?;
+      },
+      RenderUpdateEvent::UpdatedLine(ent, scrn_line) => {
+        let entity = entity!(ent);
+        o.set(&mut cx, "entity", entity)?;
+        let line = line!(scrn_line);
+        o.set(&mut cx, "line", line)?;
       },
       RenderUpdateEvent::UpdatedPointStyle(ent, point_style) => {
         let entity = entity!(ent);
         o.set(&mut cx, "entity", entity)?;
         let style = point_style!(point_style);
+        o.set(&mut cx, "style", style)?;
+      },
+      RenderUpdateEvent::UpdatedLineStyle(ent, line_style) => {
+        let entity = entity!(ent);
+        o.set(&mut cx, "entity", entity)?;
+        let style = line_style!(line_style);
         o.set(&mut cx, "style", style)?;
       },
       RenderUpdateEvent::SelectedEntity(ent) => {

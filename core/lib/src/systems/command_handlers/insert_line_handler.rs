@@ -21,6 +21,7 @@ impl<'a> System<'a> for InsertLineHandler {
     Entities<'a>,
     Read<'a, CommandEventChannel>,
     Write<'a, GeometryEventChannel>,
+    Write<'a, MarkerEventChannel>,
     Read<'a, DefaultLineStyle>,
     ReadStorage<'a, SymbolicPoint>,
     WriteStorage<'a, SymbolicLine>,
@@ -38,6 +39,7 @@ impl<'a> System<'a> for InsertLineHandler {
     entities,
     command_event_channel,
     mut geometry_event_channel,
+    mut marker_event_channel,
     default_line_style,
     sym_points,
     mut sym_lines,
@@ -54,6 +56,7 @@ impl<'a> System<'a> for InsertLineHandler {
               let line_style = default_line_style.get();
               let (ent, geom) = insert(ent, *sym_line, line_style, &mut sym_lines, &mut line_styles, &mut selecteds, &mut elements);
               geometry_event_channel.single_write(GeometryEvent::inserted(ent, geom));
+              marker_event_channel.single_write(MarkerEvent::Select(ent));
             },
             InsertLineEvent::InsertParallelFromSelection => {
               if let Some((l_ent, p_ents)) = check_perp_para_selection(&entities, &sym_points, &sym_lines, &selecteds) {
@@ -63,6 +66,7 @@ impl<'a> System<'a> for InsertLineHandler {
                   let line_style = default_line_style.get();
                   let (ent, geom) = insert(ent, sym_line, line_style, &mut sym_lines, &mut line_styles, &mut selecteds, &mut elements);
                   geometry_event_channel.single_write(GeometryEvent::inserted(ent, geom));
+                  marker_event_channel.single_write(MarkerEvent::Select(ent));
                 }
               }
             },
@@ -74,6 +78,7 @@ impl<'a> System<'a> for InsertLineHandler {
                   let line_style = default_line_style.get();
                   let (ent, geom) = insert(ent, sym_line, line_style, &mut sym_lines, &mut line_styles, &mut selecteds, &mut elements);
                   geometry_event_channel.single_write(GeometryEvent::inserted(ent, geom));
+                  marker_event_channel.single_write(MarkerEvent::Select(ent));
                 }
               }
             },
@@ -81,10 +86,12 @@ impl<'a> System<'a> for InsertLineHandler {
               let ent = entities.create();
               let (ent, geom) = insert(ent, *sym_line, *line_style, &mut sym_lines, &mut line_styles, &mut selecteds, &mut elements);
               geometry_event_channel.single_write(GeometryEvent::inserted(ent, geom));
+              marker_event_channel.single_write(MarkerEvent::Select(ent));
             },
             InsertLineEvent::InsertLineByHistory(ent, sym_line, line_style) => {
               let (ent, geom) = insert(*ent, *sym_line, *line_style, &mut sym_lines, &mut line_styles, &mut selecteds, &mut elements);
               geometry_event_channel.single_write(GeometryEvent::inserted_by_history(ent, geom));
+              marker_event_channel.single_write(MarkerEvent::Select(ent));
             },
           },
           _ => (),

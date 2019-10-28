@@ -1,3 +1,19 @@
+export const EVENT_TYPE_INSERTED_POINT = 1;
+export const EVENT_TYPE_INSERTED_LINE = 2;
+export const EVENT_TYPE_INSERTED_CIRCLE = 3;
+export const EVENT_TYPE_INSERTED_RECTANGLE = 4;
+export const EVENT_TYPE_UPDATED_POINT = 5;
+export const EVENT_TYPE_UPDATED_LINE = 6;
+export const EVENT_TYPE_UPDATED_CIRCLE = 7;
+export const EVENT_TYPE_UPDATED_RECTANGLE = 8;
+export const EVENT_TYPE_UPDATED_POINT_STYLE = 9;
+export const EVENT_TYPE_UPDATED_LINE_STYLE = 10;
+export const EVENT_TYPE_UPDATED_CIRCLE_STYLE = 11;
+export const EVENT_TYPE_UPDATED_RECTANGLE_STYLE = 12;
+export const EVENT_TYPE_REMOVED_ENTITY = 13;
+export const EVENT_TYPE_SELECTED_ENTITY = 14;
+export const EVENT_TYPE_DESELECTED_ENTITY = 15;
+
 export type Position = {
   x: number,
   y: number,
@@ -45,26 +61,13 @@ export type RectangleStyle = {
   border: LineStyle,
 };
 
-export const EVENT_TYPE_INSERTED_POINT = 1;
-export const EVENT_TYPE_INSERTED_LINE = 2;
-export const EVENT_TYPE_INSERTED_CIRCLE = 3;
-export const EVENT_TYPE_INSERTED_RECTANGLE = 4;
-export const EVENT_TYPE_UPDATED_POINT = 5;
-export const EVENT_TYPE_UPDATED_LINE = 6;
-export const EVENT_TYPE_UPDATED_CIRCLE = 7;
-export const EVENT_TYPE_UPDATED_RECTANGLE = 8;
-export const EVENT_TYPE_UPDATED_POINT_STYLE = 9;
-export const EVENT_TYPE_REMOVED_ENTITY = 13;
-export const EVENT_TYPE_SELECTED_ENTITY = 14;
-export const EVENT_TYPE_DESELECTED_ENTITY = 15;
-
 export type RenderUpdateEvent =
 | { type: 0 } // None
-| { type: 1, entity: string, position: Position, style: PointStyle }  // insert point event
+| { type: 1, entity: string, point: Position, style: PointStyle }  // insert point event
 | { type: 2, entity: string, line: Line, style: LineStyle } // insert line event
 | { type: 3, entity: string, circle: Circle, style: CircleStyle } // insert circle event
 | { type: 4, entity: string, rect: Rectangle, style: RectangleStyle }
-| { type: 5, entity: string, position: Position } // update point event
+| { type: 5, entity: string, point: Position } // update point event
 | { type: 6, entity: string, line: Line }
 | { type: 7, entity: string, circle: Circle }
 | { type: 8, entity: string, rect: Rectangle }

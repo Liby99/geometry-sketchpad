@@ -155,6 +155,15 @@ impl Intersect<ScreenLine> for ScreenLine {
   }
 }
 
+impl Intersect<AABB> for ScreenLine {
+  type Output = Option<(ScreenPosition, ScreenPosition)>;
+
+  fn intersect(self, other: AABB) -> Self::Output {
+    let l : Line = self.into();
+    l.intersect(other).map(|(p1, p2)| (ScreenPosition(p1), ScreenPosition(p2)))
+  }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct ScreenCircle {
   pub center: ScreenPosition,

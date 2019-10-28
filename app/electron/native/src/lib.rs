@@ -138,7 +138,32 @@ declare_types! {
   }
 }
 
+static CONSTANTS : [(&'static str, u32); 16] = [
+  ("EVENT_TYPE_NONE", 0),
+  ("EVENT_TYPE_INSERTED_POINT", 1),
+  ("EVENT_TYPE_INSERTED_LINE", 2),
+  ("EVENT_TYPE_INSERTED_CIRCLE", 3),
+  ("EVENT_TYPE_INSERTED_RECTANGLE", 4),
+  ("EVENT_TYPE_UPDATED_POINT", 5),
+  ("EVENT_TYPE_UPDATED_LINE", 6),
+  ("EVENT_TYPE_UPDATED_CIRCLE", 7),
+  ("EVENT_TYPE_UPDATED_RECTANGLE", 8),
+  ("EVENT_TYPE_UPDATED_POINT_STYLE", 9),
+  ("EVENT_TYPE_UPDATED_LINE_STYLE", 10),
+  ("EVENT_TYPE_UPDATED_CIRCLE_STYLE", 11),
+  ("EVENT_TYPE_UPDATED_RECTANGLE_STYLE", 12),
+  ("EVENT_TYPE_REMOVED_ENTITY", 13),
+  ("EVENT_TYPE_SELECTED_ENTITY", 14),
+  ("EVENT_TYPE_DESELECTED_ENTITY", 15),
+];
+
 register_module!(mut cx, {
   cx.export_class::<JsEventEmitter>("GeopadWorld")?;
+
+  for (event_type, number) in &CONSTANTS {
+    let js_number = cx.number(*number);
+    cx.export_value::<JsNumber>(event_type, js_number)?;
+  }
+
   Ok(())
 });

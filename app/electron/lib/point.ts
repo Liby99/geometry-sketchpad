@@ -3,27 +3,27 @@ import * as PIXI from "pixi.js";
 
 export default class Point {
 
-  position: Position;
+  point: Position;
   style: PointStyle;
   selected: boolean;
   graphics: PIXI.Graphics;
 
-  constructor(position: Position, style: PointStyle) {
+  constructor(point: Position, style: PointStyle) {
 
     // Basic information
-    this.position = position;
+    this.point = point;
     this.style = style;
     this.selected = false;
 
     // Render information
     this.graphics = new PIXI.Graphics();
-    this.setupGraphicsPosition();
+    this.setupGraphicsPoint();
     this.setupGraphicsStyle();
   }
 
-  updatePosition(position: Position) {
-    this.position = position;
-    this.setupGraphicsPosition();
+  updatePoint(point: Position) {
+    this.point = point;
+    this.setupGraphicsPoint();
   }
 
   updateStyle(style: PointStyle) {
@@ -36,9 +36,9 @@ export default class Point {
     this.setupGraphicsStyle();
   }
 
-  setupGraphicsPosition() {
-    this.graphics.x = this.position.x;
-    this.graphics.y = this.position.y;
+  setupGraphicsPoint() {
+    this.graphics.x = this.point.x;
+    this.graphics.y = this.point.y;
   }
 
   setupGraphicsStyle() {

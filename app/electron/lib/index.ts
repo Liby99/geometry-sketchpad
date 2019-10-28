@@ -1,9 +1,13 @@
 import { promisify } from "util";
 import * as Geopad from "../native";
-import * as PIXI from "pixi.js";
 import * as $ from "jquery";
 
+import * as PIXI from "pixi.js";
+window.PIXI = PIXI;
+import "pixi-layers";
+
 import Point from "./point";
+import Line from "./line";
 
 type RustChannel = Geopad.GeopadWorld;
 const RustChannel = Geopad.GeopadWorld;
@@ -15,13 +19,17 @@ interface Storage<T> {
 export default class GeopadWorld {
 
   $canvas: JQuery<HTMLElement>;
-  app: PIXI.Application;
   channel: RustChannel;
-
   isShutdown: boolean;
 
+  app: PIXI.Application;
+  pointGroup: PIXI.display.Group;
+  lineGroup: PIXI.display.Group;
+  // circleLayer: PIXI.display.Layer;
+  // rectangleLayer: PIXI.display.Layer;
+
   points: Storage<Point>;
-  // lines: Storage<
+  lines: Storage<Line>;
 
   constructor($canvas: JQuery<HTMLElement>) {
     this.$canvas = $canvas;
@@ -35,6 +43,14 @@ export default class GeopadWorld {
     });
     this.app.renderer.backgroundColor = 0xffffff;
     this.app.renderer.autoResize = true;
+
+    // Create the groups
+    this.pointGroup = new PIXI.display.Group(3, false);
+    this.lineGroup = new PIXI.display.Group(2, false);
+    this.app.stage = new PIXI.display.Stage();
+    this.app.stage.sortableChildren = true;
+    this.app.stage.addChild(new PIXI.display.Layer(this.pointGroup));
+    this.app.stage.addChild(new PIXI.display.Layer(this.lineGroup));
     $canvas[0].appendChild(this.app.view);
 
     // Initialize Backend
@@ -43,7 +59,7 @@ export default class GeopadWorld {
 
     // Geometry storages
     this.points = {};
-    // this.lines = {};
+    this.lines = {};
     // this.circles = {};
     // this.rectangles = {};
 
@@ -59,7 +75,7 @@ export default class GeopadWorld {
     // Render interval does not depend on polling loop
     setInterval(() => {
       this.channel.step();
-    }, 10);
+    }, 16);
 
     // Setup callbacks to canvas
     this.$canvas.mousedown(() => {
@@ -93,30 +109,50 @@ export default class GeopadWorld {
     if (!event) { return; }
     switch (event.type) {
       case Geopad.EVENT_TYPE_INSERTED_POINT: {
-        const point = new Point(event.position, event.style);
+        const point = new Point(event.point, event.style);
         this.points[event.entity] = point;
         this.app.stage.addChild(point.graphics);
+        point.graphics.parentGroup = this.pointGroup;
+      } break;
+      case Geopad.EVENT_TYPE_INSERTED_LINE: {
+        const line = new Line(event.line, event.style);
+        this.lines[event.entity] = line;
+        this.app.stage.addChild(line.graphics);
+        line.graphics.parentGroup = this.lineGroup;
       } break;
       case Geopad.EVENT_TYPE_UPDATED_POINT: {
-        this.points[event.entity].updatePosition(event.position);
+        this.points[event.entity].updatePoint(event.point);
+      } break;
+      case Geopad.EVENT_TYPE_UPDATED_LINE: {
+        this.lines[event.entity].updateLine(event.line);
       } break;
       case Geopad.EVENT_TYPE_UPDATED_POINT_STYLE: {
         this.points[event.entity].updateStyle(event.style);
+      } break;
+      case Geopad.EVENT_TYPE_UPDATED_LINE_STYLE: {
+        this.lines[event.entity].updateStyle(event.style);
       } break;
       case Geopad.EVENT_TYPE_REMOVED_ENTITY: {
         if (event.entity in this.points) {
           this.app.stage.removeChild(this.points[event.entity].graphics);
           delete this.points[event.entity];
+        } else if (event.entity in this.lines) {
+          this.app.stage.removeChild(this.lines[event.entity].graphics);
+          delete this.lines[event.entity];
         }
       } break;
       case Geopad.EVENT_TYPE_SELECTED_ENTITY: {
         if (event.entity in this.points) {
           this.points[event.entity].setSelected(true);
+        } else if (event.entity in this.lines) {
+          this.lines[event.entity].setSelected(true);
         }
       } break;
       case Geopad.EVENT_TYPE_DESELECTED_ENTITY: {
         if (event.entity in this.points) {
           this.points[event.entity].setSelected(false);
+        } else if (event.entity in this.lines) {
+          this.lines[event.entity].setSelected(false);
         }
       }
     }
