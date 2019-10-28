@@ -1,6 +1,7 @@
-const { promisify } = require('util');
-const { GeopadWorld: RustChannel } = require('../native');
-const PIXI = require("pixi.js");
+import { promisify } from "util";
+import { default as RustChannel, Position, PointStyle, RenderUpdateEvent } from "../native";
+import * as PIXI from "pixi.js";
+import * as $ from "jquery";
 
 const EVENT_TYPE_INSERTED_POINT = 1;
 const EVENT_TYPE_INSERTED_LINE = 2;
@@ -16,7 +17,13 @@ const EVENT_TYPE_SELECTED_ENTITY = 14;
 const EVENT_TYPE_DESELECTED_ENTITY = 15;
 
 class Point {
-  constructor(position, style) {
+
+  position: Position;
+  style: PointStyle;
+  selected: boolean;
+  graphics: PIXI.Graphics;
+
+  constructor(position: Position, style: PointStyle) {
 
     // Basic information
     this.position = position;
@@ -29,17 +36,17 @@ class Point {
     this.setupGraphicsStyle();
   }
 
-  updatePosition(position) {
+  updatePosition(position: Position) {
     this.position = position;
     this.setupGraphicsPosition();
   }
 
-  updateStyle(style) {
+  updateStyle(style: PointStyle) {
     this.style = style;
     this.setupGraphicsStyle();
   }
 
-  setSelected(selected) {
+  setSelected(selected: boolean) {
     this.selected = selected;
     this.setupGraphicsStyle();
   }
@@ -65,36 +72,22 @@ class Point {
   }
 }
 
-class Line {
-  constructor(from, to, style) {
-    this.from = from;
-    this.to = to;
-    this.style = style;
-  }
+interface Storage<T> {
+  [entity: string]: T
 }
 
-class Circle {
-  constructor(center, radius, style) {
-    this.center = center;
-    this.radius = radius;
-    this.style = style;
-  }
-}
+export default class GeopadWorld {
 
-class Rectangle {
-  constructor(min, max, style) {
-    this.min = min;
-    this.max = max;
-    this.style = style;
-  }
+  $canvas: JQuery<HTMLElement>;
+  app: PIXI.Application;
+  channel: RustChannel;
 
-  draw(context) {
+  isShutdown: boolean;
 
-  }
-}
+  points: Storage<Point>;
+  // lines: Storage<
 
-class GeopadWorld {
-  constructor($canvas) {
+  constructor($canvas: JQuery<HTMLElement>) {
     this.$canvas = $canvas;
 
     // Initialize PIXI application
@@ -110,19 +103,20 @@ class GeopadWorld {
 
     // Initialize Backend
     this.channel = new RustChannel();
-    this.poll = promisify(this.channel.poll.bind(this.channel));
     this.isShutdown = false;
 
     // Geometry storages
     this.points = {};
-    this.lines = {};
-    this.circles = {};
-    this.rectangles = {};
+    // this.lines = {};
+    // this.circles = {};
+    // this.rectangles = {};
+
+    const poll = promisify(this.channel.poll.bind(this.channel));
 
     // Pooling loop getting the information from rust channel
     const pollLoop = () => {
       if (this.isShutdown) return;
-      this.poll().then(this.update.bind(this)).catch(console.error).then(() => setImmediate(pollLoop));
+      poll().then(this.update.bind(this)).catch(console.error).then(() => setImmediate(pollLoop));
     };
     pollLoop();
 
@@ -159,7 +153,7 @@ class GeopadWorld {
     });
   }
 
-  update(event) {
+  update(event: RenderUpdateEvent) {
     if (!event) { return; }
     switch (event.type) {
       case EVENT_TYPE_INSERTED_POINT: {
@@ -192,16 +186,8 @@ class GeopadWorld {
     }
   }
 
-  drawGeometries(geometries, selected) {
-    Object.keys(geometries).forEach((key) => {
-      geometries[key].draw(this.context, selected);
-    });
-  }
-
   shutdown() {
     this.channel.shutdown();
     this.isShutdown = true;
   }
 }
-
-module.exports = GeopadWorld;

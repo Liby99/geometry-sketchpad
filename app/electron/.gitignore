@@ -3,3 +3,6 @@ node_modules/
 # Neon compilation related
 native/artifacts.json
 native/index.node
+
+# Typescript compilation related
+dist/
