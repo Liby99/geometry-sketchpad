@@ -8,6 +8,7 @@ use super::output::RenderUpdateEvent;
 pub struct SenderSystem {
   pub sender: std::sync::mpsc::Sender<RenderUpdateEvent>,
   scrn_point_update_reader: Option<ReaderId<ComponentEvent>>,
+  point_style_update_reader: Option<ReaderId<ComponentEvent>>,
   marker_event_reader: Option<MarkerEventReader>,
 }
 
@@ -16,6 +17,7 @@ impl SenderSystem {
     Self {
       sender,
       scrn_point_update_reader: None,
+      point_style_update_reader: None,
       marker_event_reader: None,
     }
   }
@@ -32,6 +34,7 @@ impl<'a> System<'a> for SenderSystem {
   fn setup(&mut self, world: &mut World) {
     Self::SystemData::setup(world);
     self.scrn_point_update_reader = Some(WriteStorage::<ScreenPoint>::fetch(&world).register_reader());
+    self.point_style_update_reader = Some(WriteStorage::<PointStyle>::fetch(&world).register_reader());
     self.marker_event_reader = Some(world.fetch_mut::<MarkerEventChannel>().register_reader());
   }
 
@@ -43,28 +46,46 @@ impl<'a> System<'a> for SenderSystem {
   ): Self::SystemData) {
 
     // First deal with geometry update
-    let mut dirty : BitSet = BitSet::new();
-    let mut to_remove : BitSet = BitSet::new();
+    let mut inserted_points : BitSet = BitSet::new();
+    let mut modified_points : BitSet = BitSet::new();
+    let mut modified_point_styles : BitSet = BitSet::new();
+    let mut removed : BitSet = BitSet::new();
+
+    // Screen point updates
     if let Some(reader) = &mut self.scrn_point_update_reader {
       for event in scrn_points.channel().read(reader) {
         match event {
-          ComponentEvent::Inserted(id) | ComponentEvent::Modified(id) => {
-            dirty.add(*id);
-          },
-          ComponentEvent::Removed(id) => {
-            to_remove.add(*id);
-          },
+          ComponentEvent::Inserted(id) => { inserted_points.add(*id); },
+          ComponentEvent::Modified(id) => { modified_points.add(*id); },
+          ComponentEvent::Removed(id) => { removed.add(*id); },
         }
       }
     }
 
-    // Do all the updates
-    for (ent, scrn_point, point_style, _) in (&entities, &scrn_points, &point_styles, &dirty).join() {
-      if let Err(err) = self.sender.send(RenderUpdateEvent::UpdatedPoint(ent, *scrn_point, *point_style)) { panic!(err) }
+    if let Some(reader) = &mut self.point_style_update_reader {
+      for event in point_styles.channel().read(reader) {
+        match event {
+          ComponentEvent::Modified(id) => { modified_point_styles.add(*id); },
+          _ => (),
+        }
+      }
+    }
+
+    // Do all the insert
+    for (ent, scrn_point, point_style, _) in (&entities, &scrn_points, &point_styles, &inserted_points).join() {
+      if let Err(err) = self.sender.send(RenderUpdateEvent::InsertedPoint(ent, *scrn_point, *point_style)) { panic!(err) }
+    }
+
+    // Do all the modify
+    for (ent, scrn_point, _) in (&entities, &scrn_points, &modified_points).join() {
+      if let Err(err) = self.sender.send(RenderUpdateEvent::UpdatedPoint(ent, *scrn_point)) { panic!(err) }
+    }
+    for (ent, point_style, _) in (&entities, &point_styles, &modified_point_styles).join() {
+      if let Err(err) = self.sender.send(RenderUpdateEvent::UpdatedPointStyle(ent, *point_style)) { panic!(err) }
     }
 
     // Do all the removals
-    for (ent, _) in (&entities, &to_remove).join() {
+    for (ent, _) in (&entities, &removed).join() {
       if let Err(err) = self.sender.send(RenderUpdateEvent::RemovedEntity(ent)) { panic!(err) }
     }
 

@@ -2,10 +2,12 @@ const { promisify } = require('util');
 const { GeopadWorld: RustChannel } = require('../native');
 const PIXI = require("pixi.js");
 
-const EVENT_TYPE_UPDATE_POINT = 1;
-const EVENT_TYPE_REMOVE_ENTITY = 4;
-const EVENT_TYPE_SELECT_ENTITY = 5;
-const EVENT_TYPE_DESELECT_ENTITY = 6;
+const EVENT_TYPE_INSERTED_POINT = 1;
+const EVENT_TYPE_UPDATED_POINT = 5;
+const EVENT_TYPE_UPDATED_POINT_STYLE = 9;
+const EVENT_TYPE_REMOVED_ENTITY = 13;
+const EVENT_TYPE_SELECTED_ENTITY = 14;
+const EVENT_TYPE_DESELECTED_ENTITY = 15;
 
 class Point {
   constructor(position, style) {
@@ -17,24 +19,36 @@ class Point {
 
     // Render information
     this.graphics = new PIXI.Graphics();
-    this.setupGraphics();
+    this.setupGraphicsPosition();
+    this.setupGraphicsStyle();
   }
 
-  update(position, style) {
+  updatePosition(position) {
     this.position = position;
-    this.style = style;
-
-    this.graphics.clear();
-    this.setupGraphics();
+    this.setupGraphicsPosition();
   }
 
-  setupGraphics() {
+  updateStyle(style) {
+    this.style = style;
+    this.setupGraphicsStyle();
+  }
+
+  setSelected(selected) {
+    this.selected = selected;
+    this.setupGraphicsStyle();
+  }
+
+  setupGraphicsPosition() {
+    this.graphics.x = this.position.x;
+    this.graphics.y = this.position.y;
+  }
+
+  setupGraphicsStyle() {
+    this.graphics.clear();
     this.graphics.beginFill(this.style.color, this.style.alpha);
     this.graphics.lineStyle(this.style.borderWidth, this.style.borderColor, this.style.borderAlpha);
     this.graphics.drawEllipse(0, 0, this.style.radius, this.style.radius);
     this.graphics.endFill();
-    this.graphics.x = this.position.x;
-    this.graphics.y = this.position.y;
   }
 }
 
@@ -112,15 +126,6 @@ class GeopadWorld {
       this.channel.step();
     }, 10);
 
-    // In focus check
-    this.isInFocus = false;
-    this.$canvas.mouseover(() => {
-      this.isInFocus = true;
-    });
-    this.$canvas.mouseleave(() => {
-      this.isInFocus = false;
-    });
-
     // Setup callbacks to canvas
     this.$canvas.mousedown(() => {
       this.channel.onMouseDown();
@@ -132,18 +137,15 @@ class GeopadWorld {
 
     let currPosition = [0, 0];
     this.$canvas.mousemove((event) => {
-      this.isInFocus = true;
-      let x = event.pageX, y = event.pageY;
-      let relX = x - currPosition[0], relY = y - currPosition[1];
+      const x = event.pageX, y = event.pageY;
+      const relX = x - currPosition[0], relY = y - currPosition[1];
       currPosition = [x, y];
       this.channel.onMouseMove(x, y, relX, relY);
     });
 
     $(document).keydown((event) => {
-      if (this.isInFocus) {
-        let key = event.which;
-        this.channel.onKeyDown(key);
-      }
+      let key = event.which;
+      this.channel.onKeyDown(key);
     });
 
     $(document).keyup((event) => {
@@ -155,14 +157,16 @@ class GeopadWorld {
   update(event) {
     if (!event) { return; }
     switch (event.type) {
-      case EVENT_TYPE_UPDATE_POINT: {
-        if (event.entity in this.points) {
-          this.points[event.entity].update(event.position, event.style);
-        } else {
-          const point = new Point(event.position, event.style);
-          this.points[event.entity] = point;
-          this.app.stage.addChild(point.graphics);
-        }
+      case EVENT_TYPE_INSERTED_POINT: {
+        const point = new Point(event.position, event.style);
+        this.points[event.entity] = point;
+        this.app.stage.addChild(point.graphics);
+      } break;
+      case EVENT_TYPE_UPDATED_POINT: {
+        this.points[event.entity].updatePosition(event.position);
+      } break;
+      case EVENT_TYPE_UPDATED_POINT_STYLE: {
+        this.points[event.entity].updateStyle(event.style);
       } break;
       case EVENT_TYPE_REMOVE_ENTITY: {
         if (event.entity in this.points) {

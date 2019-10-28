@@ -10,7 +10,7 @@ pub struct PointStyle {
 }
 
 impl Component for PointStyle {
-  type Storage = VecStorage<Self>;
+  type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }
 
 impl PointStyle {

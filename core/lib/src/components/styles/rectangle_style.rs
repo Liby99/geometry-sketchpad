@@ -9,5 +9,5 @@ pub struct RectangleStyle {
 }
 
 impl Component for RectangleStyle {
-  type Storage = VecStorage<Self>;
+  type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }

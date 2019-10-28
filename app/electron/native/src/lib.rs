@@ -100,19 +100,7 @@ impl Task for EventEmitterTask {
     // Creates an object of the shape `{ "event": string, ...data }`
     match event {
       RenderUpdateEvent::None => (),
-      RenderUpdateEvent::SelectedEntity(ent) => {
-        let event_entity = cx.string(format!("{}_{}", ent.id(), ent.gen().id()));
-        o.set(&mut cx, "entity", event_entity)?;
-      },
-      RenderUpdateEvent::DeselectedEntity(ent) => {
-        let event_entity = cx.string(format!("{}_{}", ent.id(), ent.gen().id()));
-        o.set(&mut cx, "entity", event_entity)?;
-      },
-      RenderUpdateEvent::RemovedEntity(ent) => {
-        let event_entity = cx.string(format!("{}_{}", ent.id(), ent.gen().id()));
-        o.set(&mut cx, "entity", event_entity)?;
-      },
-      RenderUpdateEvent::UpdatedPoint(ent, ScreenPosition(Vector2 { x, y }), PointStyle { color, radius, border_color, border_width }) => {
+      RenderUpdateEvent::InsertedPoint(ent, ScreenPosition(Vector2 { x, y }), PointStyle { color, radius, border_color, border_width }) => {
         let event_entity = cx.string(format!("{}_{}", ent.id(), ent.gen().id()));
         o.set(&mut cx, "entity", event_entity)?;
 
@@ -138,6 +126,48 @@ impl Task for EventEmitterTask {
         event_style.set(&mut cx, "borderWidth", event_style_border_width)?;
         o.set(&mut cx, "style", event_style)?;
       },
+      RenderUpdateEvent::UpdatedPoint(ent, ScreenPosition(Vector2 { x, y })) => {
+        let event_entity = cx.string(format!("{}_{}", ent.id(), ent.gen().id()));
+        o.set(&mut cx, "entity", event_entity)?;
+
+        let event_scrn_point = cx.empty_object();
+        let event_scrn_point_x = cx.number(x);
+        let event_scrn_point_y = cx.number(y);
+        event_scrn_point.set(&mut cx, "x", event_scrn_point_x)?;
+        event_scrn_point.set(&mut cx, "y", event_scrn_point_y)?;
+        o.set(&mut cx, "position", event_scrn_point)?;
+      },
+      RenderUpdateEvent::UpdatedPointStyle(ent, PointStyle { color, radius, border_color, border_width }) => {
+        let event_entity = cx.string(format!("{}_{}", ent.id(), ent.gen().id()));
+        o.set(&mut cx, "entity", event_entity)?;
+
+        let event_style = cx.empty_object();
+        let event_style_color = cx.number(color_to_hex(color));
+        let event_style_alpha = cx.number(color.a);
+        let event_style_border_color = cx.number(color_to_hex(border_color));
+        let event_style_border_alpha = cx.number(border_color.a);
+        let event_style_radius = cx.number(radius);
+        let event_style_border_width = cx.number(border_width);
+        event_style.set(&mut cx, "color", event_style_color)?;
+        event_style.set(&mut cx, "alpha", event_style_alpha)?;
+        event_style.set(&mut cx, "borderColor", event_style_border_color)?;
+        event_style.set(&mut cx, "borderAlpha", event_style_border_alpha)?;
+        event_style.set(&mut cx, "radius", event_style_radius)?;
+        event_style.set(&mut cx, "borderWidth", event_style_border_width)?;
+        o.set(&mut cx, "style", event_style)?;
+      },
+      RenderUpdateEvent::SelectedEntity(ent) => {
+        let event_entity = cx.string(format!("{}_{}", ent.id(), ent.gen().id()));
+        o.set(&mut cx, "entity", event_entity)?;
+      },
+      RenderUpdateEvent::DeselectedEntity(ent) => {
+        let event_entity = cx.string(format!("{}_{}", ent.id(), ent.gen().id()));
+        o.set(&mut cx, "entity", event_entity)?;
+      },
+      RenderUpdateEvent::RemovedEntity(ent) => {
+        let event_entity = cx.string(format!("{}_{}", ent.id(), ent.gen().id()));
+        o.set(&mut cx, "entity", event_entity)?;
+      },
     }
     Ok(o.upcast())
   }
@@ -150,10 +180,12 @@ pub fn color_to_hex(color: Color) -> u32 {
 pub fn type_to_u32(event: &RenderUpdateEvent) -> u32 {
   match event {
     RenderUpdateEvent::None => 0,
-    RenderUpdateEvent::UpdatedPoint(_, _, _) => 1,
-    RenderUpdateEvent::RemovedEntity(_) => 4,
-    RenderUpdateEvent::SelectedEntity(_) => 5,
-    RenderUpdateEvent::DeselectedEntity(_) => 6,
+    RenderUpdateEvent::InsertedPoint(_, _, _) => 1,
+    RenderUpdateEvent::UpdatedPoint(_, _) => 5,
+    RenderUpdateEvent::UpdatedPointStyle(_, _) => 9,
+    RenderUpdateEvent::RemovedEntity(_) => 13,
+    RenderUpdateEvent::SelectedEntity(_) => 14,
+    RenderUpdateEvent::DeselectedEntity(_) => 15,
   }
 }
 

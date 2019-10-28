@@ -8,7 +8,7 @@ pub struct LineStyle {
 }
 
 impl Component for LineStyle {
-  type Storage = VecStorage<Self>;
+  type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }
 
 impl LineStyle {

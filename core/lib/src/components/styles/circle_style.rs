@@ -9,7 +9,7 @@ pub struct CircleStyle {
 }
 
 impl Component for CircleStyle {
-  type Storage = VecStorage<Self>;
+  type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }
 
 impl CircleStyle {
