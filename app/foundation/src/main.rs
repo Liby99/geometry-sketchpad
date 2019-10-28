@@ -8,7 +8,7 @@ extern crate geopad_foundation;
 
 use specs::prelude::*;
 use core_ui::{resources::*, setup_core_ui};
-use core_piston::new_piston_window;
+use geopad_foundation::new_piston_window;
 
 fn main() {
   let mut world = World::new();
