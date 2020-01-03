@@ -1,127 +1,133 @@
-use std::collections::{HashMap, HashSet};
+use crate::{components::symbolics::SymbolicPoint, events::*, resources::*, utilities::*};
 use specs::prelude::*;
-use crate::{events::*, components::symbolics::SymbolicPoint, resources::*, utilities::*};
+use std::collections::{HashMap, HashSet};
 
 enum Mod {
-  None,
-  Insert(HashMap<Entity, Geometry>),
-  Remove(HashMap<Entity, Geometry>),
-  UpdatePoint(Entity, SymbolicPoint, SymbolicPoint),
-  Hide(HashSet<Entity>),
-  Unhide(HashSet<Entity>),
+    None,
+    Insert(HashMap<Entity, Geometry>),
+    Remove(HashMap<Entity, Geometry>),
+    UpdatePoint(Entity, SymbolicPoint, SymbolicPoint),
+    Hide(HashSet<Entity>),
+    Unhide(HashSet<Entity>),
 }
 
 pub struct HistoryManager {
-  geometry_event_reader: Option<GeometryEventReader>,
-  marker_event_reader: Option<MarkerEventReader>,
+    geometry_event_reader: Option<GeometryEventReader>,
+    marker_event_reader: Option<MarkerEventReader>,
 }
 
 impl Default for HistoryManager {
-  fn default() -> Self {
-    Self {
-      geometry_event_reader: None,
-      marker_event_reader: None,
+    fn default() -> Self {
+        Self {
+            geometry_event_reader: None,
+            marker_event_reader: None,
+        }
     }
-  }
 }
 
 impl<'a> System<'a> for HistoryManager {
-  type SystemData = (
-    Read<'a, GeometryEventChannel>,
-    Read<'a, MarkerEventChannel>,
-    Write<'a, History>,
-  );
+    type SystemData = (
+        Read<'a, GeometryEventChannel>,
+        Read<'a, MarkerEventChannel>,
+        Write<'a, History>,
+    );
 
-  fn setup(&mut self, world: &mut World) {
-    Self::SystemData::setup(world);
-    self.geometry_event_reader = Some(world.fetch_mut::<GeometryEventChannel>().register_reader());
-    self.marker_event_reader = Some(world.fetch_mut::<MarkerEventChannel>().register_reader());
-  }
+    fn setup(&mut self, world: &mut World) {
+        Self::SystemData::setup(world);
+        self.geometry_event_reader =
+            Some(world.fetch_mut::<GeometryEventChannel>().register_reader());
+        self.marker_event_reader = Some(world.fetch_mut::<MarkerEventChannel>().register_reader());
+    }
 
-  fn run(&mut self, (
-    geometry_event_channel,
-    marker_event_channel,
-    mut history,
-  ): Self::SystemData) {
+    fn run(
+        &mut self,
+        (geometry_event_channel, marker_event_channel, mut history): Self::SystemData,
+    ) {
+        assert!(self.geometry_event_reader.is_some());
+        assert!(self.marker_event_reader.is_some());
 
-    assert!(self.geometry_event_reader.is_some());
-    assert!(self.marker_event_reader.is_some());
-
-    // First do geometry events
-    if let Some(reader_id) = &mut self.geometry_event_reader {
-      let mut curr_event = Mod::None;
-      for event in geometry_event_channel.read(reader_id) {
-        match event {
-          GeometryEvent::Inserted(entity, geom, false) => {
-            if let Mod::Insert(insertions) = &mut curr_event {
-              insertions.insert(*entity, *geom);
-            } else {
-              push_event(curr_event, &mut history);
-              let mut insertions = HashMap::new();
-              insertions.insert(*entity, *geom);
-              curr_event = Mod::Insert(insertions);
+        // First do geometry events
+        if let Some(reader_id) = &mut self.geometry_event_reader {
+            let mut curr_event = Mod::None;
+            for event in geometry_event_channel.read(reader_id) {
+                match event {
+                    GeometryEvent::Inserted(entity, geom, false) => {
+                        if let Mod::Insert(insertions) = &mut curr_event {
+                            insertions.insert(*entity, *geom);
+                        } else {
+                            push_event(curr_event, &mut history);
+                            let mut insertions = HashMap::new();
+                            insertions.insert(*entity, *geom);
+                            curr_event = Mod::Insert(insertions);
+                        }
+                    }
+                    GeometryEvent::Removed(entity, geom, false) => {
+                        if let Mod::Remove(removals) = &mut curr_event {
+                            removals.insert(*entity, *geom);
+                        } else {
+                            push_event(curr_event, &mut history);
+                            let mut removals = HashMap::new();
+                            removals.insert(*entity, *geom);
+                            curr_event = Mod::Remove(removals);
+                        }
+                    }
+                    GeometryEvent::PointUpdateFinished(
+                        entity,
+                        old_sym_point,
+                        new_sym_point,
+                        false,
+                    ) => {
+                        push_event(curr_event, &mut history);
+                        curr_event = Mod::UpdatePoint(*entity, *old_sym_point, *new_sym_point);
+                    }
+                    _ => (),
+                }
             }
-          },
-          GeometryEvent::Removed(entity, geom, false) => {
-            if let Mod::Remove(removals) = &mut curr_event {
-              removals.insert(*entity, *geom);
-            } else {
-              push_event(curr_event, &mut history);
-              let mut removals = HashMap::new();
-              removals.insert(*entity, *geom);
-              curr_event = Mod::Remove(removals);
-            }
-          },
-          GeometryEvent::PointUpdateFinished(entity, old_sym_point, new_sym_point, false) => {
             push_event(curr_event, &mut history);
-            curr_event = Mod::UpdatePoint(*entity, *old_sym_point, *new_sym_point);
-          },
-          _ => (),
         }
-      }
-      push_event(curr_event, &mut history);
-    }
 
-    // Then do marker events
-    if let Some(reader) = &mut self.marker_event_reader {
-      let mut curr_event = Mod::None;
-      for event in marker_event_channel.read(reader) {
-        match event {
-          MarkerEvent::Hide(entity, false) => {
-            if let Mod::Hide(entities) = &mut curr_event {
-              entities.insert(*entity);
-            } else {
-              push_event(curr_event, &mut history);
-              let mut entities = HashSet::new();
-              entities.insert(*entity);
-              curr_event = Mod::Hide(entities);
+        // Then do marker events
+        if let Some(reader) = &mut self.marker_event_reader {
+            let mut curr_event = Mod::None;
+            for event in marker_event_channel.read(reader) {
+                match event {
+                    MarkerEvent::Hide(entity, false) => {
+                        if let Mod::Hide(entities) = &mut curr_event {
+                            entities.insert(*entity);
+                        } else {
+                            push_event(curr_event, &mut history);
+                            let mut entities = HashSet::new();
+                            entities.insert(*entity);
+                            curr_event = Mod::Hide(entities);
+                        }
+                    }
+                    MarkerEvent::Unhide(entity, false) => {
+                        if let Mod::Unhide(entities) = &mut curr_event {
+                            entities.insert(*entity);
+                        } else {
+                            push_event(curr_event, &mut history);
+                            let mut entities = HashSet::new();
+                            entities.insert(*entity);
+                            curr_event = Mod::Unhide(entities);
+                        }
+                    }
+                    _ => (),
+                }
             }
-          },
-          MarkerEvent::Unhide(entity, false) => {
-            if let Mod::Unhide(entities) = &mut curr_event {
-              entities.insert(*entity);
-            } else {
-              push_event(curr_event, &mut history);
-              let mut entities = HashSet::new();
-              entities.insert(*entity);
-              curr_event = Mod::Unhide(entities);
-            }
-          },
-          _ => (),
+            push_event(curr_event, &mut history);
         }
-      }
-      push_event(curr_event, &mut history);
     }
-  }
 }
 
 fn push_event(event: Mod, history: &mut History) {
-  match event {
-    Mod::None => (),
-    Mod::Insert(insertions) => history.push(Modification::InsertMany(insertions)),
-    Mod::Remove(removals) => history.push(Modification::RemoveMany(removals)),
-    Mod::UpdatePoint(ent, old_sym_point, new_sym_point) => history.push(Modification::UpdatePoint(ent, old_sym_point, new_sym_point)),
-    Mod::Hide(entities) => history.push(Modification::HideMany(entities)),
-    Mod::Unhide(entities) => history.push(Modification::UnhideMany(entities)),
-  }
+    match event {
+        Mod::None => (),
+        Mod::Insert(insertions) => history.push(Modification::InsertMany(insertions)),
+        Mod::Remove(removals) => history.push(Modification::RemoveMany(removals)),
+        Mod::UpdatePoint(ent, old_sym_point, new_sym_point) => {
+            history.push(Modification::UpdatePoint(ent, old_sym_point, new_sym_point))
+        }
+        Mod::Hide(entities) => history.push(Modification::HideMany(entities)),
+        Mod::Unhide(entities) => history.push(Modification::UnhideMany(entities)),
+    }
 }

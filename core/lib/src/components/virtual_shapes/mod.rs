@@ -1,7 +1,7 @@
-mod point;
-mod line;
 mod circle;
+mod line;
+mod point;
 
-pub use point::*;
-pub use line::*;
 pub use circle::*;
+pub use line::*;
+pub use point::*;

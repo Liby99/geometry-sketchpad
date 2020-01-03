@@ -1,5 +1,5 @@
-use shrev::*;
 use crate::resources::Tool;
+use shrev::*;
 
 pub struct ToolChangeEvent(pub Tool);
 

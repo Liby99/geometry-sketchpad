@@ -1,11 +1,9 @@
 mod geometry;
 mod screen_space;
-mod virtual_space;
 mod spatial_hash_table;
+mod virtual_space;
 
 pub use geometry::*;
 pub use screen_space::*;
-pub use virtual_space::*;
 pub use spatial_hash_table::*;
-
-pub mod callback_channel;
+pub use virtual_space::*;

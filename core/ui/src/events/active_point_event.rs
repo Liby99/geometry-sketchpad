@@ -1,5 +1,5 @@
-use specs::prelude::*;
 use shrev::*;
+use specs::prelude::*;
 
 pub struct ActivePointEvent(pub Entity);
 
