@@ -2,9 +2,9 @@ use shrev::*;
 
 #[derive(Clone, Copy)]
 pub enum HistoryEvent {
-    Redo,
-    Undo,
-    Clear,
+  Redo,
+  Undo,
+  Clear,
 }
 
 pub type HistoryEventChannel = EventChannel<HistoryEvent>;

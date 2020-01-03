@@ -1,8 +1,6 @@
 use crate::core_lib::events::*;
 use crate::core_lib::math::LineType;
-use crate::core_ui::events::{
-    ExitEvent, ExitEventChannel, ToolChangeEvent, ToolChangeEventChannel,
-};
+use crate::core_ui::events::{ExitEvent, ExitEventChannel, ToolChangeEvent, ToolChangeEventChannel};
 use crate::core_ui::resources::{InputState, Tool};
 use nwg::{Event, Ui};
 use shrev::{EventChannel, ReaderId};
@@ -10,11 +8,11 @@ use specs::prelude::*;
 use std::sync::Mutex;
 
 enum GuiSystemAction {
-    ToolChange(Tool),
-    History(HistoryEvent),
-    Command(CommandEvent),
-    Resize,
-    Exit,
+  ToolChange(Tool),
+  History(HistoryEvent),
+  Command(CommandEvent),
+  Resize,
+  Exit,
 }
 
 type GuiSystemActionChannel = EventChannel<GuiSystemAction>;
@@ -23,70 +21,69 @@ type GuiSystemActionReader = ReaderId<GuiSystemAction>;
 #[cfg(windows)]
 #[derive(Debug, Clone, Hash)]
 pub enum AppId {
-    MainWindow,
+  MainWindow,
 
-    // menu
-    MenuFile,
-    MenuFileOpen,
-    MenuFileSave,
-    MenuFileExit,
-    MenuEdit,
-    MenuEditUndo,
-    MenuEditRedo,
-    MenuSelect,
-    MenuSelectAll,
-    MenuSelectDeselect,
-    MenuCreate,
-    MenuCreateMid,
-    MenuCreateParallel,
-    MenuCreatePerpendicular,
-    MenuDisplay,
-    MenuDisplayHide,
-    MenuDisplayUnhiddenAll,
-    MenuHelp,
-    MenuHelpIssue,
-    MenuHelpAbout,
-    OpenFileDialog,
+  // menu
+  MenuFile,
+  MenuFileOpen,
+  MenuFileSave,
+  MenuFileExit,
+  MenuEdit,
+  MenuEditUndo,
+  MenuEditRedo,
+  MenuSelect,
+  MenuSelectAll,
+  MenuSelectDeselect,
+  MenuCreate,
+  MenuCreateMid,
+  MenuCreateParallel,
+  MenuCreatePerpendicular,
+  MenuDisplay,
+  MenuDisplayHide,
+  MenuDisplayUnhiddenAll,
+  MenuHelp,
+  MenuHelpIssue,
+  MenuHelpAbout,
+  OpenFileDialog,
 
-    // tool buttons
-    SelectToolBtn,
-    PointToolBtn,
-    LineToolBtn,
-    LineRayToolBtn,
-    LineSegmentToolBtn,
-    CircleToolBtn,
-    ViewportDragToolBtn,
+  // tool buttons
+  SelectToolBtn,
+  PointToolBtn,
+  LineToolBtn,
+  LineRayToolBtn,
+  LineSegmentToolBtn,
+  CircleToolBtn,
+  ViewportDragToolBtn,
 
-    // events
-    FileOpenEvent,
-    FileExitEvent,
-    EditUndoEvent,
-    EditRedoEvent,
-    SelectAllEvent,
-    SelectDeselectEvent,
-    CreateMidEvent,
-    CreateParallelEvent,
-    CreatePerpendicularEvent,
-    DisplayHideEvent,
-    DisplayUnhiddenAllEvent,
-    HelpIssueEvent,
-    HelpAboutEvent,
+  // events
+  FileOpenEvent,
+  FileExitEvent,
+  EditUndoEvent,
+  EditRedoEvent,
+  SelectAllEvent,
+  SelectDeselectEvent,
+  CreateMidEvent,
+  CreateParallelEvent,
+  CreatePerpendicularEvent,
+  DisplayHideEvent,
+  DisplayUnhiddenAllEvent,
+  HelpIssueEvent,
+  HelpAboutEvent,
 
-    SelectToolEvent,
-    PointToolEvent,
-    LineToolEvent,
-    LineRayToolEvent,
-    LineSegmentToolEvent,
-    CircleToolEvent,
-    ViewportDragToolEvent,
+  SelectToolEvent,
+  PointToolEvent,
+  LineToolEvent,
+  LineRayToolEvent,
+  LineSegmentToolEvent,
+  CircleToolEvent,
+  ViewportDragToolEvent,
 
-    WindowCloseEvent,
-    WindowResizedEvent,
+  WindowCloseEvent,
+  WindowResizedEvent,
 }
 
 lazy_static! {
-    static ref GUI_ACTION_CHANNEL: Mutex<GuiSystemActionChannel> =
-        Mutex::new(GuiSystemActionChannel::with_capacity(16));
+  static ref GUI_ACTION_CHANNEL: Mutex<GuiSystemActionChannel> = Mutex::new(GuiSystemActionChannel::with_capacity(16));
 }
 
 use AppId::*;
@@ -311,161 +308,148 @@ nwg_template!(
 );
 
 pub struct GuiSystem {
-    gui_action_reader: Option<GuiSystemActionReader>,
-    ui: Option<Ui<AppId>>,
-    handle: winapi::HWND,
-    piston: winapi::HWND,
+  gui_action_reader: Option<GuiSystemActionReader>,
+  ui: Option<Ui<AppId>>,
+  handle: winapi::HWND,
+  piston: winapi::HWND,
 }
 
 impl Default for GuiSystem {
-    fn default() -> Self {
-        let ui = Ui::new().unwrap();
-        setup_ui(&ui).unwrap();
+  fn default() -> Self {
+    let ui = Ui::new().unwrap();
+    setup_ui(&ui).unwrap();
 
-        let mut handle: winapi::HWND = 0 as winapi::HWND;
-        let mut handle_piston: winapi::HWND = 0 as winapi::HWND;
-        unsafe {
-            use std::ffi::OsStr;
-            use std::os::windows::ffi::OsStrExt;
-            use user32::{FindWindowW, GetClientRect, SetParent, SetWindowLongPtrW, SetWindowPos};
-            use winapi::{
-                GWL_STYLE, SWP_FRAMECHANGED, SWP_NOACTIVATE, SWP_NOOWNERZORDER, SWP_NOZORDER,
-                WS_POPUP, WS_VISIBLE,
-            };
-            if let Ok(window) = ui.get::<nwg::Window>(&MainWindow) {
-                use crate::nwg::custom::*;
-                if let AnyHandle::HWND(h) = window.handle() {
-                    handle = h;
-                } else {
-                    panic!()
-                }
-            } else {
-                panic!()
-            }
-            handle_piston = FindWindowW(
-                std::ptr::null_mut(),
-                OsStr::new("Geometry Sketchpad")
-                    .encode_wide()
-                    .chain(Some(0))
-                    .collect::<Vec<_>>()
-                    .as_ptr(),
-            );
-            SetParent(handle_piston, handle);
-            SetWindowLongPtrW(handle_piston, GWL_STYLE, (WS_POPUP | WS_VISIBLE) as i64);
-            let mut rect: winapi::RECT = std::mem::zeroed();
-            if GetClientRect(handle, &mut rect) != 0 {
-                let width = rect.right - rect.left - 1;
-                let height = rect.bottom - rect.top - 1;
-                SetWindowPos(
-                    handle_piston,
-                    0 as winapi::HWND,
-                    0,
-                    WINDOW_TOOLBAR_HEIGHT,
-                    width,
-                    height - WINDOW_TOOLBAR_HEIGHT,
-                    SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_FRAMECHANGED,
-                );
-            }
+    let mut handle: winapi::HWND = 0 as winapi::HWND;
+    let mut handle_piston: winapi::HWND = 0 as winapi::HWND;
+    unsafe {
+      use std::ffi::OsStr;
+      use std::os::windows::ffi::OsStrExt;
+      use user32::{FindWindowW, GetClientRect, SetParent, SetWindowLongPtrW, SetWindowPos};
+      use winapi::{
+        GWL_STYLE, SWP_FRAMECHANGED, SWP_NOACTIVATE, SWP_NOOWNERZORDER, SWP_NOZORDER, WS_POPUP, WS_VISIBLE,
+      };
+      if let Ok(window) = ui.get::<nwg::Window>(&MainWindow) {
+        use crate::nwg::custom::*;
+        if let AnyHandle::HWND(h) = window.handle() {
+          handle = h;
+        } else {
+          panic!()
         }
-
-        Self {
-            gui_action_reader: None,
-            ui: Some(ui),
-            handle: handle,
-            piston: handle_piston,
-        }
+      } else {
+        panic!()
+      }
+      handle_piston = FindWindowW(
+        std::ptr::null_mut(),
+        OsStr::new("Geometry Sketchpad")
+          .encode_wide()
+          .chain(Some(0))
+          .collect::<Vec<_>>()
+          .as_ptr(),
+      );
+      SetParent(handle_piston, handle);
+      SetWindowLongPtrW(handle_piston, GWL_STYLE, (WS_POPUP | WS_VISIBLE) as i64);
+      let mut rect: winapi::RECT = std::mem::zeroed();
+      if GetClientRect(handle, &mut rect) != 0 {
+        let width = rect.right - rect.left - 1;
+        let height = rect.bottom - rect.top - 1;
+        SetWindowPos(
+          handle_piston,
+          0 as winapi::HWND,
+          0,
+          WINDOW_TOOLBAR_HEIGHT,
+          width,
+          height - WINDOW_TOOLBAR_HEIGHT,
+          SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_FRAMECHANGED,
+        );
+      }
     }
+
+    Self {
+      gui_action_reader: None,
+      ui: Some(ui),
+      handle: handle,
+      piston: handle_piston,
+    }
+  }
 }
 
 impl<'a> System<'a> for GuiSystem {
-    type SystemData = (
-        Read<'a, InputState>,
-        Write<'a, ToolChangeEventChannel>,
-        Write<'a, ExitEventChannel>,
-        Write<'a, HistoryEventChannel>,
-        Write<'a, CommandEventChannel>,
-    );
+  type SystemData = (
+    Read<'a, InputState>,
+    Write<'a, ToolChangeEventChannel>,
+    Write<'a, ExitEventChannel>,
+    Write<'a, HistoryEventChannel>,
+    Write<'a, CommandEventChannel>,
+  );
 
-    fn setup(&mut self, world: &mut World) {
-        Self::SystemData::setup(world);
-        self.gui_action_reader = Some((*GUI_ACTION_CHANNEL).lock().unwrap().register_reader());
-    }
+  fn setup(&mut self, world: &mut World) {
+    Self::SystemData::setup(world);
+    self.gui_action_reader = Some((*GUI_ACTION_CHANNEL).lock().unwrap().register_reader());
+  }
 
-    fn run(
-        &mut self,
-        (
-            _input_state,
-            mut tool_change_events,
-            mut exit_events,
-            mut history_events,
-            mut command_events,
-        ): Self::SystemData,
-    ) {
-        unsafe {
-            use user32::{
-                BringWindowToTop, DispatchMessageW, GetCursorPos, PeekMessageW, SendMessageW,
-                TranslateMessage, WindowFromPoint,
-            };
-            let mut msg: winapi::winuser::MSG = std::mem::zeroed();
-            if PeekMessageW(&mut msg, std::ptr::null_mut(), 0, 0, 1) != 0 {
-                use winapi::{WM_KEYDOWN, WM_KEYUP, WM_SYSKEYDOWN, WM_SYSKEYUP};
-                if msg.message == WM_KEYDOWN
-                    || msg.message == WM_KEYUP
-                    || msg.message == WM_SYSKEYDOWN
-                    || msg.message == WM_SYSKEYUP
-                {
-                    /* Forward keyboard message to piston window */
-                    SendMessageW(self.piston, msg.message, msg.wParam, msg.lParam);
-                }
-                TranslateMessage(&msg);
-                DispatchMessageW(&msg);
-            }
-            let mut cursor: winapi::POINT = std::mem::zeroed();
-            GetCursorPos(&mut cursor);
-            if WindowFromPoint(cursor) == self.piston {
-                BringWindowToTop(self.piston);
-            }
+  fn run(
+    &mut self,
+    (_input_state, mut tool_change_events, mut exit_events, mut history_events, mut command_events): Self::SystemData,
+  ) {
+    unsafe {
+      use user32::{
+        BringWindowToTop, DispatchMessageW, GetCursorPos, PeekMessageW, SendMessageW, TranslateMessage, WindowFromPoint,
+      };
+      let mut msg: winapi::winuser::MSG = std::mem::zeroed();
+      if PeekMessageW(&mut msg, std::ptr::null_mut(), 0, 0, 1) != 0 {
+        use winapi::{WM_KEYDOWN, WM_KEYUP, WM_SYSKEYDOWN, WM_SYSKEYUP};
+        if msg.message == WM_KEYDOWN
+          || msg.message == WM_KEYUP
+          || msg.message == WM_SYSKEYDOWN
+          || msg.message == WM_SYSKEYUP
+        {
+          /* Forward keyboard message to piston window */
+          SendMessageW(self.piston, msg.message, msg.wParam, msg.lParam);
         }
-        if let Some(reader_id) = &mut self.gui_action_reader {
-            for event in (*GUI_ACTION_CHANNEL).lock().unwrap().read(reader_id) {
-                match event {
-                    GuiSystemAction::ToolChange(tool) => {
-                        tool_change_events.single_write(ToolChangeEvent(*tool));
-                    }
-                    GuiSystemAction::Exit => {
-                        exit_events.single_write(ExitEvent);
-                    }
-                    GuiSystemAction::History(action) => {
-                        history_events.single_write(*action);
-                    }
-                    GuiSystemAction::Resize => unsafe {
-                        use user32::{GetClientRect, SetWindowPos};
-                        use winapi::{
-                            SWP_FRAMECHANGED, SWP_NOACTIVATE, SWP_NOOWNERZORDER, SWP_NOZORDER,
-                        };
-                        let mut rect: winapi::RECT = std::mem::zeroed();
-                        if GetClientRect(self.handle, &mut rect) != 0 {
-                            let width = rect.right - rect.left - 1;
-                            let height = rect.bottom - rect.top - 1;
-                            SetWindowPos(
-                                self.piston,
-                                0 as winapi::HWND,
-                                0,
-                                WINDOW_TOOLBAR_HEIGHT,
-                                width,
-                                height - WINDOW_TOOLBAR_HEIGHT,
-                                SWP_NOACTIVATE
-                                    | SWP_NOZORDER
-                                    | SWP_NOOWNERZORDER
-                                    | SWP_FRAMECHANGED,
-                            );
-                        }
-                    },
-                    GuiSystemAction::Command(event) => {
-                        command_events.single_write(*event);
-                    }
-                }
-            }
-        }
+        TranslateMessage(&msg);
+        DispatchMessageW(&msg);
+      }
+      let mut cursor: winapi::POINT = std::mem::zeroed();
+      GetCursorPos(&mut cursor);
+      if WindowFromPoint(cursor) == self.piston {
+        BringWindowToTop(self.piston);
+      }
     }
+    if let Some(reader_id) = &mut self.gui_action_reader {
+      for event in (*GUI_ACTION_CHANNEL).lock().unwrap().read(reader_id) {
+        match event {
+          GuiSystemAction::ToolChange(tool) => {
+            tool_change_events.single_write(ToolChangeEvent(*tool));
+          }
+          GuiSystemAction::Exit => {
+            exit_events.single_write(ExitEvent);
+          }
+          GuiSystemAction::History(action) => {
+            history_events.single_write(*action);
+          }
+          GuiSystemAction::Resize => unsafe {
+            use user32::{GetClientRect, SetWindowPos};
+            use winapi::{SWP_FRAMECHANGED, SWP_NOACTIVATE, SWP_NOOWNERZORDER, SWP_NOZORDER};
+            let mut rect: winapi::RECT = std::mem::zeroed();
+            if GetClientRect(self.handle, &mut rect) != 0 {
+              let width = rect.right - rect.left - 1;
+              let height = rect.bottom - rect.top - 1;
+              SetWindowPos(
+                self.piston,
+                0 as winapi::HWND,
+                0,
+                WINDOW_TOOLBAR_HEIGHT,
+                width,
+                height - WINDOW_TOOLBAR_HEIGHT,
+                SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_FRAMECHANGED,
+              );
+            }
+          },
+          GuiSystemAction::Command(event) => {
+            command_events.single_write(*event);
+          }
+        }
+      }
+    }
+  }
 }

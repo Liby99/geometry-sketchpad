@@ -5,16 +5,16 @@ use crate::math::*;
 pub struct DefaultLineStyle(LineStyle);
 
 impl Default for DefaultLineStyle {
-    fn default() -> Self {
-        Self(LineStyle {
-            color: Color::blue(),
-            width: 2.0,
-        })
-    }
+  fn default() -> Self {
+    Self(LineStyle {
+      color: Color::blue(),
+      width: 2.0,
+    })
+  }
 }
 
 impl DefaultLineStyle {
-    pub fn get(&self) -> LineStyle {
-        self.0
-    }
+  pub fn get(&self) -> LineStyle {
+    self.0
+  }
 }

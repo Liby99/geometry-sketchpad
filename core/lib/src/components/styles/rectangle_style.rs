@@ -4,10 +4,10 @@ use specs::prelude::*;
 
 #[derive(Debug, Copy, Clone)]
 pub struct RectangleStyle {
-    pub fill: Color,
-    pub border: LineStyle,
+  pub fill: Color,
+  pub border: LineStyle,
 }
 
 impl Component for RectangleStyle {
-    type Storage = FlaggedStorage<Self, VecStorage<Self>>;
+  type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }

@@ -4,5 +4,5 @@ use specs::prelude::*;
 pub struct Hidden;
 
 impl Component for Hidden {
-    type Storage = NullStorage<Self>;
+  type Storage = NullStorage<Self>;
 }

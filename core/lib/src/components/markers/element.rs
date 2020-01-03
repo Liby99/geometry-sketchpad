@@ -4,5 +4,5 @@ use specs::prelude::*;
 pub struct Element;
 
 impl Component for Element {
-    type Storage = NullStorage<Self>;
+  type Storage = NullStorage<Self>;
 }
