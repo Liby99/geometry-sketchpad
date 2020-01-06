@@ -181,8 +181,8 @@ fn solve_point<'a>(
       SymbolicPoint::Fixed(pos) => SolveResult::SolvedPoint(pos),
       SymbolicPoint::Free(pos) => SolveResult::SolvedPoint(pos),
       SymbolicPoint::MidPoint(p1_ent, p2_ent) => match virt_points.get(p1_ent) {
-        Some(vp1) => match virt_points.get(p2_ent) {
-          Some(vp2) => SolveResult::SolvedPoint((*vp1 + *vp2) / 2.0.into()),
+        Some(&vp1) => match virt_points.get(p2_ent) {
+          Some(&vp2) => SolveResult::SolvedPoint((vp1 + vp2) / 2.0.into()),
           None => SolveResult::Request(p2_ent),
         },
         None => SolveResult::Request(p1_ent),
@@ -192,8 +192,8 @@ fn solve_point<'a>(
         None => SolveResult::Request(l_ent),
       },
       SymbolicPoint::LineLineIntersect(l1_ent, l2_ent) => match virt_lines.get(l1_ent) {
-        Some(vl1) => match virt_lines.get(l2_ent) {
-          Some(vl2) => match (*vl1).intersect(*vl2) {
+        Some(&vl1) => match virt_lines.get(l2_ent) {
+          Some(&vl2) => match vl1.intersect(vl2) {
             Some(p) => SolveResult::SolvedPoint(p),
             None => SolveResult::Undefined,
           },
@@ -206,8 +206,8 @@ fn solve_point<'a>(
         None => SolveResult::Request(c_ent),
       },
       SymbolicPoint::CircleLineIntersect(c_ent, l_ent, ity) => match virt_circles.get(c_ent) {
-        Some(c) => match virt_lines.get(l_ent) {
-          Some(l) => match (*c).intersect(*l) {
+        Some(&c) => match virt_lines.get(l_ent) {
+          Some(&l) => match c.intersect(l) {
             VirtualCircleIntersect::TwoPoints(p1, p2) => match ity {
               CircleIntersectId::First => SolveResult::SolvedPoint(p1),
               CircleIntersectId::Second => SolveResult::SolvedPoint(p2),
@@ -220,8 +220,8 @@ fn solve_point<'a>(
         None => SolveResult::Request(c_ent),
       },
       SymbolicPoint::CircleCircleIntersect(c1_ent, c2_ent, ity) => match virt_circles.get(c1_ent) {
-        Some(c1) => match virt_circles.get(c2_ent) {
-          Some(c2) => match (*c1).intersect(*c2) {
+        Some(&c1) => match virt_circles.get(c2_ent) {
+          Some(&c2) => match c1.intersect(c2) {
             VirtualCircleIntersect::TwoPoints(p1, p2) => match ity {
               CircleIntersectId::First => SolveResult::SolvedPoint(p1),
               CircleIntersectId::Second => SolveResult::SolvedPoint(p2),
@@ -249,10 +249,10 @@ fn solve_line<'a>(
   } else {
     match sym_line {
       SymbolicLine::Straight(p1_ent, p2_ent) => match virt_points.get(p1_ent) {
-        Some(p1) => match virt_points.get(p2_ent) {
-          Some(p2) => SolveResult::SolvedLine(VirtualLine {
-            from: *p1,
-            to: *p2,
+        Some(&p1) => match virt_points.get(p2_ent) {
+          Some(&p2) => SolveResult::SolvedLine(VirtualLine {
+            from: p1,
+            to: p2,
             line_type: LineType::Straight,
           }),
           None => SolveResult::Request(p2_ent),
@@ -260,10 +260,10 @@ fn solve_line<'a>(
         None => SolveResult::Request(p1_ent),
       },
       SymbolicLine::Ray(p1_ent, p2_ent) => match virt_points.get(p1_ent) {
-        Some(p1) => match virt_points.get(p2_ent) {
-          Some(p2) => SolveResult::SolvedLine(VirtualLine {
-            from: *p1,
-            to: *p2,
+        Some(&p1) => match virt_points.get(p2_ent) {
+          Some(&p2) => SolveResult::SolvedLine(VirtualLine {
+            from: p1,
+            to: p2,
             line_type: LineType::Ray,
           }),
           None => SolveResult::Request(p2_ent),
@@ -271,10 +271,10 @@ fn solve_line<'a>(
         None => SolveResult::Request(p1_ent),
       },
       SymbolicLine::Segment(p1_ent, p2_ent) => match virt_points.get(p1_ent) {
-        Some(p1) => match virt_points.get(p2_ent) {
-          Some(p2) => SolveResult::SolvedLine(VirtualLine {
-            from: *p1,
-            to: *p2,
+        Some(&p1) => match virt_points.get(p2_ent) {
+          Some(&p2) => SolveResult::SolvedLine(VirtualLine {
+            from: p1,
+            to: p2,
             line_type: LineType::Segment,
           }),
           None => SolveResult::Request(p2_ent),
@@ -282,10 +282,10 @@ fn solve_line<'a>(
         None => SolveResult::Request(p1_ent),
       },
       SymbolicLine::Parallel(l_ent, p_ent) => match virt_lines.get(l_ent) {
-        Some(l) => match virt_points.get(p_ent) {
-          Some(p) => SolveResult::SolvedLine(VirtualLine {
-            from: *p,
-            to: *p + (l.to - l.from),
+        Some(&l) => match virt_points.get(p_ent) {
+          Some(&p) => SolveResult::SolvedLine(VirtualLine {
+            from: p,
+            to: p + (l.to - l.from),
             line_type: LineType::Straight,
           }),
           None => SolveResult::Request(p_ent),
@@ -293,13 +293,13 @@ fn solve_line<'a>(
         None => SolveResult::Request(l_ent),
       },
       SymbolicLine::Perpendicular(l_ent, p_ent) => match virt_lines.get(l_ent) {
-        Some(l) => match virt_points.get(p_ent) {
-          Some(p) => {
+        Some(&l) => match virt_points.get(p_ent) {
+          Some(&p) => {
             let dir: Vector2 = (l.to - l.from).into();
             let perp_dir: Vector2 = vec2![-dir.y, dir.x];
             SolveResult::SolvedLine(VirtualLine {
-              from: *p,
-              to: *p + perp_dir.into(),
+              from: p,
+              to: p + perp_dir.into(),
               line_type: LineType::Straight,
             })
           }
@@ -323,10 +323,10 @@ fn solve_circle<'a>(
   } else {
     match sym_circle {
       SymbolicCircle::CenterRadius(p1_ent, p2_ent) => match virt_points.get(p1_ent) {
-        Some(p1) => match virt_points.get(p2_ent) {
-          Some(p2) => SolveResult::SolvedCircle(VirtualCircle {
-            center: *p1,
-            radius: (*p2 - *p1).magnitude(),
+        Some(&p1) => match virt_points.get(p2_ent) {
+          Some(&p2) => SolveResult::SolvedCircle(VirtualCircle {
+            center: p1,
+            radius: (p2 - p1).magnitude(),
           }),
           None => SolveResult::Request(p2_ent),
         },
