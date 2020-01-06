@@ -54,14 +54,14 @@ impl<'a> System<'a> for InsertLineHandler {
   ) {
     if let Some(reader) = &mut self.command_event_reader {
       for event in command_event_channel.read(reader) {
-        match event {
-          CommandEvent::LineInsert(insert_line_event) => match insert_line_event {
+        match event.command {
+          Command::LineInsert(insert_line_event) => match insert_line_event {
             InsertLineEvent::InsertLine(sym_line) => {
               let ent = entities.create();
               let line_style = default_line_style.get();
               let (ent, geom) = insert(
                 ent,
-                *sym_line,
+                sym_line,
                 line_style,
                 &mut sym_lines,
                 &mut line_styles,
@@ -115,8 +115,8 @@ impl<'a> System<'a> for InsertLineHandler {
               let ent = entities.create();
               let (ent, geom) = insert(
                 ent,
-                *sym_line,
-                *line_style,
+                sym_line,
+                line_style,
                 &mut sym_lines,
                 &mut line_styles,
                 &mut selecteds,
@@ -127,9 +127,9 @@ impl<'a> System<'a> for InsertLineHandler {
             }
             InsertLineEvent::InsertLineByHistory(ent, sym_line, line_style) => {
               let (ent, geom) = insert(
-                *ent,
-                *sym_line,
-                *line_style,
+                ent,
+                sym_line,
+                line_style,
                 &mut sym_lines,
                 &mut line_styles,
                 &mut selecteds,

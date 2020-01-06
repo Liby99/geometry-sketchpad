@@ -13,7 +13,10 @@ impl<'a> System<'a> for CreateParallelViaKeyboard {
     let shift = input_state.keyboard.is_shift_activated();
     let minus = input_state.keyboard.just_activated(Key::Minus);
     if cmd && shift && minus {
-      command_event_channel.single_write(CommandEvent::LineInsert(InsertLineEvent::InsertParallelFromSelection));
+      command_event_channel.single_write(CommandEvent {
+        command: Command::LineInsert(InsertLineEvent::InsertParallelFromSelection),
+        event_id: None,
+      });
     }
   }
 }

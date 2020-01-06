@@ -3,7 +3,13 @@ use shrev::*;
 use specs::prelude::*;
 
 #[derive(Debug, Clone, Copy)]
-pub enum CommandEvent {
+pub struct CommandEvent {
+  pub command: Command,
+  pub event_id: Option<usize>,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum Command {
   PointInsert(InsertPointEvent),
   LineInsert(InsertLineEvent),
   CircleInsert(InsertCircleEvent),

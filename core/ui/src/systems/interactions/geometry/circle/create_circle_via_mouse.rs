@@ -71,7 +71,10 @@ impl<'a> System<'a> for CreateCircleViaMouse {
         if let Some(first_point_ent) = snap_circle.maybe_first_point {
           if first_point_ent != curr_ent {
             let sym_circle = SymbolicCircle::CenterRadius(first_point_ent, curr_ent);
-            command_event_channel.single_write(CommandEvent::CircleInsert(InsertCircleEvent::InsertCircle(sym_circle)));
+            command_event_channel.single_write(CommandEvent {
+              command: Command::CircleInsert(InsertCircleEvent::InsertCircle(sym_circle)),
+              event_id: None,
+            });
             snap_circle.maybe_first_point = None;
           }
         } else {

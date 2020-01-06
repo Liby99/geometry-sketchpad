@@ -102,18 +102,33 @@ impl<'a> System<'a> for SeldeViaMouse {
               if input_state.keyboard.is_shift_activated() {
                 // If has shift, select or deselect based on previous state
                 if let Some(_) = selecteds.get(entity) {
-                  command_event_channel.single_write(CommandEvent::Select(SelectEvent::Deselect(entity)));
+                  command_event_channel.single_write(CommandEvent {
+                    command: Command::Select(SelectEvent::Deselect(entity)),
+                    event_id: None,
+                  });
                 } else {
-                  command_event_channel.single_write(CommandEvent::Select(SelectEvent::Select(entity)));
+                  command_event_channel.single_write(CommandEvent {
+                    command: Command::Select(SelectEvent::Select(entity)),
+                    event_id: None,
+                  });
                 }
               } else {
                 // If no shift, always select
-                command_event_channel.single_write(CommandEvent::Select(SelectEvent::DeselectAll));
-                command_event_channel.single_write(CommandEvent::Select(SelectEvent::Select(entity)));
+                command_event_channel.single_write(CommandEvent {
+                  command: Command::Select(SelectEvent::DeselectAll),
+                  event_id: None,
+                });
+                command_event_channel.single_write(CommandEvent {
+                  command: Command::Select(SelectEvent::Select(entity)),
+                  event_id: None,
+                });
               }
             } else {
               // Deselect all if not hitting anything
-              command_event_channel.single_write(CommandEvent::Select(SelectEvent::DeselectAll));
+              command_event_channel.single_write(CommandEvent {
+                command: Command::Select(SelectEvent::DeselectAll),
+                event_id: None,
+              });
             }
           }
           MouseEvent::DragBegin(start_position) => {
@@ -130,7 +145,10 @@ impl<'a> System<'a> for SeldeViaMouse {
             {
               // If ther's no shift, clear the selection
               if !input_state.keyboard.is_shift_activated() {
-                command_event_channel.single_write(CommandEvent::Select(SelectEvent::DeselectAll));
+                command_event_channel.single_write(CommandEvent {
+                  command: Command::Select(SelectEvent::DeselectAll),
+                  event_id: None,
+                });
               }
 
               // Setup the drag start position
@@ -151,7 +169,10 @@ impl<'a> System<'a> for SeldeViaMouse {
               for entity in &self.drag_selected_new_entities {
                 if !new_entities.contains(entity) {
                   to_remove.push(entity.clone());
-                  command_event_channel.single_write(CommandEvent::Select(SelectEvent::Deselect(*entity)));
+                  command_event_channel.single_write(CommandEvent {
+                    command: Command::Select(SelectEvent::Deselect(*entity)),
+                    event_id: None,
+                  });
                 } else {
                   new_entities.remove(entity);
                 }
@@ -161,7 +182,10 @@ impl<'a> System<'a> for SeldeViaMouse {
               }
               for entity in new_entities {
                 self.drag_selected_new_entities.insert(entity);
-                command_event_channel.single_write(CommandEvent::Select(SelectEvent::Select(entity)));
+                command_event_channel.single_write(CommandEvent {
+                  command: Command::Select(SelectEvent::Select(entity)),
+                  event_id: None,
+                });
               }
             }
           }

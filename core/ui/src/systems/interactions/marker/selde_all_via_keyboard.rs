@@ -18,7 +18,10 @@ impl<'a> System<'a> for SeldeAllViaKeyboard {
         None
       };
       if let Some(selde_event) = maybe_selde_event {
-        command_event_channel.single_write(CommandEvent::Select(selde_event));
+        command_event_channel.single_write(CommandEvent {
+          command: Command::Select(selde_event),
+          event_id: None,
+        });
       }
     }
   }

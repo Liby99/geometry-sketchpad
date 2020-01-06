@@ -100,7 +100,10 @@ impl<'a> System<'a> for MovePointViaDrag {
                   self.start_position = Some(*start_position);
 
                   // Note that we let the dragging point to be selected directly
-                  command_event_channel.single_write(CommandEvent::Select(SelectEvent::Select(entity)));
+                  command_event_channel.single_write(CommandEvent {
+                    command: Command::Select(SelectEvent::Select(entity)),
+                    event_id: None,
+                  });
                 }
               }
             }
@@ -111,11 +114,10 @@ impl<'a> System<'a> for MovePointViaDrag {
                 if let Some(new_sym_point) =
                   get_update(*old_sym_point, *curr_position, &viewport, &scrn_lines, &scrn_circles)
                 {
-                  command_event_channel.single_write(CommandEvent::Update(UpdateEvent::UpdatePoint(
-                    ent,
-                    *old_sym_point,
-                    new_sym_point,
-                  )));
+                  command_event_channel.single_write(CommandEvent {
+                    command: Command::Update(UpdateEvent::UpdatePoint(ent, *old_sym_point, new_sym_point)),
+                    event_id: None,
+                  });
                 }
               }
             }
@@ -127,11 +129,10 @@ impl<'a> System<'a> for MovePointViaDrag {
                 if let Some(new_sym_point) =
                   get_update(old_sym_point, *curr_position, &viewport, &scrn_lines, &scrn_circles)
                 {
-                  command_event_channel.single_write(CommandEvent::Update(UpdateEvent::UpdatePointEnd(
-                    ent,
-                    old_sym_point,
-                    new_sym_point,
-                  )));
+                  command_event_channel.single_write(CommandEvent {
+                    command: Command::Update(UpdateEvent::UpdatePointEnd(ent, old_sym_point, new_sym_point)),
+                    event_id: None,
+                  });
                 }
               }
               None => (),

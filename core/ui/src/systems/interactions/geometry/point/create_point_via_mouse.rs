@@ -33,12 +33,12 @@ impl<'a> System<'a> for CreatePointViaMouse {
   fn run(
     &mut self,
     (
-            maybe_snap_point,
-            viewport,
-            tool_change_event_channel,
-            mut mouse_event_channel,
-            mut command_event_channel,
-        ): Self::SystemData,
+      maybe_snap_point,
+      viewport,
+      tool_change_event_channel,
+      mut mouse_event_channel,
+      mut command_event_channel,
+    ): Self::SystemData,
   ) {
     if let Some(reader) = &mut self.tool_change_event_reader {
       for ToolChangeEvent(tool) in tool_change_event_channel.read(reader) {
@@ -74,7 +74,10 @@ impl<'a> System<'a> for CreatePointViaMouse {
                 SnapPointType::SnapOnPoint(_) => None,
               };
               if let Some(sym_point) = maybe_sym_point {
-                command_event_channel.single_write(CommandEvent::PointInsert(InsertPointEvent::InsertPoint(sym_point)));
+                command_event_channel.single_write(CommandEvent {
+                  command: Command::PointInsert(InsertPointEvent::InsertPoint(sym_point)),
+                  event_id: None,
+                });
               }
             }
           }

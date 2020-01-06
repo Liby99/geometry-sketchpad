@@ -33,17 +33,17 @@ impl<'a> System<'a> for SelectHandler {
   ) {
     if let Some(reader) = &mut self.command_event_reader {
       for event in command_event_channel.read(reader) {
-        match event {
-          CommandEvent::Select(select_event) => match select_event {
+        match event.command {
+          Command::Select(select_event) => match select_event {
             SelectEvent::Select(ent) => {
-              if let Err(err) = selecteds.insert(*ent, Selected) {
+              if let Err(err) = selecteds.insert(ent, Selected) {
                 panic!(err)
               }
-              marker_event_channel.single_write(MarkerEvent::Select(*ent));
+              marker_event_channel.single_write(MarkerEvent::Select(ent));
             }
             SelectEvent::Deselect(ent) => {
-              selecteds.remove(*ent);
-              marker_event_channel.single_write(MarkerEvent::Deselect(*ent));
+              selecteds.remove(ent);
+              marker_event_channel.single_write(MarkerEvent::Deselect(ent));
             }
             SelectEvent::SelectAll => {
               for (ent, _) in (&entities, &elements).join() {

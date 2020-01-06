@@ -13,9 +13,10 @@ impl<'a> System<'a> for CreatePerpendicularViaKeyboard {
     let shift = input_state.keyboard.is_shift_activated();
     let backslash = input_state.keyboard.just_activated(Key::Backslash);
     if cmd && shift && backslash {
-      command_event_channel.single_write(CommandEvent::LineInsert(
-        InsertLineEvent::InsertPerpendicularFromSelection,
-      ));
+      command_event_channel.single_write(CommandEvent {
+        command: Command::LineInsert(InsertLineEvent::InsertPerpendicularFromSelection),
+        event_id: None,
+      });
     }
   }
 }

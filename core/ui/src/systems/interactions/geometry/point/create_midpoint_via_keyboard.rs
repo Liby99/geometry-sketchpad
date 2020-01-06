@@ -13,7 +13,10 @@ impl<'a> System<'a> for CreateMidpointViaKeyboard {
     let no_shift = !input_state.keyboard.is_shift_activated();
     let m = input_state.keyboard.just_activated(Key::M);
     if cmd && no_shift && m {
-      command_event_channel.single_write(CommandEvent::PointInsert(InsertPointEvent::InsertMidPointFromSelection));
+      command_event_channel.single_write(CommandEvent {
+        command: Command::PointInsert(InsertPointEvent::InsertMidPointFromSelection),
+        event_id: None,
+      });
     }
   }
 }

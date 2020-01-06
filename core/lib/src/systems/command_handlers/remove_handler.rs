@@ -95,17 +95,17 @@ impl<'a> System<'a> for RemoveHandler {
             )
           };
         }
-        match event {
-          CommandEvent::Remove(remove_event) => match remove_event {
+        match event.command {
+          Command::Remove(remove_event) => match remove_event {
             RemoveEvent::Remove(ent) => {
-              for dep in dependency_graph.get_all_dependents(ent) {
+              for dep in dependency_graph.get_all_dependents(&ent) {
                 if let Some(geom) = remove!(&dep) {
                   geometry_event_channel.single_write(GeometryEvent::removed(dep, geom));
                 }
               }
             }
             RemoveEvent::RemoveByHistory(ent) => {
-              for dep in dependency_graph.get_all_dependents(ent) {
+              for dep in dependency_graph.get_all_dependents(&ent) {
                 if let Some(geom) = remove!(&dep) {
                   geometry_event_channel.single_write(GeometryEvent::removed_by_history(dep, geom));
                 }

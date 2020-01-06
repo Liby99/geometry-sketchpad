@@ -12,7 +12,10 @@ impl<'a> System<'a> for RemoveSelectedViaKeyboard {
     let delete = input_state.keyboard.just_activated(Key::Delete);
     let backspace = input_state.keyboard.just_activated(Key::Backspace);
     if delete || backspace {
-      command_event_channel.single_write(CommandEvent::Remove(RemoveEvent::RemoveSelected));
+      command_event_channel.single_write(CommandEvent {
+        command: Command::Remove(RemoveEvent::RemoveSelected),
+        event_id: None,
+      });
     }
   }
 }

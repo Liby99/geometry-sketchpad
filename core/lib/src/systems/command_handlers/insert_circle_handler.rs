@@ -52,14 +52,14 @@ impl<'a> System<'a> for InsertCircleHandler {
   ) {
     if let Some(reader) = &mut self.command_event_reader {
       for event in command_event_channel.read(reader) {
-        match event {
-          CommandEvent::CircleInsert(insert_circle_event) => match insert_circle_event {
+        match event.command {
+          Command::CircleInsert(insert_circle_event) => match insert_circle_event {
             InsertCircleEvent::InsertCircle(sym_circle) => {
               let ent = entities.create();
               let circle_style = default_circle_style.get();
               let (ent, geom) = insert(
                 ent,
-                *sym_circle,
+                sym_circle,
                 circle_style,
                 &mut sym_circles,
                 &mut circle_styles,
@@ -73,8 +73,8 @@ impl<'a> System<'a> for InsertCircleHandler {
               let ent = entities.create();
               let (ent, geom) = insert(
                 ent,
-                *sym_circle,
-                *circle_style,
+                sym_circle,
+                circle_style,
                 &mut sym_circles,
                 &mut circle_styles,
                 &mut selecteds,
@@ -85,9 +85,9 @@ impl<'a> System<'a> for InsertCircleHandler {
             }
             InsertCircleEvent::InsertCircleByHistory(ent, sym_circle, circle_style) => {
               let (ent, geom) = insert(
-                *ent,
-                *sym_circle,
-                *circle_style,
+                ent,
+                sym_circle,
+                circle_style,
                 &mut sym_circles,
                 &mut circle_styles,
                 &mut selecteds,

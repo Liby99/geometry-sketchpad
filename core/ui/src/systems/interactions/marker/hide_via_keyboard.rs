@@ -16,7 +16,10 @@ impl<'a> System<'a> for HideViaKeyboard {
         } else {
           HideEvent::HideSelected
         };
-        command_event_channel.single_write(CommandEvent::Hide(hide_event));
+        command_event_channel.single_write(CommandEvent {
+          command: Command::Hide(hide_event),
+          event_id: None,
+        });
       }
     }
   }

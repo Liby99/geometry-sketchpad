@@ -52,14 +52,14 @@ impl<'a> System<'a> for InsertPointHandler {
   ) {
     if let Some(reader) = &mut self.command_event_reader {
       for event in command_event_channel.read(reader) {
-        match event {
-          CommandEvent::PointInsert(insert_point_event) => match insert_point_event {
+        match event.command {
+          Command::PointInsert(insert_point_event) => match insert_point_event {
             InsertPointEvent::InsertPoint(sym_point) => {
               let ent = entities.create();
               let point_style = default_point_style.get();
               let (ent, geom) = insert(
                 ent,
-                *sym_point,
+                sym_point,
                 point_style,
                 &mut sym_points,
                 &mut point_styles,
@@ -90,8 +90,8 @@ impl<'a> System<'a> for InsertPointHandler {
               let ent = entities.create();
               let (ent, geom) = insert(
                 ent,
-                *sym_point,
-                *point_style,
+                sym_point,
+                point_style,
                 &mut sym_points,
                 &mut point_styles,
                 &mut selecteds,
@@ -102,9 +102,9 @@ impl<'a> System<'a> for InsertPointHandler {
             }
             InsertPointEvent::InsertPointByHistory(ent, sym_point, point_style) => {
               let (ent, geom) = insert(
-                *ent,
-                *sym_point,
-                *point_style,
+                ent,
+                sym_point,
+                point_style,
                 &mut sym_points,
                 &mut point_styles,
                 &mut selecteds,

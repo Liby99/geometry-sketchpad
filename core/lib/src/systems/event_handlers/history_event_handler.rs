@@ -67,22 +67,32 @@ impl<'a> System<'a> for HistoryEventHandler {
 
 fn write_remove_events(command_event_channel: &mut CommandEventChannel, entities: &HashMap<Entity, Geometry>) {
   for (entity, _) in entities {
-    command_event_channel.single_write(CommandEvent::Remove(RemoveEvent::RemoveByHistory(*entity)));
+    command_event_channel.single_write(CommandEvent {
+      command: Command::Remove(RemoveEvent::RemoveByHistory(*entity)),
+      event_id: None,
+    });
   }
 }
 
 fn write_insert_events(command_event_channel: &mut CommandEventChannel, entities: &HashMap<Entity, Geometry>) {
   for (ent, geometry) in entities {
     let command = match geometry {
-      Geometry::Point(sym_point, point_style) => {
-        CommandEvent::PointInsert(InsertPointEvent::InsertPointByHistory(*ent, *sym_point, *point_style))
-      }
-      Geometry::Line(sym_line, line_style) => {
-        CommandEvent::LineInsert(InsertLineEvent::InsertLineByHistory(*ent, *sym_line, *line_style))
-      }
-      Geometry::Circle(sym_circle, circle_style) => CommandEvent::CircleInsert(
-        InsertCircleEvent::InsertCircleByHistory(*ent, *sym_circle, *circle_style),
-      ),
+      Geometry::Point(sym_point, point_style) => CommandEvent {
+        command: Command::PointInsert(InsertPointEvent::InsertPointByHistory(*ent, *sym_point, *point_style)),
+        event_id: None,
+      },
+      Geometry::Line(sym_line, line_style) => CommandEvent {
+        command: Command::LineInsert(InsertLineEvent::InsertLineByHistory(*ent, *sym_line, *line_style)),
+        event_id: None,
+      },
+      Geometry::Circle(sym_circle, circle_style) => CommandEvent {
+        command: Command::CircleInsert(InsertCircleEvent::InsertCircleByHistory(
+          *ent,
+          *sym_circle,
+          *circle_style,
+        )),
+        event_id: None,
+      },
     };
     command_event_channel.single_write(command);
   }
@@ -96,21 +106,26 @@ fn write_update_event(
 ) {
   // We don't need this line because the "update_finished" event is only used by history
   // geometry_event_channel.single_write(GeometryEvent::update_finished_by_history(*ent, *old_geom, *new_geom));
-  command_event_channel.single_write(CommandEvent::Update(UpdateEvent::UpdatePointByHistory(
-    *ent,
-    *old_sym_point,
-    *new_sym_point,
-  )));
+  command_event_channel.single_write(CommandEvent {
+    command: Command::Update(UpdateEvent::UpdatePointByHistory(*ent, *old_sym_point, *new_sym_point)),
+    event_id: None,
+  });
 }
 
 fn write_hide_events(command_event_channel: &mut CommandEventChannel, entities: &HashSet<Entity>) {
   for entity in entities {
-    command_event_channel.single_write(CommandEvent::Hide(HideEvent::HideByHistory(*entity)));
+    command_event_channel.single_write(CommandEvent {
+      command: Command::Hide(HideEvent::HideByHistory(*entity)),
+      event_id: None,
+    });
   }
 }
 
 fn write_unhide_events(command_event_channel: &mut CommandEventChannel, entities: &HashSet<Entity>) {
   for entity in entities {
-    command_event_channel.single_write(CommandEvent::Hide(HideEvent::UnhideByHistory(*entity)));
+    command_event_channel.single_write(CommandEvent {
+      command: Command::Hide(HideEvent::UnhideByHistory(*entity)),
+      event_id: None,
+    });
   }
 }

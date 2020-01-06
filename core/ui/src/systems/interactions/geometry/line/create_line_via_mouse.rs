@@ -78,7 +78,10 @@ impl<'a> System<'a> for CreateLineViaMouse {
                 LineType::Ray => SymbolicLine::Ray(first_point_ent, curr_ent),
                 LineType::Segment => SymbolicLine::Segment(first_point_ent, curr_ent),
               };
-              command_event_channel.single_write(CommandEvent::LineInsert(InsertLineEvent::InsertLine(sym_line)));
+              command_event_channel.single_write(CommandEvent {
+                command: Command::LineInsert(InsertLineEvent::InsertLine(sym_line)),
+                event_id: None,
+              });
               snap_line.maybe_first_point = None;
             }
           }
