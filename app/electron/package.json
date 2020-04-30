@@ -7,7 +7,7 @@
   "license": "ISC",
   "dependencies": {
     "electron-build-env": "^0.2.0",
-    "jquery": "^3.4.1",
+    "jquery": "^3.5.0",
     "neon-cli": "^0.2.0",
     "pixi-layers": "^0.2.2",
     "pixi.js": "^5.1.5"
