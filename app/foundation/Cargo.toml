@@ -11,4 +11,4 @@ name = "geopad_foundation"
 core-lib = { path = "../../core/lib" }
 core-ui = { path = "../../core/ui" }
 specs = "0.15"
-piston_window = "0.98"
+piston_window = "0.120"

@@ -52,7 +52,10 @@ pub fn handle_input<'a>(
       }
     }
     Input::Move(motion) => match motion {
-      Motion::MouseScroll(rel_scroll) => input_state.rel_scroll = input_state.rel_scroll + rel_scroll.into(),
+      Motion::MouseScroll(rel_scroll) => {
+        let conv_scroll = Vector2::new(-rel_scroll[0], rel_scroll[1]);
+        input_state.rel_scroll = input_state.rel_scroll + conv_scroll;
+      },
       Motion::MouseCursor(abs_pos) => input_state.mouse_abs_pos = From::<Vector2>::from(abs_pos.into()),
       Motion::MouseRelative(rel_mov) => {
         let scrn_rel_mov = From::<Vector2>::from(rel_mov.into());
